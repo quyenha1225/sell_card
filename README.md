@@ -1,16 +1,3 @@
-﻿# BBEcom
-
-![GitHub repo size](https://img.shields.io/github/repo-size/dokimkhanh/BBEcom)
-![GitHub stars](https://img.shields.io/github/stars/dokimkhanh/BBEcom?style=social)
-![GitHub forks](https://img.shields.io/github/forks/dokimkhanh/BBEcom?style=social)
-![GitHub issues](https://img.shields.io/github/issues/dokimkhanh/BBEcom)
-[![License](https://img.shields.io/github/license/dokimkhanh/BBEcom)](https://opensource.org/licenses/MIT)
-
-BBEcom là một ứng dụng quản lý bán hàng trực tuyến được xây dựng bằng **ASP.NET** với **Entity Framework**, hỗ trợ bán mã game tự động và tích hợp thanh toán qua **VNPay API**.
-
----
-
-## 📑 Table of Contents
 
 1. [Tính năng chính](#-tính-năng-chính)
 2. [Yêu cầu hệ thống](#-yêu-cầu-hệ-thống)
@@ -21,8 +8,6 @@ BBEcom là một ứng dụng quản lý bán hàng trực tuyến được xây
 7. [Đóng góp](#-đóng-góp)
 8. [Screenshots](#-screenshots)
 9. [License](#-license)
-
----
 
 
 ## 🔹 Tính năng chính
