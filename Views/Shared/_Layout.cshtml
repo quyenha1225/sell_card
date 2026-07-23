@@ -1,0 +1,393 @@
+﻿<!doctype html>
+<html lang="zxx">
+
+<!-- Mirrored from templates.envytheme.com/patoi/default/index.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 01 Dec 2021 12:20:34 GMT -->
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="/Content/Client/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/Content/Client/css/owl.carousel.min.css">
+    <link rel="stylesheet" href="/Content/Client/css/owl.theme.default.min.css">
+    <link rel="stylesheet" href="/Content/Client/css/magnific-popup.min.css">
+    <link rel="stylesheet" href="/Content/Client/css/animate.min.css">
+    <link rel="stylesheet" href="/Content/Client/css/rangeSlider.min.css">
+    <link rel="stylesheet" href="/Content/Client/css/odometer.min.css">
+    <link rel="stylesheet" href="/Content/Client/css/boxicons.min.css">
+    <link rel="stylesheet" href="/Content/Client/css/slick.min.css">
+    <link rel="stylesheet" href="/Content/Client/css/countrySelect.min.css">
+    <link rel="stylesheet" href="/Content/Client/css/meanmenu.min.css">
+    <link rel="stylesheet" href="/Content/Client/css/style.css">
+    <link rel="stylesheet" href="/Content/Client/css/responsive.css">
+
+    <title>@ViewBag.Title | GiftToi - Gift Card Shop</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/Content/Client/img/favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/Content/Client/img/favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/Content/Client/img/favicon_io/favicon-16x16.png">
+    <link rel="manifest" href="/Content/Client/img/favicon_io/site.webmanifest">
+</head>
+
+<body>
+
+    <div class="top-header-area">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-lg-4 col-md-4 col-sm-12">
+                    <p>FREE SHIP toàn cầu trong ngày 30/2!!</p>
+                </div>
+                <div class="col-lg-5 col-md-5 col-sm-6">
+                    <div class="search-box">
+                        <form>
+                            <input type="text" class="input-search" placeholder="Từ khoá tìm kiếm...">
+                            <button type="submit"><i class='bx bx-search'></i></button>
+                        </form>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-3 col-sm-6">
+                    <ul>
+                        <li><a href="#" target="_blank"><i class='bx bxl-facebook'></i></a></li>
+                        <li><a href="#" target="_blank"><i class='bx bxl-twitter'></i></a></li>
+                        <li><a href="#" target="_blank"><i class='bx bxl-instagram'></i></a></li>
+                        <li><a href="#" target="_blank"><i class='bx bxl-youtube'></i></a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="navbar-area">
+        <div class="patoi-responsive-nav">
+            <div class="container">
+                <div class="patoi-responsive-menu">
+                    <div class="logo">
+                        <a href="/"><img src="/Content/Client/img/logo.png" alt="logo"></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="patoi-nav">
+            <div class="container-fluid">
+                <nav class="navbar navbar-expand-md navbar-light">
+                    <a class="navbar-brand" href="/"><img src="/Content/Client/img/logo.png" alt="logo"></a>
+                    <div class="collapse navbar-collapse mean-menu">
+                        <ul class="navbar-nav">
+                            @{ Html.RenderAction("NavbarMenu", "Layout"); }
+                        </ul>
+                        <div class="others-option">
+                            <div class="d-flex align-items-center">
+                                <ul>
+                                    <li>
+                                        <div class="search-icon">
+                                            <i class='bx bx-search'></i>
+                                        </div>
+                                    </li>
+
+                                    @if (Session[BBEcom.Common.CommonConstants.USER_SESSION] != null)
+                                    {
+                                        <li>
+                                            <a href="/trang-ca-nhan">
+                                                <i class='bx bx-user-circle'></i>
+                                            </a>
+                                        </li>
+                                        if (((UserLogin)Session[BBEcom.Common.CommonConstants.USER_SESSION]).IsAdmin )
+                                        {
+                                            <li>
+                                                <a href="/Admin">
+                                                    <i class='bx bx-check-shield'></i>
+                                                </a>
+                                            </li>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <li>
+                                            <a href="/dang-nhap">
+                                                <i class='bx bx-log-in'></i>
+                                            </a>
+                                        </li>
+                                    }
+
+                                    <li>
+                                        <a href="/gio-hang" class="position-relative">
+                                            <i class='bx bx-cart'></i>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </div>
+        <div class="others-option-for-responsive">
+            <div class="container">
+                <div class="dot-menu">
+                    <div class="inner">
+                        <div class="circle circle-one"></div>
+                        <div class="circle circle-two"></div>
+                        <div class="circle circle-three"></div>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="option-inner">
+                        <div class="others-option">
+                            <ul>
+                                <li>
+                                    <select class="form-select">
+                                        <option selected>English</option>
+                                        <option value="1">Spanish</option>
+                                        <option value="2">Chinese</option>
+                                    </select>
+                                </li>
+                                <li>
+                                    <div class="search-icon">
+                                        <i class='bx bx-search'></i>
+                                    </div>
+                                </li>
+                                <li>
+                                    @if (Session[BBEcom.Common.CommonConstants.USER_SESSION] != null)
+                                    {
+                                        <a href="/trang-ca-nhan">
+                                            <i class='bx bx-user-circle'></i>
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <a href="/dang-nhap">
+                                            <i class='bx bx-log-in'></i>
+                                        </a>
+                                    }
+
+                                </li>
+                                <li>
+                                    <a href="/gio-hang" class="position-relative">
+                                        <i class='bx bx-cart'></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    @RenderBody()
+
+
+    <footer class="footer-area">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3 col-md-6 col-sm-6">
+                    <div class="single-footer-widget">
+                        <h3>
+                            TỔNG ĐÀI HỖ TRỢ
+                        </h3>
+                        <ul class="footer-contact-info">
+                            <li><span>Hotline:</span> <a href="tel:123456789">123456789</a></li>
+                            <li><span>Tư vấn:</span> <a href="tel:0987654231">0987654231</a></li>
+                            <li>
+                                <span>Email:</span> support@gifttoi.vn
+                            </li>
+                            <li>
+                                <span>Địa chỉ:</span> Ngọc Hồi,Thanh Trì, Hà Nội, Việt Nam
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 col-sm-6">
+                    <div class="single-footer-widget pl-4">
+                        <h3>THÔNG TIN</h3>
+                        <ul class="custom-links">
+                            <li><a href="/gioi-thieu-ve-chung-toi">Giới thiệu</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 col-sm-6">
+                    <div class="single-footer-widget">
+                        <h3>CHÍNH SÁCH</h3>
+                        <ul class="custom-links">
+                            <li><a href="#">Chính sách bảo hành</a></li>
+                            <li><a href="#">Chính sách bảo mật</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 col-sm-6">
+                    <div class="single-footer-widget">
+                        <h3>PHƯƠNG THỨC THANH TOÁN</h3>
+                        <div class="payment-types">
+                            <div class="d-flex align-items-center">
+                                <ul>
+                                    <li><img src="/Content/Client/img/payment/vnpay.png" alt="vnpay"></li>
+                                    <li><img src="/Content/Client/img/payment/visa.png" alt="visa"></li>
+                                    <li><img src="/Content/Client/img/payment/mc.png" alt="master-card"></li>
+                                    <li><img src="/Content/Client/img/payment/paypal.png" alt="paypal"></li>
+                                    <li><img src="/Content/Client/img/payment/ae.png" alt="american-express"></li>
+                                    <li><img src="/Content/Client/img/payment/discover.png" alt="discover"></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="copyright-area">
+            <div class="container">
+                <p>
+                    Copyright @DateTime.Now.Year <span>Giftoi</span>. Design & Developed by <a href="/">GIFTTOI</a>
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <div class="go-top"><i class='bx bx-upvote'></i></div>
+
+    <div class="productsFilterModal modal right fade" id="productsFilterModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-body">
+                    <aside class="widget-area">
+                        <div class="widget widget_categories">
+                            <h3 class="widget-title"><span>Categories</span></h3>
+                            <ul>
+                                <li><a href="shop-left-sidebar.html">Business</a></li>
+                                <li><a href="shop-left-sidebar.html">Privacy</a></li>
+                                <li><a href="shop-left-sidebar.html">Technology</a></li>
+                                <li><a href="shop-left-sidebar.html">Tips</a></li>
+                                <li><a href="shop-left-sidebar.html">Log in</a></li>
+                                <li><a href="shop-left-sidebar.html">Uncategorized</a></li>
+                            </ul>
+                        </div>
+                        <div class="widget widget_price_filter">
+                            <h3 class="widget-title"><span>Filter by Price</span></h3>
+                            <div class="collection_filter_by_price">
+                                <input class="js-range-of-price" type="text" data-min="0" data-max="1055"
+                                       name="filter_by_price" data-step="10">
+                            </div>
+                        </div>
+                        <div class="widget widget_patoi_posts_thumb">
+                            <h3 class="widget-title"><span>Our Best Sellers</span></h3>
+                            <article class="item">
+                                <a href="products-details.html" class="thumb">
+                                    <img src="/Content/Client/img/products/products1.jpg" alt="blog-image">
+                                </a>
+                                <div class="info">
+                                    <h4 class="title"><a href="products-details.html">Pet brash</a></h4>
+                                    <div class="star-rating">
+                                        <i class='bx bxs-star'></i>
+                                        <i class='bx bxs-star'></i>
+                                        <i class='bx bxs-star'></i>
+                                        <i class='bx bxs-star'></i>
+                                        <i class='bx bxs-star'></i>
+                                    </div>
+                                    <span class="price">$150.00</span>
+                                </div>
+                            </article>
+                            <article class="item">
+                                <a href="products-details.html" class="thumb">
+                                    <img src="/Content/Client/img/products/products2.jpg" alt="blog-image">
+                                </a>
+                                <div class="info">
+                                    <h4 class="title"><a href="products-details.html">Automatic dog blue leash</a></h4>
+                                    <div class="star-rating">
+                                        <i class='bx bxs-star'></i>
+                                        <i class='bx bxs-star'></i>
+                                        <i class='bx bxs-star'></i>
+                                        <i class='bx bxs-star'></i>
+                                        <i class='bx bxs-star'></i>
+                                    </div>
+                                    <span class="price">$150.00</span>
+                                </div>
+                            </article>
+                            <article class="item">
+                                <a href="products-details.html" class="thumb">
+                                    <img src="/Content/Client/img/products/products3.jpg" alt="blog-image">
+                                </a>
+                                <div class="info">
+                                    <h4 class="title"><a href="products-details.html">Cat toilet bowl</a></h4>
+                                    <div class="star-rating">
+                                        <i class='bx bxs-star'></i>
+                                        <i class='bx bxs-star'></i>
+                                        <i class='bx bxs-star'></i>
+                                        <i class='bx bxs-star'></i>
+                                        <i class='bx bxs-star'></i>
+                                    </div>
+                                    <span class="price">$150.00</span>
+                                </div>
+                            </article>
+                            <article class="item">
+                                <a href="products-details.html" class="thumb">
+                                    <img src="/Content/Client/img/products/products4.jpg" alt="blog-image">
+                                </a>
+                                <div class="info">
+                                    <h4 class="title"><a href="products-details.html">Bowl with rubber toy</a></h4>
+                                    <div class="star-rating">
+                                        <i class='bx bxs-star'></i>
+                                        <i class='bx bxs-star'></i>
+                                        <i class='bx bxs-star'></i>
+                                        <i class='bx bxs-star'></i>
+                                        <i class='bx bxs-star'></i>
+                                    </div>
+                                    <span class="price">$150.00</span>
+                                </div>
+                            </article>
+                        </div>
+                        <div class="widget widget_tag_cloud">
+                            <h3 class="widget-title"><span>Tags</span></h3>
+                            <div class="tagcloud">
+                                <a href="shop-left-sidebar.html">Advertisment</a>
+                                <a href="shop-left-sidebar.html">Business</a>
+                                <a href="shop-left-sidebar.html">Life</a>
+                                <a href="shop-left-sidebar.html">Lifestyle</a>
+                                <a href="shop-left-sidebar.html">Fashion</a>
+                                <a href="shop-left-sidebar.html">Ads</a>
+                                <a href="shop-left-sidebar.html">Advertisment</a>
+                            </div>
+                        </div>
+                        <div class="widget widget_follow_us">
+                            <h3 class="widget-title"><span>Follow Us</span></h3>
+                            <ul>
+                                <li><a href="#" target="_blank">Facebook</a></li>
+                                <li><a href="#" target="_blank">Twitter</a></li>
+                                <li><a href="#" target="_blank">Instagram</a></li>
+                                <li><a href="#" target="_blank">Pinterest</a></li>
+                                <li><a href="#" target="_blank">Linkedin</a></li>
+                            </ul>
+                        </div>
+                    </aside>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/Content/Client/js/jquery.min.js"></script>
+    <script src="/Scripts/jquery.unobtrusive-ajax.js"></script>
+    <script src="/Content/Client/js/bootstrap.bundle.min.js"></script>
+    <script src="/Content/Client/js/magnific-popup.min.js"></script>
+    <script src="/Content/Client/js/meanmenu.min.js"></script>
+    <script src="/Content/Client/js/appear.min.js"></script>
+    <script src="/Content/Client/js/countrySelect.min.js"></script>
+    <script src="/Content/Client/js/odometer.min.js"></script>
+    <script src="/Content/Client/js/loopcounter.js"></script>
+    <script src="/Content/Client/js/owl.carousel.min.js"></script>
+    <script src="/Content/Client/js/rangeSlider.min.js"></script>
+    <script src="/Content/Client/js/slick.min.js"></script>
+    <script src="/Content/Client/js/form-validator.min.js"></script>
+    <script src="/Content/Client/js/contact-form-script.js"></script>
+    <script src="/Content/Client/js/ajaxchimp.min.js"></script>
+    <script src="/Content/Client/js/main.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+    @RenderSection("jsFooter", required: false)
+</body>
+
+<!-- Mirrored from templates.envytheme.com/patoi/default/index.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 01 Dec 2021 12:20:57 GMT -->
+
+</html>

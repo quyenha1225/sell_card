@@ -1,0 +1,35 @@
+﻿.payment-container {
+    display: flex;
+    justify-content: center;
+    padding: 60px 20px;
+    background: #f6f8fc;
+}
+
+.payment-card {
+    width: 100%;
+    max-width: 620px;
+    padding: 32px;
+    border-radius: 20px;
+    background: #fff;
+    box-shadow: 0 20px 60px rgba(20, 30, 55, 0.12);
+}
+
+.payment-qr {
+    display: block;
+    width: 100%;
+    max-width: 420px;
+    margin: 24px auto;
+}
+
+.payment-information {
+    padding: 20px;
+    border-radius: 14px;
+    background: #f7f9fc;
+}
+
+    .payment-information p {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        margin: 10px 0;
+    }

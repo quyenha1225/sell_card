@@ -1,0 +1,67 @@
+﻿@model BBEcom.Models.ViewModels.BankTransferViewModel
+
+@{
+    ViewBag.Title = "Thanh toán chuyển khoản";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="payment-container">
+    <div class="payment-card">
+        <h2>Thanh toán chuyển khoản</h2>
+
+        <p>
+            Quét mã QR bằng ứng dụng ngân hàng để thanh toán.
+        </p>
+
+        <img src="@Model.QrUrl"
+             alt="QR thanh toán đơn @Model.OrderCode"
+             class="payment-qr" />
+
+        <div class="payment-information">
+            <p>
+                <strong>Ngân hàng:</strong>
+                @Model.BankName
+            </p>
+
+            <p>
+                <strong>Số tài khoản:</strong>
+                @Model.AccountNumber
+            </p>
+
+            <p>
+                <strong>Chủ tài khoản:</strong>
+                @Model.AccountName
+            </p>
+
+            <p>
+                <strong>Số tiền:</strong>
+                @Model.Amount.ToString("N0")đ
+            </p>
+
+            <p>
+                <strong>Nội dung:</strong>
+                @Model.OrderCode
+            </p>
+        </div>
+
+        <div class="alert alert-warning">
+            Vui lòng chuyển đúng số tiền và đúng nội dung để
+            quản trị viên xác nhận đơn hàng.
+        </div>
+
+        @using (Html.BeginForm(
+            "ConfirmTransferRequest",
+            "Cart",
+            FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+
+            @Html.HiddenFor(model => model.OrderId)
+
+            <button type="submit"
+                    class="btn btn-primary">
+                Tôi đã chuyển khoản
+            </button>
+        }
+    </div>
+</div>
