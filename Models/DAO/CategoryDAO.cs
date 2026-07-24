@@ -3,6 +3,7 @@ using PagedList;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Data.Entity;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -19,7 +20,7 @@ namespace Models.DAO
 
         public IEnumerable<Category> GetCategories(string txtSearch, int page, int pageSize)
         {
-            IQueryable<Category> model = _context.Categories;
+            IQueryable<Category> model = _context.Categories.AsNoTracking();
             if (!string.IsNullOrEmpty(txtSearch))
             {
                 model = model.Where(x => x.Name.Contains(txtSearch) || x.Alias.Contains(txtSearch));

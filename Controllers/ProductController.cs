@@ -27,6 +27,12 @@ namespace BBEcom.Controllers
         public ActionResult Detail(int id)
         {
             var product = new ProductDAO().GetProductById(id);
+            if (product == null || product.Status != true)
+            {
+                return HttpNotFound();
+            }
+
+            ViewBag.Stock = new GiftcardDAO().GetStock(id);
             return View(product);
         }
 

@@ -12,13 +12,23 @@ namespace BBEcom.Controllers
     {
         protected override void OnActionExecuting(ActionExecutingContext filterContext)
         {
+            var allowAnonymous = filterContext.ActionDescriptor.IsDefined(typeof(AllowAnonymousAttribute), true)
+                || filterContext.ActionDescriptor.ControllerDescriptor.IsDefined(typeof(AllowAnonymousAttribute), true);
+
+            if (allowAnonymous)
+            {
+                base.OnActionExecuting(filterContext);
+                return;
+            }
+
             var sess = (UserLogin)Session[CommonConstants.USER_SESSION];
             if (sess == null)
             {
                 filterContext.Result = new RedirectToRouteResult(new RouteValueDictionary(new
                 {
                     controller = "Login",
-                    action = "Index"
+                    action = "Index",
+                    returnUrl = filterContext.HttpContext.Request.RawUrl
                 }));
             }
             base.OnActionExecuting(filterContext);

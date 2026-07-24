@@ -1,5 +1,5 @@
 ﻿<!doctype html>
-<html lang="en">
+<html lang="vi">
 
 <head>
     <meta charset="utf-8">
@@ -8,9 +8,11 @@
     <link rel="shortcut icon" type="image/png" href="~/Content/Admin/images/logos/favicon.png" />
     <link rel="stylesheet" href="~/Content/Admin/css/styles.min.css" />
     <link href="~/Content/PagedList.css" rel="stylesheet" />
+    <link href="~/Content/Admin/css/admin-modern.css" rel="stylesheet" />
 </head>
 
 <body>
+    <div class="admin-loadbar" aria-hidden="true"></div>
     <!--  Body Wrapper -->
     <div class="page-wrapper" id="main-wrapper" data-layout="vertical" data-navbarbg="skin6" data-sidebartype="full"
          data-sidebar-position="fixed" data-header-position="fixed">
@@ -209,7 +211,6 @@
             </div>
         </div>
     </div>
-    <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
     <script src="~/Content/Admin/libs/jquery/dist/jquery.min.js"></script>
     @*<script src="~/Scripts/jquery.validate.unobtrusive.min.js"></script>*@
     <script src="~/Scripts/jquery.unobtrusive-ajax.min.js"></script>
@@ -219,8 +220,12 @@
     @*<script src="~/Content/Admin/libs/apexcharts/dist/apexcharts.min.js"></script>*@
     <script src="~/Content/Admin/libs/simplebar/dist/simplebar.js"></script>
     @*<script src="~/Content/Admin/js/dashboard.js"></script>*@
-    <script src="~/Content/Admin/ckfinder/ckfinder.js"></script>
-    <script src="~/Content/Admin/ckeditor/ckeditor.js"></script>
+    @if ((string)ViewContext.RouteData.Values["action"] == "Create" || (string)ViewContext.RouteData.Values["action"] == "Edit")
+    {
+        <script src="~/Content/Admin/ckfinder/ckfinder.js"></script>
+        <script src="~/Content/Admin/ckeditor/ckeditor.js"></script>
+    }
+    <script src="~/Content/Admin/js/admin-modern.js"></script>
     @RenderSection("scripts", required: false)
 </body>
 

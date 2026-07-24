@@ -1,0 +1,12 @@
+﻿@model IEnumerable<Models.EF.News>
+@{ ViewBag.Title = "Tin tức"; Layout = "~/Views/Shared/_Layout.cshtml"; var first = Model.FirstOrDefault(); }
+<link rel="stylesheet" href="/Content/Client/css/news-modern.css" />
+<main class="news-page">
+    <header class="news-index-hero"><div class="container"><span class="news-kicker">KIẾN THỨC & CẬP NHẬT</span><h1>Tin tức GiftToi</h1><p>Hướng dẫn sử dụng, ưu đãi mới và những thông tin hữu ích về sản phẩm kỹ thuật số.</p></div></header>
+    <section class="news-list-section"><div class="container">
+        @if (first != null){<article class="featured-news"><a href="/tin-tuc/@first.Alias-@first.Id"><img src="@first.Image" alt="@first.Title" /></a><div><span class="news-label">BÀI VIẾT NỔI BẬT</span><h2><a href="/tin-tuc/@first.Alias-@first.Id">@first.Title</a></h2><p>@(first.CreateDate.HasValue ? first.CreateDate.Value.ToString("dd MMMM, yyyy") : "Tin mới") · 5 phút đọc</p><a class="read-more" href="/tin-tuc/@first.Alias-@first.Id">Đọc bài viết <i class="bx bx-right-arrow-alt"></i></a></div></article>}
+        <div class="news-section-title"><div><span>BÀI VIẾT MỚI</span><h2>Khám phá thêm</h2></div></div>
+        <div class="news-grid">@foreach(var item in Model.Skip(1)){<article class="news-card"><a class="news-card-image" href="/tin-tuc/@item.Alias-@item.Id"><img src="@item.Image" alt="@item.Title"/></a><div class="news-card-body"><span>@(item.CreateDate.HasValue ? item.CreateDate.Value.ToString("dd/MM/yyyy") : "Tin mới")</span><h3><a href="/tin-tuc/@item.Alias-@item.Id">@item.Title</a></h3><a href="/tin-tuc/@item.Alias-@item.Id">Xem chi tiết <i class="bx bx-right-arrow-alt"></i></a></div></article>}</div>
+        @if (!Model.Any()){<div class="news-empty"><i class="bx bx-news"></i><h2>Chưa có bài viết</h2><p>Nội dung mới sẽ sớm được cập nhật.</p></div>}
+    </div></section>
+</main>

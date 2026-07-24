@@ -1,117 +1,45 @@
-﻿@model IEnumerable<Models.EF.Product>
+﻿@using PagedList.Mvc
+@model PagedList.IPagedList<Models.EF.Product>
 
-@if (Model != null)
+@foreach (var item in Model)
 {
-    foreach (var item in Model)
-    {
-        <div class="col-lg-3 col-md-6 col-sm-6">
-            <div class="single-products-box">
-                <div class="image">
-                    <a href="/san-pham/@item.Alias-@(item.Id)" class="d-block">
-                        <img src="@item.Images" alt="products-@item.Name">
-                    </a>
-                    <ul class="products-button">
-                        @if (item.Giftcard.Where(x => x.ProductId == item.Id).Count() >= 1)
-                        {
-                            <li><a href="/gio-hang/them-@item.Id-1"><i class='bx bx-cart-alt'></i></a></li>
-                        }
-                        <li>
-                            <a href="#" data-bs-toggle="modal" data-bs-target="#productsQuickView-@item.Id">
-                                <i class='bx bx-show'></i>
-                            </a>
-                        </li>
-                        <li><a href="/san-pham/@item.Alias-@(item.Id)"><i class='bx bx-link-alt'></i></a></li>
-                    </ul>
-                </div>
-                <div class="content">
-                    <h3><a href="/san-pham/@item.Alias-@(item.Id)">@item.Name</a></h3>
-                    <div class="price">
-                        <span class="new-price">
-                            @{
-                                int money = item.Price;
-                                if (item.PriceSale > 0)
-                                {
-                                    money = item.PriceSale.Value;
-                                }
-                            }
-                            @BBEcom.Common.CommonHelper.ConvertMoney(@money)đ
-                        </span>
-                    </div>
-                    <div class="rating">
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bxs-star'></i>
-                        <i class='bx bxs-star'></i>
-                    </div>
+    var hasSale = item.PriceSale.HasValue && item.PriceSale.Value > 0 && item.PriceSale.Value < item.Price;
+    var price = hasSale ? item.PriceSale.Value : item.Price;
+    var stock = item.Giftcard.Count(x => x.ProductId == item.Id);
+    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
+        <article class="single-products-box modern-product-card">
+            <div class="image">
+                @if (hasSale)
+                {
+                    var percent = (int)Math.Round((item.Price - item.PriceSale.Value) * 100m / item.Price);
+                    <span class="store-sale-badge">-@percent%</span>
+                }
+                else
+                { <span class="store-new-badge">MỚI</span> }
+                <a href="/san-pham/@item.Alias-@item.Id" class="product-image-link"><img src="@item.Images" alt="@item.Name" /></a>
+                <div class="product-card-actions">
+                    <a href="/san-pham/@item.Alias-@item.Id" aria-label="Xem chi tiết"><i class="bx bx-show"></i></a>
+                    @if (stock > 0)
+                    { <a href="/san-pham/@item.Alias-@item.Id" aria-label="Chọn mua"><i class="bx bx-cart-add"></i></a> }
                 </div>
             </div>
-        </div>
-
-        <div class="modal fade productsQuickView" id="productsQuickView-@item.Id" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    <div class="modal-body">
-                        <div class="row align-items-center">
-                            <div class="col-lg-6 col-md-6">
-                                <div class="image">
-                                    <img src="@item.Images" alt="image">
-                                </div>
-                            </div>
-                            <div class="col-lg-6 col-md-6">
-                                <div class="content">
-                                    <h3><a href="/san-pham/@item.Alias-@(item.Id)">@item.Name</a></h3>
-                                    <div class="price">
-                                        @if (item.PriceSale > 0)
-                                        {
-                                            <span class="new-price">@BBEcom.Common.CommonHelper.ConvertMoney(item.PriceSale.Value)đ</span>
-                                            <span class="old-price">@BBEcom.Common.CommonHelper.ConvertMoney(item.Price)đ</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="new-price">@BBEcom.Common.CommonHelper.ConvertMoney(item.Price)đ</span>
-                                        }
-                                    </div>
-                                    <div class="rating">
-                                        <i class='bx bxs-star'></i>
-                                        <i class='bx bxs-star'></i>
-                                        <i class='bx bxs-star'></i>
-                                        <i class='bx bxs-star'></i>
-                                        <i class='bx bxs-star'></i>
-                                    </div>
-                                    <p>
-                                        Nhấn vào sản phẩm để xem chi tiết hơn về sản phẩm này.
-                                    </p>
-                                    <div class="products-add-to-cart">
-                                        <div class="input-counter">
-                                            <span class="minus-btn"><i class='bx bx-minus'></i></span>
-                                            <input type="text" value="1" id="productQuantity">
-                                            <span class="plus-btn"><i class='bx bx-plus'></i></span>
-                                        </div>
-                                        @if (item.Giftcard.Where(x => x.ProductId == item.Id).Count() >= 1)
-                                        {
-                                            <a href="/gio-hang/them-@item.Id-1" class="default-btn"><span>Thêm vào giỏ hàng</span></a>
-                                        }
-                                        else
-                                        {
-                                            <a href="#" class="default-btn disabled"><span>Hết hàng</span></a>
-
-                                        }
-                                    </div>
-                                    <br />
-                                    <ul class="products-info">
-                                        <li><span>SKU:</span> KSP@(item.Id)</li>
-                                        <li><span>Danh mục:</span> <a href="/danh-muc/@(item.Category.Alias)-@(item.Category.Id)">@item.Category.Name</a></li>
-                                        <li><span>Còn lại:</span> Trong kho (@item.Giftcard.Count code còn lại)</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+            <div class="content">
+                <div class="product-card-meta"><span>@(item.Category == null ? "Gift Card" : item.Category.Name)</span><span><i class="bx bxs-star"></i> 5.0</span></div>
+                <h3><a href="/san-pham/@item.Alias-@item.Id">@item.Name</a></h3>
+                <div class="product-card-bottom"><div class="price"><span class="new-price">@BBEcom.Common.CommonHelper.ConvertMoney(price)đ</span>@if(hasSale){<span class="old-price">@BBEcom.Common.CommonHelper.ConvertMoney(item.Price)đ</span>}</div><span class="stock-mini @(stock > 0 ? "" : "sold-out")">@(stock > 0 ? "Còn hàng" : "Hết hàng")</span></div>
+                <div class="product-card-cta">
+                    <a class="detail-card-btn" href="/san-pham/@item.Alias-@item.Id"><i class="bx bx-show"></i><span>Xem chi tiết</span></a>
+                    @if (stock > 0)
+                    { <button type="button" class="cart-card-btn js-quick-add" data-url="/gio-hang/them-@item.Id-1"><i class="bx bx-cart-add"></i><span>Thêm vào giỏ</span></button> }
+                    else
+                    { <button type="button" class="cart-card-btn" disabled><i class="bx bx-x-circle"></i><span>Hết hàng</span></button> }
                 </div>
             </div>
-        </div>
-    }
+        </article>
+    </div>
+}
 
+@if (Model.PageCount > 1)
+{
+    <div class="col-12 storefront-pagination">@Html.PagedListPager(Model, page => Url.Action("Index", "Home", new { page = page }) + "#storefront-products")</div>
 }

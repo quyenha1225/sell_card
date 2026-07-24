@@ -1,5 +1,9 @@
 ﻿<!doctype html>
-<html lang="zxx">
+@{
+    var layoutCart = Session["CART_SESSION"] as List<BBEcom.Models.Cart>;
+    var layoutCartCount = layoutCart == null ? 0 : layoutCart.Sum(x => x.Quantity);
+}
+<html lang="vi">
 
 <!-- Mirrored from templates.envytheme.com/patoi/default/index.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 01 Dec 2021 12:20:34 GMT -->
 
@@ -21,6 +25,7 @@
     <link rel="stylesheet" href="/Content/Client/css/meanmenu.min.css">
     <link rel="stylesheet" href="/Content/Client/css/style.css">
     <link rel="stylesheet" href="/Content/Client/css/responsive.css">
+    <link rel="stylesheet" href="/Content/Client/css/site-modern.css">
 
     <title>@ViewBag.Title | GiftToi - Gift Card Shop</title>
     <link rel="apple-touch-icon" sizes="180x180" href="/Content/Client/img/favicon_io/apple-touch-icon.png">
@@ -113,6 +118,7 @@
                                     <li>
                                         <a href="/gio-hang" class="position-relative">
                                             <i class='bx bx-cart'></i>
+                                            <span class="cart-count @(layoutCartCount > 0 ? "has-items" : "")">@layoutCartCount</span>
                                         </a>
                                     </li>
                                 </ul>
@@ -165,6 +171,7 @@
                                 <li>
                                     <a href="/gio-hang" class="position-relative">
                                         <i class='bx bx-cart'></i>
+                                        <span class="cart-count @(layoutCartCount > 0 ? "has-items" : "")">@layoutCartCount</span>
                                     </a>
                                 </li>
                             </ul>
@@ -381,6 +388,7 @@
     <script src="/Content/Client/js/contact-form-script.js"></script>
     <script src="/Content/Client/js/ajaxchimp.min.js"></script>
     <script src="/Content/Client/js/main.js"></script>
+    <script src="/Content/Client/js/site-modern.js"></script>
 
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>

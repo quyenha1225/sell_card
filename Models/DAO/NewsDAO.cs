@@ -3,6 +3,7 @@ using PagedList;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Data.Entity;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -19,7 +20,7 @@ namespace Models.DAO
 
         public IEnumerable<News> GetNews()
         {
-            return _dbContext.News.OrderByDescending(x => x.Id).ToList();
+            return _dbContext.News.AsNoTracking().OrderByDescending(x => x.Id).ToList();
         }
 
         public News GetNewsById(int id)
@@ -29,7 +30,7 @@ namespace Models.DAO
 
         public IEnumerable<News> GetAllNews(string txtSearch, int page, int pageSize)
         {
-            IQueryable<News> model = _dbContext.News;
+            IQueryable<News> model = _dbContext.News.AsNoTracking();
             if (!string.IsNullOrEmpty(txtSearch))
             {
                 model = model.Where(x => x.Title.Contains(txtSearch));

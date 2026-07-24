@@ -1,119 +1,18 @@
 ﻿@model Models.EF.News
 @{
-    ViewBag.Title = "View";
+    ViewBag.Title = Model.Title;
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var related = ViewBag.RelatedNews as IEnumerable<Models.EF.News>;
 }
-
-<div class="blog-details-area ptb-100">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-12 col-md-12">
-                <div class="blog-details-desc">
-                    <div class="post-thumb">
-                        <img src="@Model.Image" alt="blog-details" />
-                    </div>
-                    <h4>@Model.Title</h4>
-                    <div class="post-meta">
-                        <ul>
-                            <li><i class="bx bx-calendar"></i> @Model.CreateDate</li>
-                            <li>
-                                <i class="bx bx-comment-detail"></i>
-                                <a href="#">4 Bình luận</a>
-                            </li>
-                        </ul>
-                    </div>
-                    @Html.Raw(Model.Description)
-                    <div class="post-footer">
-                        <div class="post-tags">
-                            <span class="sub">Tags:</span>
-                            <ul>
-                                <li><a href="#" rel="tag">Fashion</a></li>
-                                <li><a href="#" rel="tag">Design</a></li>
-                            </ul>
-                        </div>
-                        <div class="article-share">
-                            <ul class="social">
-                                <li><span>Share:</span></li>
-                                <li>
-                                    <a href="#" class="facebook" target="_blank">
-                                        <i class="bx bxl-facebook"></i>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" class="twitter" target="_blank">
-                                        <i class="bx bxl-twitter"></i>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" class="linkedin" target="_blank">
-                                        <i class="bx bxl-linkedin"></i>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" class="instagram" target="_blank">
-                                        <i class="bx bxl-instagram"></i>
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                <div class="comments-area">
-                    <h3 class="comments-title">2 Comments:</h3>
-                    <ol class="comment-list">
-                        <li class="comment">
-                            <div class="comment-body">
-                                <footer class="comment-meta">
-                                    <div class="comment-author vcard">
-                                        <img src="/Content/Client/img/user/user1.jpg"
-                                             class="avatar"
-                                             alt="user" />
-                                        <b class="fn">John Jones</b>
-                                    </div>
-                                    <div class="comment-metadata">
-                                        <span>January 01, 2021 at 10:59 am</span>
-                                    </div>
-                                </footer>
-                                <div class="comment-content">
-                                    <p>
-                                        Lorem Ipsum has been the industry’s standard dummy text
-                                        ever since the 1500s, when an unknown printer took a
-                                        galley of type and scrambled it to make a type specimen.
-                                    </p>
-                                </div>
-                                <div class="reply">
-                                    <a href="#" class="comment-reply-link">Reply</a>
-                                </div>
-                            </div>
-                        </li>
-                        <li class="comment">
-                            <div class="comment-body">
-                                <footer class="comment-meta">
-                                    <div class="comment-author vcard">
-                                        <img src="/Content/Client/img/user/user4.jpg"
-                                             class="avatar"
-                                             alt="user" />
-                                        <b class="fn">John Doe</b>
-                                    </div>
-                                    <div class="comment-metadata">
-                                        <span>January 04, 2021 at 05:59 am</span>
-                                    </div>
-                                </footer>
-                                <div class="comment-content">
-                                    <p>
-                                        Lorem Ipsum has been the industry’s standard dummy text
-                                        ever since the 1500s, when an unknown printer took a
-                                        galley of type and scrambled it to make a type specimen.
-                                    </p>
-                                </div>
-                                <div class="reply">
-                                    <a href="#" class="comment-reply-link">Reply</a>
-                                </div>
-                            </div>
-                        </li>
-                    </ol>
-                </div>
-            </div>
-        </div>
+<link rel="stylesheet" href="/Content/Client/css/news-modern.css" />
+<main class="news-page">
+    <header class="news-detail-hero"><div class="container"><nav><a href="/">Trang chủ</a><i class="bx bx-chevron-right"></i><a href="/tin-tuc">Tin tức</a></nav><span class="news-kicker">GIFTTOI JOURNAL</span><h1>@Model.Title</h1><div class="article-meta"><span><i class="bx bx-calendar"></i> @(Model.CreateDate.HasValue ? Model.CreateDate.Value.ToString("dd/MM/yyyy") : "Đang cập nhật")</span><span><i class="bx bx-time-five"></i> 5 phút đọc</span></div></div></header>
+    <div class="container article-layout">
+        <article class="article-card">
+            <img class="article-cover" src="@Model.Image" alt="@Model.Title" />
+            <div class="article-body">@Html.Raw(Model.Description)</div>
+            <footer class="article-footer"><span><i class="bx bx-purchase-tag-alt"></i> Tin tức · Hướng dẫn · Gift Card</span><a href="/tin-tuc"><i class="bx bx-left-arrow-alt"></i> Xem tất cả bài viết</a></footer>
+        </article>
+        <aside class="related-news"><div class="related-box"><span class="aside-label">ĐỌC TIẾP</span><h3>Bài viết mới</h3>@if (related != null){foreach(var item in related){<a class="related-item" href="/tin-tuc/@item.Alias-@item.Id"><img src="@item.Image" alt="@item.Title"/><span><strong>@item.Title</strong><small>@(item.CreateDate.HasValue ? item.CreateDate.Value.ToString("dd/MM/yyyy") : "Tin mới")</small></span></a>}}</div></aside>
     </div>
-</div>
+</main>

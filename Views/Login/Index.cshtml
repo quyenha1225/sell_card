@@ -24,7 +24,11 @@
             <div class="col-lg-6 col-md-12">
                 <div class="login-form">
                     <h2>ĐĂNG NHẬP</h2>
-                    @using (Html.BeginForm("Login", "Login", FormMethod.Post))
+                    @if (TempData["LoginSuccess"] != null)
+                    {
+                        <div class="alert alert-success"><i class="bx bx-check-circle"></i> @TempData["LoginSuccess"]</div>
+                    }
+                    @using (Html.BeginForm("Login", "Login", new { returnUrl = ViewBag.ReturnUrl }, FormMethod.Post, null))
                     {
                         @Html.AntiForgeryToken()
                         @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
@@ -47,7 +51,7 @@
                                 </div>
                             </div>
                             <div class="col-lg-6 col-md-6 col-sm-6 col-6 lost-your-password-wrap">
-                                <a href="/dang-ky" class="lost-your-password">Đăng ký mới?</a>
+                                <a href="@Url.Action("Index", "Register", new { returnUrl = ViewBag.ReturnUrl })" class="lost-your-password">Đăng ký mới?</a>
                                 <p></p>
                                 <a href="#" class="lost-your-password">Quên mật khẩu?</a>
                             </div>

@@ -10,8 +10,9 @@ namespace BBEcom.Controllers
     [HandleError]
     public class HomeController : Controller
     {
-        public ActionResult Index()
+        public ActionResult Index(int page = 1)
         {
+            ViewBag.ProductPage = Math.Max(1, page);
             return View();
         }
 
@@ -27,9 +28,9 @@ namespace BBEcom.Controllers
             return PartialView(model);
         }
 
-        public PartialViewResult ListProduct()
+        public PartialViewResult ListProduct(int page = 1)
         {
-            var list = new ProductDAO().GetListProduct(20);
+            var list = new ProductDAO().GetStorefrontProducts(Math.Max(1, page), 8);
             return PartialView(list);
         }
     }

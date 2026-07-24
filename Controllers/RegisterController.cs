@@ -12,19 +12,20 @@ namespace BBEcom.Controllers
     public class RegisterController : Controller
     {
         // GET: Register
-        public ActionResult Index()
+        public ActionResult Index(string returnUrl = null)
         {
             var sess = (UserLogin)Session[CommonConstants.USER_SESSION];
             if (sess != null) //had login
             {
                 return RedirectToAction("Index", "Home");
             }
+            ViewBag.ReturnUrl = returnUrl;
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Register(Account model)
+        public ActionResult Register(Account model, string returnUrl = null)
         {
             model.Status = true;
             model.IsAdmin = false;
@@ -38,8 +39,8 @@ namespace BBEcom.Controllers
                     var res = dao.InsertUser(model);
                     if (res > 0)
                     {
-                        ModelState.AddModelError("", "Đăng ký thành viên mới thành công!");
-                        return View("Index");
+                        TempData["LoginSuccess"] = "Đăng ký tài khoản thành công. Vui lòng đăng nhập để tiếp tục mua hàng.";
+                        return RedirectToAction("Index", "Login", new { returnUrl = returnUrl });
                     }
                     else
                     {
@@ -52,7 +53,8 @@ namespace BBEcom.Controllers
                     ModelState.AddModelError("", "Tên đăng nhập này đã tồn tại!");
                 }
             }
-            return View("Index");
+            ViewBag.ReturnUrl = returnUrl;
+            return View("Index", model);
         }
     }
 }

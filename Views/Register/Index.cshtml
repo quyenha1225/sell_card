@@ -22,7 +22,7 @@
             <div class="col-lg-6 col-md-12">
                 <div class="login-form">
                     <h2>ĐĂNG KÝ NGƯỜI DÙNG</h2>
-                    @using (Html.BeginForm("Register", "Register", FormMethod.Post))
+                    @using (Html.BeginForm("Register", "Register", new { returnUrl = ViewBag.ReturnUrl }, FormMethod.Post, null))
                     {
                         @Html.AntiForgeryToken()
                         @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
@@ -52,7 +52,7 @@
                             <div class="col-lg-6 col-md-6 col-sm-6 col-6 remember-me-wrap">
                             </div>
                             <div class="col-lg-6 col-md-6 col-sm-6 col-6 lost-your-password-wrap">
-                                <a href="/dang-nhap" class="lost-your-password">Đã có tài khoản? Đăng nhập</a>
+                                <a href="@Url.Action("Index", "Login", new { returnUrl = ViewBag.ReturnUrl })" class="lost-your-password">Đã có tài khoản? Đăng nhập</a>
                             </div>
                         </div>
                     }

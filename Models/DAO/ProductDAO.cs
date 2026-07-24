@@ -3,6 +3,7 @@ using PagedList;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Data.Entity;
 
 namespace Models.DAO
 {
@@ -17,7 +18,7 @@ namespace Models.DAO
 
         public IEnumerable<Product> GetProducts(string txtSearch, int page, int pageSize)
         {
-            IQueryable<Product> model = _context.Products.Where(x => x.Status == true);
+            IQueryable<Product> model = _context.Products.AsNoTracking().Include(x => x.Category).Where(x => x.Status == true);
             if (!string.IsNullOrEmpty(txtSearch))
             {
                 model = model.Where(x => x.Name.Contains(txtSearch) || x.Alias.Contains(txtSearch));
@@ -83,10 +84,24 @@ namespace Models.DAO
             return _context.Products.OrderByDescending(x => x.CreatedDate).ToList();
         }
 
+        public IPagedList<Product> GetStorefrontProducts(int page, int pageSize)
+        {
+            return _context.Products
+                .Where(x => x.Status == true)
+                .OrderByDescending(x => x.PriceSale.HasValue && x.PriceSale.Value > 0 && x.PriceSale.Value < x.Price)
+                .ThenByDescending(x => x.CreatedDate)
+                .ThenByDescending(x => x.Id)
+                .ToPagedList(page, pageSize);
+        }
+
         public IEnumerable<Product> GetListProductByCategory(int categoryId, int page, int pageSize)
         {
             IQueryable<Product> model = _context.Products.Where(x => x.CategoryId == categoryId);
-            return model.OrderByDescending(x => x.CreatedDate).ToPagedList(page, pageSize);
+            return model
+                .OrderByDescending(x => x.PriceSale.HasValue && x.PriceSale.Value > 0 && x.PriceSale.Value < x.Price)
+                .ThenByDescending(x => x.CreatedDate)
+                .ThenByDescending(x => x.Id)
+                .ToPagedList(page, pageSize);
         }
     }
 }

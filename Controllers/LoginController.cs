@@ -12,19 +12,20 @@ namespace BBEcom.Controllers
     public class LoginController : Controller
     {
         // GET: Login
-        public ActionResult Index()
+        public ActionResult Index(string returnUrl = null)
         {
             var sess = (UserLogin)Session[CommonConstants.USER_SESSION];
             if (sess != null) //had login
             {
                 return RedirectToAction("Index", "Home");
             }
+            ViewBag.ReturnUrl = returnUrl;
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Login(LoginModel model)
+        public ActionResult Login(LoginModel model, string returnUrl = null)
         {
             if (ModelState.IsValid)
             {
@@ -40,6 +41,10 @@ namespace BBEcom.Controllers
                     userSession.Name = user.Name;
                     userSession.IsAdmin = user.IsAdmin;
                     Session.Add(CommonConstants.USER_SESSION, userSession);
+                    if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+                    {
+                        return Redirect(returnUrl);
+                    }
                     return RedirectToAction("Index", "Home");
                 }
                 else if (res == -1)
@@ -53,7 +58,8 @@ namespace BBEcom.Controllers
 
                 }
             }
-            return View("Index");
+            ViewBag.ReturnUrl = returnUrl;
+            return View("Index", model);
         }
 
         public ActionResult Logout()

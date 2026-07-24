@@ -21,6 +21,7 @@ namespace BBEcom.Controllers
     {
         private const string CartSession = "CART_SESSION";
         // GET: Cart
+        [AllowAnonymous]
         public ActionResult Index()
         {
             var cart = Session["CART_SESSION"];
@@ -35,7 +36,27 @@ namespace BBEcom.Controllers
         public ActionResult AddItem(int productID, int quantity)
         {
             var product = new ProductDAO().GetProductById(productID);
+            if (product == null || product.Status != true)
+            {
+                TempData["CartError"] = "Sản phẩm không tồn tại hoặc đã ngừng bán.";
+                return RedirectToAction("Index");
+            }
+
+            quantity = Math.Max(1, quantity);
             var cart = Session["CART_SESSION"];
+            var currentQuantity = 0;
+            if (cart != null)
+            {
+                var currentItem = ((List<Cart>)cart).FirstOrDefault(x => x.product.Id == productID);
+                currentQuantity = currentItem == null ? 0 : currentItem.Quantity;
+            }
+
+            if (!new GiftcardDAO().CheckStock(productID, currentQuantity + quantity))
+            {
+                TempData["CartError"] = "Số lượng bạn chọn vượt quá số code đang có trong kho.";
+                return RedirectToAction("Detail", "Product", new { alias = product.Alias, id = product.Id });
+            }
+
             if (cart != null)
             {
                 var list = (List<Cart>)cart;
@@ -69,9 +90,26 @@ namespace BBEcom.Controllers
                 list.Add(item);
                 Session["CART_SESSION"] = list;
             }
+            var updatedCart = (List<Cart>)Session["CART_SESSION"];
+            if (Request.IsAjaxRequest())
+            {
+                return Json(new
+                {
+                    status = true,
+                    cartCount = updatedCart.Sum(x => x.Quantity),
+                    message = "Đã thêm sản phẩm vào giỏ hàng."
+                });
+            }
+
+            var returnUrl = Request.UrlReferrer == null ? null : Request.UrlReferrer.PathAndQuery;
+            if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
             return RedirectToAction("Index");
         }
 
+        [AllowAnonymous]
         public JsonResult Update(string cartModel)
         {
             var jsonCart = new JavaScriptSerializer().Deserialize<List<Cart>>(cartModel);
@@ -101,12 +139,14 @@ namespace BBEcom.Controllers
 
         }
 
+        [AllowAnonymous]
         public JsonResult DeleteAllCart()
         {
             Session["CART_SESSION"] = null;
             return Json(new { status = true });
         }
 
+        [AllowAnonymous]
         public JsonResult Delete(long id)
         {
             var sesCart = (List<Cart>)Session["CART_SESSION"];

@@ -18,7 +18,7 @@ namespace BBEcom.Controllers
         public ActionResult NavbarMenu()
         {
             ViewBag.MostProduct = new ProductDAO().GetListProduct(6);
-            ViewBag.MostCategory = new CategoryDAO().GetCategoriesName(4);
+            ViewBag.MostCategory = new CategoryDAO().GetCategoriesName(null);
             return PartialView();
         }
     }

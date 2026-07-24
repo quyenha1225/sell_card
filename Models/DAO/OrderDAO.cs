@@ -18,6 +18,11 @@ namespace Models.DAO
             return _context.Orders.FirstOrDefault(x => x.OrderCode == orderCode);
         }
 
+        public Order GetById(int id)
+        {
+            return _context.Orders.FirstOrDefault(x => x.Id == id);
+        }
+
         public int AddOrder(Order order)
         {
             var od = _context.Orders.Add(order);

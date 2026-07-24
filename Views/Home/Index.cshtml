@@ -63,13 +63,15 @@
 </div>
 
 
-<div class="products-area pb-75">
+<div class="products-area pb-75" id="storefront-products">
     <div class="container">
         <div class="section-title">
-            <h2>Sản phẩm mới</h2>
+            <span class="home-section-kicker">ƯU ĐÃI NỔI BẬT</span>
+            <h2>Sản phẩm dành cho bạn</h2>
+            <p>Ưu đãi giảm giá được ưu tiên trước, tiếp theo là những sản phẩm mới nhất.</p>
         </div>
         <div class="row justify-content-center">
-            @{Html.RenderAction("ListProduct", "Home"); }
+            @{Html.RenderAction("ListProduct", "Home", new { page = ViewBag.ProductPage }); }
         </div>
     </div>
 </div>

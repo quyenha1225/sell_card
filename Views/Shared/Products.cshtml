@@ -7,8 +7,15 @@
     foreach (var item in Model)
     {
         <div class="col-lg-3 col-md-6 col-sm-6">
-            <div class="single-products-box">
+            <div class="single-products-box modern-product-card">
                 <div class="image">
+                    @if (item.PriceSale.HasValue && item.PriceSale.Value > 0 && item.PriceSale.Value < item.Price)
+                    {
+                        var salePercent = (int)Math.Round((item.Price - item.PriceSale.Value) * 100m / item.Price);
+                        <span class="store-sale-badge">-@salePercent%</span>
+                    }
+                    else
+                    { <span class="store-new-badge">MỚI</span> }
                     <a href="/san-pham/@item.Alias-@(item.Id)" class="d-block">
                         <img src="@item.Images" alt="products-image">
                     </a>
@@ -45,6 +52,13 @@
                         <i class='bx bxs-star'></i>
                         <i class='bx bxs-star'></i>
                         <i class='bx bxs-star'></i>
+                    </div>
+                    <div class="product-card-cta">
+                        <a class="detail-card-btn" href="/san-pham/@item.Alias-@item.Id"><i class="bx bx-show"></i><span>Xem chi tiết</span></a>
+                        @if (item.Giftcard.Any(x => x.ProductId == item.Id))
+                        { <button type="button" class="cart-card-btn js-quick-add" data-url="/gio-hang/them-@item.Id-1"><i class="bx bx-cart-add"></i><span>Thêm vào giỏ</span></button> }
+                        else
+                        { <button type="button" class="cart-card-btn" disabled><span>Hết hàng</span></button> }
                     </div>
                 </div>
             </div>

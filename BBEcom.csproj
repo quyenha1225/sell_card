@@ -1276,6 +1276,8 @@
     <Content Include="Content\Admin\css\icons\tabler-icons\fonts\tabler-icons.svg" />
     <Content Include="Content\Admin\css\icons\tabler-icons\tabler-icons.css" />
     <Content Include="Content\Admin\css\styles.css" />
+    <Content Include="Content\Admin\css\admin-modern.css" />
+    <Content Include="Content\Admin\css\admin-login-modern.css" />
     <Content Include="Content\Admin\css\styles.min.css" />
     <Content Include="Content\Admin\images\backgrounds\rocket.png" />
     <Content Include="Content\Admin\images\categories\apple-itunes.jpg" />
@@ -1313,6 +1315,7 @@
     <Content Include="Content\Admin\images\products\youtube-premium-3-thang.jpg" />
     <Content Include="Content\Admin\images\profile\user-1.jpg" />
     <Content Include="Content\Admin\js\app.min.js" />
+    <Content Include="Content\Admin\js\admin-modern.js" />
     <Content Include="Content\Admin\js\dashboard.js" />
     <Content Include="Content\Admin\js\sidebarmenu.js" />
     <Content Include="Content\Admin\libs\apexcharts\dist\apexcharts.amd.js" />
@@ -1704,6 +1707,9 @@
     <Content Include="Content\Client\css\owl.theme.default.min.css" />
     <Content Include="Content\Client\css\owl.video.play.html" />
     <Content Include="Content\Client\css\payment.css" />
+    <Content Include="Content\Client\css\product-detail.css" />
+    <Content Include="Content\Client\css\news-modern.css" />
+    <Content Include="Content\Client\css\site-modern.css" />
     <Content Include="Content\Client\css\rangeSlider.min.css" />
     <Content Include="Content\Client\css\responsive.css" />
     <Content Include="Content\Client\css\slick.min.css" />
@@ -1816,6 +1822,8 @@
     <Content Include="Content\Client\js\appear.min.js" />
     <Content Include="Content\Client\js\bootstrap.bundle.min.js" />
     <Content Include="Content\Client\js\CartController.js" />
+    <Content Include="Content\Client\js\product-detail.js" />
+    <Content Include="Content\Client\js\site-modern.js" />
     <Content Include="Content\Client\js\contact-form-script.js" />
     <Content Include="Content\Client\js\countrySelect.min.js" />
     <Content Include="Content\Client\js\form-validator.min.js" />
@@ -2201,6 +2209,7 @@
     <Content Include="Views\Profile\OrderHistory.cshtml" />
     <Content Include="Views\Layout\NavbarMenu.cshtml" />
     <Content Include="Views\News\View.cshtml" />
+    <Content Include="Views\News\Index.cshtml" />
     <Content Include="Views\Register\Index.cshtml" />
     <Content Include="Views\Page\ChinhSach.cshtml" />
     <Content Include="Views\Page\GioiThieu.cshtml" />

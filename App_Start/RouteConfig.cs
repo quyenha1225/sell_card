@@ -21,9 +21,16 @@ namespace BBEcom
           );
 
             routes.MapRoute(
-              name: "News",
+              name: "NewsDetail",
               url: "tin-tuc/{alias}-{id}",
               defaults: new { controller = "News", action = "View", id = UrlParameter.Optional },
+              namespaces: new[] { "BBEcom.Controllers" }
+          );
+
+            routes.MapRoute(
+              name: "NewsIndex",
+              url: "tin-tuc",
+              defaults: new { controller = "News", action = "Index" },
               namespaces: new[] { "BBEcom.Controllers" }
           );
 

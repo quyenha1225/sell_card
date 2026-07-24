@@ -4,17 +4,19 @@
 }
 
 <!doctype html>
-<html lang="en">
+<html lang="vi">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Modernize Free</title>
+    <title>Đăng nhập quản trị | GiftToi</title>
     <link rel="shortcut icon" type="image/png" href="~/Content/Admin/images/logos/favicon.png" />
     <link rel="stylesheet" href="~/Content/Admin/css/styles.min.css" />
+    <link rel="stylesheet" href="~/Content/Admin/css/admin-modern.css" />
+    <link rel="stylesheet" href="~/Content/Admin/css/admin-login-modern.css" />
 </head>
 
-<body>
+<body class="admin-login-page">
     <!--  Body Wrapper -->
     <div class="page-wrapper" id="main-wrapper" data-layout="vertical" data-navbarbg="skin6" data-sidebartype="full"
          data-sidebar-position="fixed" data-header-position="fixed">
@@ -27,7 +29,7 @@
                                 <a href="/Admin" class="text-nowrap logo-img text-center d-block py-3 w-100">
                                     <img src="~/Content/Admin/images/logos/dark-logo.svg" width="180" alt="">
                                 </a>
-                                <p class="text-center">Your Social Campaigns</p>
+                                <p class="text-center">Trung tâm quản trị GiftToi</p>
                                 @using (Html.BeginForm("Login", "Login", FormMethod.Post))
                                 {
                                     @Html.AntiForgeryToken()
@@ -38,7 +40,7 @@
                                     </div>
                                     <div class="mb-4">
                                         <label for="exampleInputPassword1" class="form-label">Mật khẩu</label>
-                                        @Html.TextBoxFor(x => x.Password, new { @class = "form-control", @type = "password", @placeholder = "Password..." })
+                                        @Html.TextBoxFor(x => x.Password, new { @class = "form-control", @type = "password", @placeholder = "Nhập mật khẩu..." })
                                     </div>
                                     <div class="d-flex align-items-center justify-content-between mb-4">
                                         <div class="form-check">
@@ -51,10 +53,7 @@
                                         <a class="text-primary fw-bold" href="#">Quên mật khẩu ?</a>
                                     </div>
                                     <button type="submit" class="btn btn-primary w-100 py-8 fs-4 mb-4 rounded-2">ĐĂNG NHẬP</button>
-                                    <div class="d-flex align-items-center justify-content-center">
-                                        <p class="fs-4 mb-0 fw-bold">New to Modernize?</p>
-                                        <a class="text-primary fw-bold ms-2" href="#">Create an account</a>
-                                    </div>
+                                    <div class="text-center"><a class="text-primary fw-bold" href="/">← Trở về cửa hàng</a></div>
                                 }
 
                             </div>
