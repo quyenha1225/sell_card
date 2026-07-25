@@ -15,6 +15,7 @@ namespace BBEcom.Controllers
             return View();
         }
 
+        [OutputCache(Duration = 300, VaryByParam = "none")]
         public ActionResult NavbarMenu()
         {
             ViewBag.MostProduct = new ProductDAO().GetListProduct(6);

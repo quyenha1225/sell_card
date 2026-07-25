@@ -1,6 +1,7 @@
 ﻿using Models.EF;
 using System.Collections.Generic;
 using System.Linq;
+using System.Data.Entity;
 
 namespace Models.DAO
 {
@@ -39,7 +40,12 @@ namespace Models.DAO
 
         public IEnumerable<Order> GetListOrderByCustomerID(int cusID)
         {
-            return _context.Orders.Where(x => x.CustomerID == cusID).OrderByDescending(x => x.CreatedDate).ToList();
+            return _context.Orders
+                .AsNoTracking()
+                .Include(x => x.OrderDetail.Select(detail => detail.Product))
+                .Where(x => x.CustomerID == cusID)
+                .OrderByDescending(x => x.CreatedDate)
+                .ToList();
         }
     }
 }

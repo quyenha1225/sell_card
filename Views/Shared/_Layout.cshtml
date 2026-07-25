@@ -25,7 +25,7 @@
     <link rel="stylesheet" href="/Content/Client/css/meanmenu.min.css">
     <link rel="stylesheet" href="/Content/Client/css/style.css">
     <link rel="stylesheet" href="/Content/Client/css/responsive.css">
-    <link rel="stylesheet" href="/Content/Client/css/site-modern.css">
+    <link rel="stylesheet" href="/Content/Client/css/site-modern.css?v=20260725-2">
 
     <title>@ViewBag.Title | GiftToi - Gift Card Shop</title>
     <link rel="apple-touch-icon" sizes="180x180" href="/Content/Client/img/favicon_io/apple-touch-icon.png">
@@ -80,6 +80,10 @@
                     <div class="collapse navbar-collapse mean-menu">
                         <ul class="navbar-nav">
                             @{ Html.RenderAction("NavbarMenu", "Layout"); }
+                            @if (Session[BBEcom.Common.CommonConstants.USER_SESSION] != null)
+                            {
+                                <li class="nav-item"><a href="/lich-su-mua-hang" class="nav-link"><i class="bx bx-history"></i> Lịch sử giao dịch</a></li>
+                            }
                         </ul>
                         <div class="others-option">
                             <div class="d-flex align-items-center">
@@ -152,6 +156,12 @@
                                     <div class="search-icon">
                                         <i class='bx bx-search'></i>
                                     </div>
+                                </li>
+                                <li>
+                                    @if (Session[BBEcom.Common.CommonConstants.USER_SESSION] != null)
+                                    {
+                                        <a href="/lich-su-mua-hang" title="Lịch sử giao dịch"><i class="bx bx-history"></i></a>
+                                    }
                                 </li>
                                 <li>
                                     @if (Session[BBEcom.Common.CommonConstants.USER_SESSION] != null)
@@ -388,10 +398,20 @@
     <script src="/Content/Client/js/contact-form-script.js"></script>
     <script src="/Content/Client/js/ajaxchimp.min.js"></script>
     <script src="/Content/Client/js/main.js"></script>
-    <script src="/Content/Client/js/site-modern.js"></script>
+    <script src="/Content/Client/js/site-modern.js?v=20260725-2"></script>
 
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script>
+        window.Toastify = window.Toastify || function (options) {
+            return { showToast: function () {
+                var toast = document.createElement('div');
+                toast.className = 'site-toast'; toast.textContent = options.text || '';
+                if (options.style && options.style.background) toast.style.background = options.style.background;
+                document.body.appendChild(toast);
+                requestAnimationFrame(function () { toast.classList.add('show'); });
+                setTimeout(function () { toast.classList.remove('show'); setTimeout(function () { toast.remove(); }, 250); }, options.duration || 3000);
+            }};
+        };
+    </script>
 
     @RenderSection("jsFooter", required: false)
 </body>

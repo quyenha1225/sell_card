@@ -1,113 +1,64 @@
-﻿@model IEnumerable<Models.EF.Order>
+@model IEnumerable<Models.EF.Order>
 @{
     ViewBag.Title = "Lịch sử mua hàng";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var orders = (Model ?? Enumerable.Empty<Models.EF.Order>()).ToList();
+    var completed = orders.Count(x => x.Status);
 }
+<link rel="stylesheet" href="/Content/Client/css/checkout-history.css?v=20260725-2" />
 
-@section jsFooter{
-    <script>
-        document.querySelectorAll('.custom-badge').forEach(function (element) {
-            element.addEventListener('click', function (event) {
-                var copyContent = event.target.getAttribute('data-copy-content');
-                copyToClipboard(copyContent);
-            });
-        });
-
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text)
-                .then(function () {
-/*                    console.log('Đã sao chép thành công vào clipboard: ' + text);*/
-                    Toastify({
-                        text: "Đã sao chép thành công code: " + text,
-                        duration: 3000,
-                        destination: "https://github.com/apvarun/toastify-js",
-                        newWindow: true,
-                        close: true,
-                        gravity: "top", // `top` or `bottom`
-                        position: "right", // `left`, `center` or `right`
-                        stopOnFocus: true, // Prevents dismissing of toast on hover
-                        style: {
-                            background: "linear-gradient(to right, #FF5733, #FF6600)",
-                        },
-                        onClick: function () { } // Callback after click
-                    }).showToast();
-
-                })
-                .catch(function (error) {
-                    console.error('Lỗi khi sao chép vào clipboard: ' + error);
-                });
-        }
-
-    </script>
-
-}
-<div class="page-title-area">
+<main class="flow-page history-page">
     <div class="container">
-        <div class="page-title-content">
-            <h1>Lịch sử mua hàng</h1>
-            <ul>
-                <li><a href="/">Trang chủ</a></li>
-                <li>Lịch sử mua hàng</li>
-            </ul>
-        </div>
-    </div>
-</div>
+        <nav class="flow-breadcrumb"><a href="/">Trang chủ</a><i class="bx bx-chevron-right"></i><span>Lịch sử mua hàng</span></nav>
+        <header class="flow-heading">
+            <div><span class="flow-eyebrow">TÀI KHOẢN CỦA TÔI</span><h1>Lịch sử mua hàng</h1><p>Theo dõi trạng thái và lấy code đã mua tại một nơi.</p></div>
+            <a class="continue-shopping" href="/"><i class="bx bx-store"></i>Tiếp tục mua sắm</a>
+        </header>
+        <section class="history-stats"><div><i class="bx bx-receipt"></i><span><strong>@orders.Count</strong>Tổng đơn hàng</span></div><div><i class="bx bx-check-circle"></i><span><strong>@completed</strong>Đã hoàn tất</span></div><div><i class="bx bx-key"></i><span><strong>@orders.Where(x => x.Status).Sum(x => x.OrderDetail.Count)</strong>Code đã mua</span></div></section>
 
-
-<div class="blog-area ptb-100">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-2 col-md-12">
-                <aside class="widget-area">
-                    <div class="widget widget_follow_us">
-                        <h3 class="widget-title"><span>Liên kết</span></h3>
-                        @{ Html.RenderAction("ProfileMenu", "Profile"); }
-                    </div>
-                </aside>
-            </div>
-            <div class="col-lg-10 col-md-12">
-                <div class="row">
-                    <div class="contact-form">
-                        <h3>Lịch sử mua hàng của bạn: </h3>
-                        <div class="row">
-                            <div class="cart-table table-responsive">
-                                <table class="table table-bordered">
-                                    <thead>
-                                        <tr>
-                                            <th scope="col">Mã đơn hàng</th>
-                                            <th scope="col">Nội dung</th>
-                                            <th scope="col">Tổng giá</th>
-                                            <th scope="col">Ngày mua</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var item in Model)
-                                        {
-                                            <tr>
-                                                <td>
-                                                    <h6>#@item.OrderCode</h6>
-                                                </td>
-                                                <td>
-                                                    @foreach (var code in item.OrderDetail)
-                                                    {
-                                                        <p class="text-black">
-                                                            @code.Product.Name:
-                                                            <span class="custom-badge" data-copy-content="@code.Code">@code.Code</span>
-                                                        </p>
-                                                    }
-                                                </td>
-                                                <td>@item.TotalAmount.ToString("N0")đ</td>
-                                                <td>@item.CreatedDate</td>
-                                            </tr>
-                                        }
-                                    </tbody>
-                                </table>
-                            </div>
+        @if (orders.Any())
+        {
+            <section class="order-list">
+                @foreach (var order in orders)
+                {
+                    <article class="order-card">
+                        <header><div><small>Mã đơn hàng</small><h2>#@order.OrderCode</h2></div><div class="order-meta"><span><i class="bx bx-calendar"></i>@order.CreatedDate.ToString("dd/MM/yyyy")</span><span class="status-badge @(order.Status ? "completed" : "pending")"><i class="bx @(order.Status ? "bx-check" : "bx-time-five")"></i>@(order.Status ? "Đã thanh toán" : "Chờ thanh toán")</span></div></header>
+                        <div class="order-products">
+                            @foreach (var detail in order.OrderDetail)
+                            {
+                                <div class="history-product">
+                                    <img src="@(detail.Product == null ? "/Content/Client/img/favicon.png" : detail.Product.Images)" alt="@(detail.Product == null ? "Sản phẩm" : detail.Product.Name)" loading="lazy" />
+                                    <div><strong>@(detail.Product == null ? "Sản phẩm" : detail.Product.Name)</strong><span>@BBEcom.Common.CommonHelper.ConvertMoney(detail.Price)đ</span></div>
+                                    @if (order.Status && !String.Equals(detail.Code, "PENDING", StringComparison.OrdinalIgnoreCase))
+                                    {<button type="button" class="code-copy" data-code="@detail.Code" title="Sao chép code"><span>@detail.Code</span><i class="bx bx-copy"></i></button>}
+                                    else
+                                    {<span class="code-waiting"><i class="bx bx-hourglass"></i>Đang chờ cấp code</span>}
+                                </div>
+                            }
                         </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+                        <footer><span>Tổng thanh toán</span><strong>@order.TotalAmount.ToString("N0")đ</strong></footer>
+                    </article>
+                }
+            </section>
+        }
+        else
+        {
+            <section class="flow-card empty-state"><i class="bx bx-receipt"></i><h2>Bạn chưa có đơn hàng nào</h2><p>Đơn hàng và code sản phẩm sẽ xuất hiện tại đây.</p><a href="/">Mua sản phẩm đầu tiên</a></section>
+        }
     </div>
-</div>
+</main>
 
+@section jsFooter {
+<script>
+document.querySelectorAll('.code-copy').forEach(function (button) {
+    button.addEventListener('click', function () {
+        var current = this;
+        navigator.clipboard.writeText(current.dataset.code).then(function () {
+            current.classList.add('copied');
+            current.querySelector('i').className = 'bx bx-check';
+            setTimeout(function () { current.classList.remove('copied'); current.querySelector('i').className = 'bx bx-copy'; }, 1600);
+        });
+    });
+});
+</script>
+}

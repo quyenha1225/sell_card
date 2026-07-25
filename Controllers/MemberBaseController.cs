@@ -5,6 +5,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
+using Models.DAO;
 
 namespace BBEcom.Controllers
 {
@@ -21,7 +22,22 @@ namespace BBEcom.Controllers
                 return;
             }
 
-            var sess = (UserLogin)Session[CommonConstants.USER_SESSION];
+            var sess = Session[CommonConstants.USER_SESSION] as UserLogin;
+            if (sess == null && Request.IsAuthenticated && User != null && User.Identity != null)
+            {
+                var account = new AccountDAO().GetAccountByUsername(User.Identity.Name);
+                if (account != null && account.Status)
+                {
+                    sess = new UserLogin
+                    {
+                        UserId = account.Id,
+                        UserName = account.UserName,
+                        Name = account.Name,
+                        IsAdmin = account.IsAdmin
+                    };
+                    Session[CommonConstants.USER_SESSION] = sess;
+                }
+            }
             if (sess == null)
             {
                 filterContext.Result = new RedirectToRouteResult(new RouteValueDictionary(new

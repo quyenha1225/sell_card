@@ -10,11 +10,13 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Script.Serialization;
-using System;
-using System.Configuration;
 using System.Globalization;
-using System.Web;
 using BBEcom.Models.ViewModels;
+using System.Data.Entity;
+using System.Security.Cryptography;
+using System.Text;
+using System.Net.Http;
+using System.Net.Http.Headers;
 namespace BBEcom.Controllers
 {
     public class CartController : MemberBaseController
@@ -109,6 +111,30 @@ namespace BBEcom.Controllers
             return RedirectToAction("Index");
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult BuyNow(int productID, int quantity)
+        {
+            var product = new ProductDAO().GetProductById(productID);
+            quantity = Math.Max(1, quantity);
+            if (product == null || product.Status != true)
+            {
+                TempData["CartError"] = "Sản phẩm không tồn tại hoặc đã ngừng bán.";
+                return RedirectToAction("Index", "Home");
+            }
+            if (!new GiftcardDAO().CheckStock(productID, quantity))
+            {
+                TempData["CartError"] = "Số lượng bạn chọn vượt quá số code đang có trong kho.";
+                return RedirectToAction("Detail", "Product", new { alias = product.Alias, id = product.Id });
+            }
+
+            Session[CartSession] = new List<Cart>
+            {
+                new Cart { product = product, Quantity = quantity }
+            };
+            return Payment((Order)null);
+        }
+
         [AllowAnonymous]
         public JsonResult Update(string cartModel)
         {
@@ -168,28 +194,256 @@ namespace BBEcom.Controllers
         }
 
         [HttpPost]
-        public ActionResult Payment(Order _order)
+        [ValidateAntiForgeryToken]
+        public ActionResult Payment(Order ignoredOrder)
         {
-            int price = 0;
-            var code = new { Status = false, Url = "" };
-
-            Random r = new Random();
-            var orderCode = "DH" + r.Next(0, 99) + r.Next(0, 99) + r.Next(0, 99);
-            var cart = Session["CART_SESSION"];
-            var list = new List<Cart>();
-            if (cart != null)
+            var list = Session[CartSession] as List<Cart>;
+            if (list == null || !list.Any())
             {
-                list = (List<Cart>)cart;
-
-                foreach (var item in list)
-                {
-                    int money = item.product.PriceSale > 0 ? item.product.PriceSale.GetValueOrDefault(0) : item.product.Price;
-                    price += money * item.Quantity;
-                }
-                var url = UrlPayment(price, orderCode);
-                code = new { Status = true, Url = url };
+                TempData["CartError"] = "Giỏ hàng đang trống.";
+                return RedirectToAction("Index");
             }
-            return Json(code);
+
+            var merchantId = ConfigurationManager.AppSettings["SePayMerchantId"];
+            var secretKey = ConfigurationManager.AppSettings["SePaySecretKey"];
+            if (string.IsNullOrWhiteSpace(merchantId) || merchantId.StartsWith("YOUR_") || string.IsNullOrWhiteSpace(secretKey) || secretKey.StartsWith("YOUR_"))
+            {
+                TempData["CartError"] = "SePay chưa được cấu hình Merchant ID và Secret Key.";
+                return RedirectToAction("Index");
+            }
+
+            foreach (var item in list)
+            {
+                if (!new GiftcardDAO().CheckStock(item.product.Id, item.Quantity))
+                {
+                    TempData["CartError"] = "Sản phẩm " + item.product.Name + " không còn đủ số lượng.";
+                    return RedirectToAction("Index");
+                }
+            }
+
+            var user = (UserLogin)Session[CommonConstants.USER_SESSION];
+            var orderCode = "DH" + DateTime.UtcNow.ToString("yyyyMMddHHmmss") + Guid.NewGuid().ToString("N").Substring(0, 5).ToUpperInvariant();
+            var total = list.Sum(item => (item.product.PriceSale > 0 ? item.product.PriceSale.Value : item.product.Price) * item.Quantity);
+            var order = new Order
+            {
+                OrderCode = orderCode,
+                CustomerID = user.UserId,
+                TotalAmount = total,
+                Status = false,
+                CreatedDate = DateTime.Now
+            };
+
+            foreach (var item in list)
+            {
+                var unitPrice = item.product.PriceSale > 0 ? item.product.PriceSale.Value : item.product.Price;
+                for (var index = 0; index < item.Quantity; index++)
+                {
+                    order.OrderDetail.Add(new OrderDetail
+                    {
+                        ProductID = item.product.Id,
+                        Price = unitPrice,
+                        Quantity = 1,
+                        Code = "PENDING"
+                    });
+                }
+            }
+
+            new OrderDAO().AddOrder(order);
+            Session["SEPAY_PENDING_ORDER"] = orderCode;
+
+            var publicUrl = (ConfigurationManager.AppSettings["SePayPublicBaseUrl"] ?? Request.Url.GetLeftPart(UriPartial.Authority)).TrimEnd('/');
+            var fields = new List<KeyValuePair<string, string>>
+            {
+                new KeyValuePair<string, string>("order_amount", total.ToString(CultureInfo.InvariantCulture)),
+                new KeyValuePair<string, string>("merchant", merchantId),
+                new KeyValuePair<string, string>("currency", "VND"),
+                new KeyValuePair<string, string>("operation", "PURCHASE"),
+                new KeyValuePair<string, string>("order_description", "Thanh toan don hang " + orderCode),
+                new KeyValuePair<string, string>("order_invoice_number", orderCode),
+                new KeyValuePair<string, string>("customer_id", user.UserId.ToString(CultureInfo.InvariantCulture)),
+                new KeyValuePair<string, string>("payment_method", "BANK_TRANSFER"),
+                new KeyValuePair<string, string>("success_url", publicUrl + Url.Action("SePaySuccess", "Cart", new { invoice = orderCode })),
+                new KeyValuePair<string, string>("error_url", publicUrl + Url.Action("SePayError", "Cart", new { invoice = orderCode })),
+                new KeyValuePair<string, string>("cancel_url", publicUrl + Url.Action("SePayCancel", "Cart", new { invoice = orderCode }))
+            };
+
+            var signatureData = string.Join(",", fields.Select(field => field.Key + "=" + field.Value));
+            string signature;
+            using (var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secretKey)))
+            {
+                signature = Convert.ToBase64String(hmac.ComputeHash(Encoding.UTF8.GetBytes(signatureData)));
+            }
+
+            var sandbox = string.Equals(ConfigurationManager.AppSettings["SePayEnvironment"], "sandbox", StringComparison.OrdinalIgnoreCase);
+            var model = new SePayCheckoutViewModel
+            {
+                CheckoutUrl = sandbox ? "https://pay-sandbox.sepay.vn/v1/checkout/init" : "https://pay.sepay.vn/v1/checkout/init",
+                Fields = fields,
+                Signature = signature
+            };
+            return View("SePayRedirect", model);
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        public ActionResult SePayIpn()
+        {
+            var expectedSecret = ConfigurationManager.AppSettings["SePaySecretKey"] ?? string.Empty;
+            var receivedSecret = Request.Headers["X-Secret-Key"] ?? string.Empty;
+            if (!SecureEquals(expectedSecret, receivedSecret))
+            {
+                Response.StatusCode = 401;
+                Response.SuppressFormsAuthenticationRedirect = true;
+                return Json(new { success = false, error = "Unauthorized" });
+            }
+
+            Request.InputStream.Position = 0;
+            string body;
+            using (var reader = new System.IO.StreamReader(Request.InputStream)) body = reader.ReadToEnd();
+            var payload = new JavaScriptSerializer().Deserialize<SePayIpnRequest>(body);
+            if (payload == null || payload.notification_type != "ORDER_PAID" || payload.order == null)
+            {
+                return Json(new { success = true });
+            }
+            if (payload.order.order_status != "CAPTURED" || payload.order.order_currency != "VND")
+            {
+                Response.StatusCode = 400;
+                return Json(new { success = false, error = "Invalid payment status" });
+            }
+
+            decimal paidAmount;
+            if (!decimal.TryParse(payload.order.order_amount, NumberStyles.Number, CultureInfo.InvariantCulture, out paidAmount))
+            {
+                Response.StatusCode = 400;
+                return Json(new { success = false, error = "Invalid amount" });
+            }
+            var completionError = CompletePaidOrder(payload.order.order_invoice_number, paidAmount);
+            if (completionError != null)
+            {
+                Response.StatusCode = completionError == "Insufficient stock" ? 409 : 400;
+                return Json(new { success = false, error = completionError });
+            }
+            return Json(new { success = true });
+        }
+
+        [AllowAnonymous]
+        public ActionResult SePaySuccess(string invoice)
+        {
+            var order = new OrderDAO().GetOrder(invoice);
+            if (order != null && !order.Status && TryConfirmOrderWithSePay(order))
+            {
+                order = new OrderDAO().GetOrder(invoice);
+            }
+            ViewBag.TrangThai = order != null && order.Status;
+            ViewBag.Invoice = invoice;
+            ViewBag.SoTien = order == null ? 0 : order.TotalAmount;
+            ViewBag.InnerText = ViewBag.TrangThai ? "Thanh toán thành công. Code đã được lưu trong lịch sử mua hàng." : "SePay đang xác nhận giao dịch. Vui lòng kiểm tra lịch sử mua hàng sau ít phút.";
+            if (ViewBag.TrangThai) Session[CartSession] = null;
+            return View("VnpayReturn");
+        }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public JsonResult SePayOrderStatus(string invoice)
+        {
+            var order = String.IsNullOrWhiteSpace(invoice) ? null : new OrderDAO().GetOrder(invoice);
+            if (order != null && !order.Status && TryConfirmOrderWithSePay(order))
+            {
+                order = new OrderDAO().GetOrder(invoice);
+            }
+            if (order != null && order.Status) Session[CartSession] = null;
+            return Json(new
+            {
+                found = order != null,
+                paid = order != null && order.Status,
+                amount = order == null ? 0 : order.TotalAmount,
+                historyUrl = Url.Action("OrderHistory", "Profile")
+            }, JsonRequestBehavior.AllowGet);
+        }
+
+        private bool TryConfirmOrderWithSePay(Order localOrder)
+        {
+            try
+            {
+                var merchantId = ConfigurationManager.AppSettings["SePayMerchantId"];
+                var secretKey = ConfigurationManager.AppSettings["SePaySecretKey"];
+                var sandbox = String.Equals(ConfigurationManager.AppSettings["SePayEnvironment"], "sandbox", StringComparison.OrdinalIgnoreCase);
+                var apiBase = sandbox ? "https://pgapi-sandbox.sepay.vn" : "https://pgapi.sepay.vn";
+                using (var client = new HttpClient { Timeout = TimeSpan.FromSeconds(8) })
+                {
+                    var basic = Convert.ToBase64String(Encoding.UTF8.GetBytes(merchantId + ":" + secretKey));
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", basic);
+                    var url = apiBase + "/v1/order?per_page=20&q=" + HttpUtility.UrlEncode(localOrder.OrderCode);
+                    var response = client.GetAsync(url).GetAwaiter().GetResult();
+                    if (!response.IsSuccessStatusCode) return false;
+                    var json = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                    var result = new JavaScriptSerializer().Deserialize<SePayOrderListResponse>(json);
+                    var paidOrder = result == null || result.data == null ? null : result.data.FirstOrDefault(x =>
+                        String.Equals(x.order_invoice_number, localOrder.OrderCode, StringComparison.OrdinalIgnoreCase) &&
+                        String.Equals(x.order_status, "CAPTURED", StringComparison.OrdinalIgnoreCase) &&
+                        String.Equals(x.order_currency, "VND", StringComparison.OrdinalIgnoreCase));
+                    decimal paidAmount;
+                    if (paidOrder == null || !decimal.TryParse(paidOrder.order_amount, NumberStyles.Number, CultureInfo.InvariantCulture, out paidAmount)) return false;
+                    return CompletePaidOrder(localOrder.OrderCode, paidAmount) == null;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static string CompletePaidOrder(string invoice, decimal paidAmount)
+        {
+            using (var db = new KeyDbContext())
+            using (var transaction = db.Database.BeginTransaction(System.Data.IsolationLevel.Serializable))
+            {
+                var order = db.Orders.Include(x => x.OrderDetail).FirstOrDefault(x => x.OrderCode == invoice);
+                if (order == null || paidAmount != order.TotalAmount) return "Invalid order or amount";
+                if (!order.Status)
+                {
+                    foreach (var detail in order.OrderDetail)
+                    {
+                        var gift = db.Giftcards.FirstOrDefault(x => x.ProductId == detail.ProductID);
+                        if (gift == null) return "Insufficient stock";
+                        detail.Code = gift.Code;
+                        db.Giftcards.Remove(gift);
+                    }
+                    order.Status = true;
+                    db.SaveChanges();
+                }
+                transaction.Commit();
+                return null;
+            }
+        }
+
+        [AllowAnonymous]
+        public ActionResult SePayError(string invoice)
+        {
+            ViewBag.TrangThai = false;
+            ViewBag.InnerText = "Thanh toán SePay không thành công. Đơn hàng " + invoice + " chưa được ghi nhận thanh toán.";
+            return View("VnpayReturn");
+        }
+
+        [AllowAnonymous]
+        public ActionResult SePayCancel(string invoice)
+        {
+            ViewBag.TrangThai = false;
+            ViewBag.InnerText = "Bạn đã hủy thanh toán đơn hàng " + invoice + ".";
+            return View("VnpayReturn");
+        }
+
+        private static bool SecureEquals(string expected, string received)
+        {
+            var expectedBytes = Encoding.UTF8.GetBytes(expected);
+            var receivedBytes = Encoding.UTF8.GetBytes(received);
+            if (expectedBytes.Length == 0 || receivedBytes.Length == 0) return false;
+            var difference = expectedBytes.Length ^ receivedBytes.Length;
+            for (var index = 0; index < Math.Max(expectedBytes.Length, receivedBytes.Length); index++)
+            {
+                difference |= expectedBytes[index % expectedBytes.Length] ^ receivedBytes[index % receivedBytes.Length];
+            }
+            return difference == 0;
         }
 
         public string UrlPayment(int price, string orderCode)

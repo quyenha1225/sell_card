@@ -1,0 +1,25 @@
+/* Keep every admin page below the fixed application header. */
+.body-wrapper > .container-fluid {
+    padding-top: 105px !important;
+    padding-bottom: 40px !important;
+}
+
+.body-wrapper > .container-fluid > .row:first-of-type,
+.body-wrapper > .container-fluid > .admin-welcome:first-child,
+.body-wrapper > .container-fluid > .card:first-child {
+    margin-top: 0 !important;
+}
+
+@media (max-width: 1199.98px) {
+    .body-wrapper > .container-fluid {
+        padding-top: 95px !important;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .body-wrapper > .container-fluid {
+        padding-top: 88px !important;
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+    }
+}

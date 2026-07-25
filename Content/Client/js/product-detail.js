@@ -24,8 +24,16 @@
 
     if (form) {
         form.addEventListener('submit', function (event) {
-            event.preventDefault();
             quantity.value = normaliseQuantity(quantity.value);
+            var submitter = event.submitter || document.activeElement;
+            if (submitter && submitter.classList.contains('buy-now-btn')) {
+                submitter.disabled = true;
+                submitter.classList.add('is-loading');
+                submitter.innerHTML = '<i class="bx bx-loader-alt"></i><span>Đang mở SePay...</span>';
+                return;
+            }
+
+            event.preventDefault();
             var button = form.querySelector('.add-cart-btn');
             if (!button || button.disabled) return;
             var originalHtml = button.innerHTML;

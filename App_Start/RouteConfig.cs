@@ -63,6 +63,41 @@ namespace BBEcom
           );
 
             routes.MapRoute(
+               name: "SePayIpn",
+               url: "thanh-toan/sepay/ipn",
+               defaults: new { controller = "Cart", action = "SePayIpn" },
+               namespaces: new[] { "BBEcom.Controllers" }
+           );
+
+            routes.MapRoute(
+               name: "SePaySuccess",
+               url: "thanh-toan/sepay/thanh-cong",
+               defaults: new { controller = "Cart", action = "SePaySuccess" },
+               namespaces: new[] { "BBEcom.Controllers" }
+           );
+
+            routes.MapRoute(
+               name: "SePayError",
+               url: "thanh-toan/sepay/loi",
+               defaults: new { controller = "Cart", action = "SePayError" },
+               namespaces: new[] { "BBEcom.Controllers" }
+           );
+
+            routes.MapRoute(
+               name: "SePayCancel",
+               url: "thanh-toan/sepay/huy",
+               defaults: new { controller = "Cart", action = "SePayCancel" },
+               namespaces: new[] { "BBEcom.Controllers" }
+           );
+
+            routes.MapRoute(
+               name: "BuyNow",
+               url: "mua-ngay",
+               defaults: new { controller = "Cart", action = "BuyNow" },
+               namespaces: new[] { "BBEcom.Controllers" }
+           );
+
+            routes.MapRoute(
                name: "Payment",
                url: "thanh-toan",
                defaults: new { controller = "Cart", action = "Payment", id = UrlParameter.Optional },

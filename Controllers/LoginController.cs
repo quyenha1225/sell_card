@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using System.Web.Security;
 
 namespace BBEcom.Controllers
 {
@@ -40,7 +41,8 @@ namespace BBEcom.Controllers
                     userSession.UserId = user.Id;
                     userSession.Name = user.Name;
                     userSession.IsAdmin = user.IsAdmin;
-                    Session.Add(CommonConstants.USER_SESSION, userSession);
+                    Session[CommonConstants.USER_SESSION] = userSession;
+                    FormsAuthentication.SetAuthCookie(user.UserName, true);
                     if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
                     {
                         return Redirect(returnUrl);
@@ -65,6 +67,7 @@ namespace BBEcom.Controllers
         public ActionResult Logout()
         {
             Session.Remove(CommonConstants.USER_SESSION);
+            FormsAuthentication.SignOut();
             return RedirectToAction("Index", "Login");
         }
     }

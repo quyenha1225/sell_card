@@ -10,7 +10,7 @@
     var productUrl = Url.Action("Detail", "Product", new { alias = Model.Alias, id = Model.Id });
 }
 
-<link rel="stylesheet" href="/Content/Client/css/product-detail.css" />
+<link rel="stylesheet" href="/Content/Client/css/product-detail.css?v=20260725-2" />
 
 <main class="product-detail-page">
     <section class="product-breadcrumb">
@@ -77,6 +77,7 @@
                     {
                         using (Html.BeginForm("AddItem", "Cart", FormMethod.Post, new { @class = "purchase-box", id = "addToCartForm" }))
                         {
+                            @Html.AntiForgeryToken()
                             <input type="hidden" name="productID" value="@Model.Id" />
                             <div class="quantity-wrap">
                                 <label for="productQuantity">Số lượng</label>
@@ -86,9 +87,14 @@
                                     <button type="button" data-action="plus" aria-label="Tăng số lượng"><i class="bx bx-plus"></i></button>
                                 </div>
                             </div>
-                            <button type="submit" class="add-cart-btn" @(stock < 1 ? "disabled" : null)>
-                                <i class="bx bx-cart-add"></i><span>@(stock > 0 ? "Thêm vào giỏ hàng" : "Tạm hết hàng")</span>
-                            </button>
+                            <div class="purchase-actions">
+                                <button type="submit" class="add-cart-btn secondary-buy-btn" @(stock < 1 ? "disabled" : null)>
+                                    <i class="bx bx-cart-add"></i><span>@(stock > 0 ? "Thêm vào giỏ" : "Tạm hết hàng")</span>
+                                </button>
+                                <button type="submit" formaction="@Url.Action("BuyNow", "Cart")" class="add-cart-btn buy-now-btn" @(stock < 1 ? "disabled" : null)>
+                                    <i class="bx bx-bolt-circle"></i><span>Mua ngay</span>
+                                </button>
+                            </div>
                         }
                     }
                     else
@@ -136,5 +142,5 @@
 </main>
 
 @section jsFooter {
-    <script src="/Content/Client/js/product-detail.js"></script>
+    <script src="/Content/Client/js/product-detail.js?v=20260725-2"></script>
 }

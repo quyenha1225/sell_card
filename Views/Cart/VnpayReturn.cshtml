@@ -1,34 +1,60 @@
-﻿
 @{
     ViewBag.Title = "Kết quả thanh toán";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var invoice = ViewBag.Invoice as string;
+    var paid = ViewBag.TrangThai == true;
+    var amount = ViewBag.SoTien == null ? 0 : Convert.ToInt32(ViewBag.SoTien);
 }
+<link rel="stylesheet" href="/Content/Client/css/checkout-history.css?v=20260725-2" />
 
-<div class="page-title-area">
+<main class="flow-page payment-result-page">
     <div class="container">
-        <div class="page-title-content">
-            <h1>Thông báo</h1>
-            <ul>
-                <li><a href="/">Trang chủ</a></li>
-            </ul>
-        </div>
-    </div>
-</div>
-
-
-<div class="checkout-area ptb-100">
-    <div class="container">
-        <div class="user-actions">
-            <span>Kiểm tra thông tin đơn hàng <a href="/lich-su-mua-hang">Nhấn vào đây</a></span>
-        </div>
-        <div class="col-lg-12 col-sm-12 d-flex justify-content-center">
-            <div class="row">
-                <h4>@ViewBag.InnerText</h4>
-                @if (ViewBag.TrangThai)
-                {
-                    <h3>Bạn đã thanh toán thành công @BBEcom.Common.CommonHelper.ConvertMoney(int.Parse(ViewBag.SoTien))đ!</h3>
-                }
+        <section id="paymentResult" class="flow-card payment-result @(paid ? "is-success" : "is-waiting")" data-invoice="@invoice">
+            <div class="result-icon"><i class="bx @(paid ? "bx-check" : "bx-loader-alt")"></i></div>
+            <span class="flow-eyebrow">KẾT QUẢ GIAO DỊCH</span>
+            <h1>@(paid ? "Thanh toán thành công" : "Đang xác nhận thanh toán")</h1>
+            <p id="resultMessage">@ViewBag.InnerText</p>
+            @if (!String.IsNullOrWhiteSpace(invoice))
+            {
+                <div class="result-order"><span>Mã đơn hàng</span><strong>#@invoice</strong></div>
+            }
+            <div id="paidAmount" class="result-amount" style="@(paid && amount > 0 ? "" : "display:none")"><span>Số tiền</span><strong>@BBEcom.Common.CommonHelper.ConvertMoney(amount)đ</strong></div>
+            <div id="waitingHint" class="waiting-hint" style="@(paid ? "display:none" : "")"><i class="bx bx-info-circle"></i> Vui lòng giữ trang này mở, hệ thống đang nhận xác nhận từ SePay.</div>
+            <div class="result-actions">
+                <a class="result-primary" href="/lich-su-mua-hang"><i class="bx bx-history"></i>Xem lịch sử giao dịch</a>
+                <a class="result-secondary" href="/"><i class="bx bx-store"></i>Tiếp tục mua sắm</a>
             </div>
-        </div>
+        </section>
     </div>
-</div>
+</main>
+
+@if (!paid && !String.IsNullOrWhiteSpace(invoice))
+{
+<script>
+(function () {
+    var attempts = 0, maxAttempts = 30;
+    var box = document.getElementById('paymentResult');
+    function checkStatus() {
+        fetch('@Url.Action("SePayOrderStatus", "Cart", new { invoice = invoice })', { credentials: 'same-origin', cache: 'no-store' })
+            .then(function (response) { return response.json(); })
+            .then(function (result) {
+                if (result.paid) {
+                    box.classList.remove('is-waiting'); box.classList.add('is-success');
+                    box.querySelector('.result-icon i').className = 'bx bx-check';
+                    box.querySelector('h1').textContent = 'Thanh toán thành công';
+                    document.getElementById('resultMessage').textContent = 'Đơn hàng đã được xác nhận. Code đã có trong lịch sử giao dịch của bạn.';
+                    document.getElementById('waitingHint').style.display = 'none';
+                    var amount = document.getElementById('paidAmount');
+                    amount.style.display = ''; amount.querySelector('strong').textContent = Number(result.amount).toLocaleString('vi-VN') + 'đ';
+                    return;
+                }
+                attempts++;
+                if (attempts < maxAttempts) setTimeout(checkStatus, 2000);
+                else document.getElementById('resultMessage').textContent = 'Chưa nhận được xác nhận từ SePay. Bạn có thể mở lịch sử giao dịch để kiểm tra lại.';
+            })
+            .catch(function () { attempts++; if (attempts < maxAttempts) setTimeout(checkStatus, 2500); });
+    }
+    setTimeout(checkStatus, 800);
+})();
+</script>
+}
