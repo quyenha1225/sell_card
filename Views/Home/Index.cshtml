@@ -1,67 +1,61 @@
-﻿@{
+@{
     ViewBag.Title = "Trang chủ";
 }
-
-<div class="search-overlay">
-    <div class="d-table">
-        <div class="d-table-cell">
-            <div class="search-overlay-layer"></div>
-            <div class="search-overlay-layer"></div>
-            <div class="search-overlay-layer"></div>
-            <div class="search-overlay-close">
-                <span class="search-overlay-close-line"></span>
-                <span class="search-overlay-close-line"></span>
-            </div>
-            <div class="search-overlay-form">
-                <form>
-                    <input type="text" class="input-search" placeholder="Enter your keywords...">
-                    <button type="submit"><i class='bx bx-search'></i></button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
 
 <div class="main-banner-area">
     <div class="container-fluid">
         <div class="row align-items-center">
             <div class="col-lg-6 col-md-12">
                 <div class="main-banner-content">
-                    <span class="sub-title">Welcome to GiftToi</span>
-                    <h1>Chúng tôi đang cung cấp các sản phẩm tốt nhất</h1>
-                    <p>Giảm giá 20% cho đơn hàng đầu tiên</p>
-                    <a href="#" class="default-btn"><span>Shop Now</span></a>
+                    <span class="sub-title">Chào mừng bạn đến với GiftToi</span>
+                    <h1>Gift card chính hãng, nhận mã nhanh sau thanh toán</h1>
+                    <p>Tìm kiếm sản phẩm phù hợp, thanh toán bằng QR và quản lý mã đã mua ngay trong tài khoản.</p>
+                    <a href="#storefront-products" class="default-btn">
+                        <span>Xem sản phẩm</span>
+                    </a>
                 </div>
             </div>
             <div class="col-lg-6 col-md-12">
                 <div class="main-banner-image">
-                    <img src="/Content/Client/img/banner/banner1.png" alt="banner-image">
-                    <img src="/Content/Client/img/banner/banner2.png" alt="banner-image">
-                    <img src="/Content/Client/img/banner/banner3.png" alt="banner-image">
+                    <img src="/Content/Client/img/banner/banner1.png" alt="Gift card nổi bật 1">
+                    <img src="/Content/Client/img/banner/banner2.png" alt="Gift card nổi bật 2">
+                    <img src="/Content/Client/img/banner/banner3.png" alt="Gift card nổi bật 3">
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-
 <div class="offer-area pt-50 pb-75">
+    <div class="container">
+        <div class="search-overlay-form" style="max-width: 760px; margin: 0 auto; position: static; transform: none;">
+            @using (Html.BeginForm("Search", "Product", FormMethod.Get, new { @class = "home-product-search" }))
+            {
+                <input type="text"
+                       name="keyword"
+                       class="input-search"
+                       placeholder="Tìm gift card, sản phẩm hoặc nền tảng..."
+                       autocomplete="off"
+                       aria-label="Từ khóa tìm kiếm" />
+                <button type="submit" aria-label="Tìm kiếm sản phẩm">
+                    <i class="bx bx-search"></i>
+                </button>
+            }
+        </div>
+    </div>
 </div>
-
 
 <div class="categories-area pb-75">
     <div class="container">
         <div class="section-title">
             <h2>Danh mục sản phẩm</h2>
+            <p>Chọn danh mục để xem những gift card đang có sẵn.</p>
         </div>
         <div class="categories-slides owl-carousel owl-theme">
-
             @{ Html.RenderAction("Categories", "Home"); }
         </div>
     </div>
 </div>
-
 
 <div class="products-area pb-75" id="storefront-products">
     <div class="container">
@@ -71,7 +65,12 @@
             <p>Ưu đãi giảm giá được ưu tiên trước, tiếp theo là những sản phẩm mới nhất.</p>
         </div>
         <div class="row justify-content-center">
-            @{Html.RenderAction("ListProduct", "Home", new { page = ViewBag.ProductPage }); }
+            @{ Html.RenderAction("ListProduct", "Home", new { page = ViewBag.ProductPage }); }
+        </div>
+        <div class="text-center mt-4">
+            <a href="@Url.Action("Search", "Product")" class="default-btn">
+                <span>Xem tất cả sản phẩm</span>
+            </a>
         </div>
     </div>
 </div>
@@ -79,8 +78,8 @@
 <div class="offer-area pb-75">
     <div class="container">
         <div class="single-offer-box">
-            <a href="#" class="d-block">
-                <img src="/Content/Client/img/offer/offer6.jpg" alt="offer-image">
+            <a href="@Url.Action("Search", "Product", new { sort = "sale" })" class="d-block">
+                <img src="/Content/Client/img/offer/offer6.jpg" alt="Xem các sản phẩm đang giảm giá">
             </a>
         </div>
     </div>
@@ -90,55 +89,24 @@
     <div class="container">
         <div class="section-title">
             <h2>Các nền tảng nổi bật</h2>
+            <p>Khám phá toàn bộ gift card và mã sản phẩm số đang được cung cấp.</p>
         </div>
         <div class="row justify-content-center align-items-center">
-            <div class="col-lg-2 col-md-3 col-sm-4 col-4">
-                <div class="single-brands-box">
-                    <a href="#" class="d-block">
-                        <img src="/Content/Client/img/brands/brands1.png" alt="Nền tảng nổi bật" loading="lazy">
-                    </a>
+            @for (var i = 1; i <= 6; i++)
+            {
+                <div class="col-lg-2 col-md-3 col-sm-4 col-4">
+                    <div class="single-brands-box">
+                        <a href="@Url.Action("Search", "Product")" class="d-block">
+                            <img src="/Content/Client/img/brands/brands@(i).png"
+                                 alt="Nền tảng gift card nổi bật @i"
+                                 loading="lazy">
+                        </a>
+                    </div>
                 </div>
-            </div>
-            <div class="col-lg-2 col-md-3 col-sm-4 col-4">
-                <div class="single-brands-box">
-                    <a href="#" class="d-block">
-                        <img src="/Content/Client/img/brands/brands2.png" alt="Nền tảng nổi bật" loading="lazy">
-                    </a>
-                </div>
-            </div>
-            <div class="col-lg-2 col-md-3 col-sm-4 col-4">
-                <div class="single-brands-box">
-                    <a href="#" class="d-block">
-                        <img src="/Content/Client/img/brands/brands3.png" alt="Nền tảng nổi bật" loading="lazy">
-                    </a>
-                </div>
-            </div>
-            <div class="col-lg-2 col-md-3 col-sm-4 col-4">
-                <div class="single-brands-box">
-                    <a href="#" class="d-block">
-                        <img src="/Content/Client/img/brands/brands4.png" alt="Nền tảng nổi bật" loading="lazy">
-                    </a>
-                </div>
-            </div>
-            <div class="col-lg-2 col-md-3 col-sm-4 col-4">
-                <div class="single-brands-box">
-                    <a href="#" class="d-block">
-                        <img src="/Content/Client/img/brands/brands5.png" alt="Nền tảng nổi bật" loading="lazy">
-                    </a>
-                </div>
-            </div>
-            <div class="col-lg-2 col-md-3 col-sm-4 col-4">
-                <div class="single-brands-box">
-                    <a href="#" class="d-block">
-                        <img src="/Content/Client/img/brands/brands6.png" alt="Nền tảng nổi bật" loading="lazy">
-                    </a>
-                </div>
-            </div>
-
+            }
         </div>
     </div>
 </div>
-
 
 <div class="blog-area pt-100 pb-75">
     <div class="container">
@@ -146,7 +114,7 @@
             <h2>Tin tức</h2>
         </div>
         <div class="row justify-content-center">
-            @{Html.RenderAction("NewsPost", "Home");}
+            @{ Html.RenderAction("NewsPost", "Home"); }
         </div>
     </div>
 </div>

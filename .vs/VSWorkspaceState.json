@@ -1,7 +1,8 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\Data"
   ],
-  "SelectedNode": "\\BBEcom.sln",
+  "SelectedNode": "\\Data\\seed.sql",
   "PreviewInSolutionExplorer": false
 }

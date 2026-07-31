@@ -1,7 +1,11 @@
-﻿@model Models.EF.Category
+@model Models.EF.Category
 @{
-    ViewBag.Title = $"Danh mục {Model.Name}";
+    ViewBag.Title = "Danh mục " + Model.Name;
     Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var sort = ViewBag.Sort as string ?? "sale";
+    var page = ViewBag.Page == null ? 1 : Convert.ToInt32(ViewBag.Page);
+    var pageSize = ViewBag.PageSize == null ? 8 : Convert.ToInt32(ViewBag.PageSize);
 }
 
 <div class="page-title-area">
@@ -9,7 +13,7 @@
         <div class="page-title-content">
             <h1>@Model.Name</h1>
             <ul>
-                <li><a href="/">Trang chủ</a></li>
+                <li><a href="@Url.Action("Index", "Home")">Trang chủ</a></li>
                 <li class="text-black fw-normal">Danh mục</li>
                 <li>@Model.Name</li>
             </ul>
@@ -17,36 +21,63 @@
     </div>
 </div>
 
-
 <div class="products-area ptb-100">
     <div class="container">
         <div class="patoi-grid-sorting row align-items-center">
-            <div class="col-lg-6 col-md-6 result-count">
+            <div class="col-lg-5 col-md-12 result-count">
                 <div class="d-flex align-items-center">
-                    @*<a href="#" data-bs-toggle="modal" data-bs-target="#productsFilterModal" class="sidebar-filter"><i class='bx bx-filter-alt'></i> Lọc</a>*@
-                    <p>Đang có <span class="count">@ViewBag.CategoryProductCount</span> mã có sẵn dành cho bạn</p>
+                    <p>
+                        Có <span class="count">@ViewBag.CategoryProductCount</span>
+                        sản phẩm đang hoạt động trong danh mục này.
+                    </p>
                 </div>
             </div>
-            <div class="col-lg-6 col-md-6 ordering">
-                <div class="select-box">
-                    <label>Sắp xếp:</label>
-                    <select>
-                        <option>Default</option>
-                        <option>Popularity</option>
-                        <option>Latest</option>
-                        <option>Price: low to high</option>
-                        <option>Price: high to low</option>
-                    </select>
-                </div>
+
+            <div class="col-lg-7 col-md-12 ordering">
+                <form method="get"
+                      action="/danh-muc/@Model.Alias-@Model.Id"
+                      id="categorySortForm"
+                      class="d-flex align-items-center justify-content-lg-end flex-wrap gap-2">
+                    <div class="select-box">
+                        <label for="sort">Sắp xếp:</label>
+                        <select id="sort"
+                                name="sort"
+                                onchange="document.getElementById('categorySortForm').submit();">
+                            <option value="sale" @(sort == "sale" ? "selected" : null)>Ưu đãi nổi bật</option>
+                            <option value="latest" @(sort == "latest" ? "selected" : null)>Mới nhất</option>
+                            <option value="price_asc" @(sort == "price_asc" ? "selected" : null)>Giá thấp đến cao</option>
+                            <option value="price_desc" @(sort == "price_desc" ? "selected" : null)>Giá cao đến thấp</option>
+                            <option value="name_asc" @(sort == "name_asc" ? "selected" : null)>Tên A–Z</option>
+                            <option value="name_desc" @(sort == "name_desc" ? "selected" : null)>Tên Z–A</option>
+                        </select>
+                    </div>
+
+                    <div class="select-box">
+                        <label for="pageSize">Hiển thị:</label>
+                        <select id="pageSize"
+                                name="pageSize"
+                                onchange="document.getElementById('categorySortForm').submit();">
+                            <option value="8" @(pageSize == 8 ? "selected" : null)>8</option>
+                            <option value="12" @(pageSize == 12 ? "selected" : null)>12</option>
+                            <option value="16" @(pageSize == 16 ? "selected" : null)>16</option>
+                            <option value="24" @(pageSize == 24 ? "selected" : null)>24</option>
+                        </select>
+                    </div>
+                </form>
             </div>
         </div>
 
         <div class="row justify-content-center">
-
-            @{ Html.RenderAction("Products", "Product"); }
-
-            
+            @{ Html.RenderAction(
+                   "Products",
+                   "Product",
+                   new
+                   {
+                       id = Model.Id,
+                       sort = sort,
+                       page = page,
+                       pageSize = pageSize
+                   }); }
         </div>
     </div>
 </div>
-

@@ -1,16 +1,16 @@
-﻿<!doctype html>
+@using System.Linq
 @{
-    var layoutCart = Session["CART_SESSION"] as List<BBEcom.Models.Cart>;
+    var layoutCart = Session["CART_SESSION"] as System.Collections.Generic.List<BBEcom.Models.Cart>;
     var layoutCartCount = layoutCart == null ? 0 : layoutCart.Sum(x => x.Quantity);
+    var currentKeyword = Convert.ToString(Request.QueryString["keyword"]);
+    var currentUser = Session[BBEcom.Common.CommonConstants.USER_SESSION] as BBEcom.UserLogin;
 }
+<!doctype html>
 <html lang="vi">
-
-<!-- Mirrored from templates.envytheme.com/patoi/default/index.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 01 Dec 2021 12:20:34 GMT -->
-
 <head>
-
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="GiftToi - website mua gift card và mã sản phẩm số.">
 
     <link rel="stylesheet" href="/Content/Client/css/bootstrap.min.css">
     <link rel="stylesheet" href="/Content/Client/css/owl.carousel.min.css">
@@ -25,87 +25,108 @@
     <link rel="stylesheet" href="/Content/Client/css/meanmenu.min.css">
     <link rel="stylesheet" href="/Content/Client/css/style.css">
     <link rel="stylesheet" href="/Content/Client/css/responsive.css">
-    <link rel="stylesheet" href="/Content/Client/css/site-modern.css?v=20260725-2">
+    <link rel="stylesheet" href="/Content/Client/css/site-modern.css?v=20260730-1">
 
     <title>@ViewBag.Title | GiftToi - Gift Card Shop</title>
+
     <link rel="apple-touch-icon" sizes="180x180" href="/Content/Client/img/favicon_io/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/Content/Client/img/favicon_io/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/Content/Client/img/favicon_io/favicon-16x16.png">
     <link rel="manifest" href="/Content/Client/img/favicon_io/site.webmanifest">
 </head>
-
 <body>
-
     <div class="top-header-area">
         <div class="container-fluid">
             <div class="row align-items-center">
                 <div class="col-lg-4 col-md-4 col-sm-12">
-                    <p>FREE SHIP toàn cầu trong ngày 30/2!!</p>
+                    <p>Mua gift card nhanh chóng – nhận mã sau khi thanh toán</p>
                 </div>
-                <div class="col-lg-5 col-md-5 col-sm-6">
+
+                <div class="col-lg-5 col-md-5 col-sm-8">
                     <div class="search-box">
-                        <form>
-                            <input type="text" class="input-search" placeholder="Từ khoá tìm kiếm...">
-                            <button type="submit"><i class='bx bx-search'></i></button>
-                        </form>
+                        @using (Html.BeginForm("Search", "Product", FormMethod.Get))
+                        {
+                            <input type="text"
+                                   name="keyword"
+                                   class="input-search"
+                                   value="@currentKeyword"
+                                   placeholder="Tìm kiếm sản phẩm..."
+                                   autocomplete="off"
+                                   aria-label="Từ khóa tìm kiếm">
+                            <button type="submit" aria-label="Tìm kiếm">
+                                <i class="bx bx-search"></i>
+                            </button>
+                        }
                     </div>
                 </div>
-                <div class="col-lg-3 col-md-3 col-sm-6">
-                    <ul>
-                        <li><a href="#" target="_blank"><i class='bx bxl-facebook'></i></a></li>
-                        <li><a href="#" target="_blank"><i class='bx bxl-twitter'></i></a></li>
-                        <li><a href="#" target="_blank"><i class='bx bxl-instagram'></i></a></li>
-                        <li><a href="#" target="_blank"><i class='bx bxl-youtube'></i></a></li>
-                    </ul>
+
+                <div class="col-lg-3 col-md-3 col-sm-4">
+                    <p class="text-lg-end mb-0">
+                        <i class="bx bx-support"></i> Hỗ trợ khách hàng 24/7
+                    </p>
                 </div>
             </div>
         </div>
     </div>
-
 
     <div class="navbar-area">
         <div class="patoi-responsive-nav">
             <div class="container">
                 <div class="patoi-responsive-menu">
                     <div class="logo">
-                        <a href="/"><img src="/Content/Client/img/logo.png" alt="logo"></a>
+                        <a href="@Url.Action("Index", "Home")">
+                            <img src="/Content/Client/img/logo.png" alt="GiftToi">
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
+
         <div class="patoi-nav">
             <div class="container-fluid">
                 <nav class="navbar navbar-expand-md navbar-light">
-                    <a class="navbar-brand" href="/"><img src="/Content/Client/img/logo.png" alt="logo"></a>
+                    <a class="navbar-brand" href="@Url.Action("Index", "Home")">
+                        <img src="/Content/Client/img/logo.png" alt="GiftToi">
+                    </a>
+
                     <div class="collapse navbar-collapse mean-menu">
                         <ul class="navbar-nav">
                             @{ Html.RenderAction("NavbarMenu", "Layout"); }
-                            @if (Session[BBEcom.Common.CommonConstants.USER_SESSION] != null)
+
+                            @if (currentUser != null)
                             {
-                                <li class="nav-item"><a href="/lich-su-mua-hang" class="nav-link"><i class="bx bx-history"></i> Lịch sử giao dịch</a></li>
+                                <li class="nav-item">
+                                    <a href="/lich-su-mua-hang" class="nav-link">
+                                        <i class="bx bx-history"></i> Lịch sử giao dịch
+                                    </a>
+                                </li>
                             }
                         </ul>
+
                         <div class="others-option">
                             <div class="d-flex align-items-center">
                                 <ul>
                                     <li>
-                                        <div class="search-icon">
-                                            <i class='bx bx-search'></i>
-                                        </div>
+                                        <button type="button"
+                                                class="search-icon border-0 bg-transparent p-0"
+                                                aria-label="Mở tìm kiếm">
+                                            <i class="bx bx-search"></i>
+                                        </button>
                                     </li>
 
-                                    @if (Session[BBEcom.Common.CommonConstants.USER_SESSION] != null)
+                                    @if (currentUser != null)
                                     {
                                         <li>
-                                            <a href="/trang-ca-nhan">
-                                                <i class='bx bx-user-circle'></i>
+                                            <a href="/trang-ca-nhan" title="Trang cá nhân">
+                                                <i class="bx bx-user-circle"></i>
                                             </a>
                                         </li>
-                                        if (((UserLogin)Session[BBEcom.Common.CommonConstants.USER_SESSION]).IsAdmin )
+
+                                        if (currentUser.IsAdmin)
                                         {
                                             <li>
-                                                <a href="/Admin">
-                                                    <i class='bx bx-check-shield'></i>
+                                                <a href="/Admin" title="Trang quản trị">
+                                                    <i class="bx bx-check-shield"></i>
                                                 </a>
                                             </li>
                                         }
@@ -113,16 +134,18 @@
                                     else
                                     {
                                         <li>
-                                            <a href="/dang-nhap">
-                                                <i class='bx bx-log-in'></i>
+                                            <a href="/dang-nhap" title="Đăng nhập">
+                                                <i class="bx bx-log-in"></i>
                                             </a>
                                         </li>
                                     }
 
                                     <li>
-                                        <a href="/gio-hang" class="position-relative">
-                                            <i class='bx bx-cart'></i>
-                                            <span class="cart-count @(layoutCartCount > 0 ? "has-items" : "")">@layoutCartCount</span>
+                                        <a href="/gio-hang" class="position-relative" title="Giỏ hàng">
+                                            <i class="bx bx-cart"></i>
+                                            <span class="cart-count @(layoutCartCount > 0 ? "has-items" : "")">
+                                                @layoutCartCount
+                                            </span>
                                         </a>
                                     </li>
                                 </ul>
@@ -132,6 +155,7 @@
                 </nav>
             </div>
         </div>
+
         <div class="others-option-for-responsive">
             <div class="container">
                 <div class="dot-menu">
@@ -141,47 +165,47 @@
                         <div class="circle circle-three"></div>
                     </div>
                 </div>
+
                 <div class="container">
                     <div class="option-inner">
                         <div class="others-option">
                             <ul>
                                 <li>
-                                    <select class="form-select">
-                                        <option selected>English</option>
-                                        <option value="1">Spanish</option>
-                                        <option value="2">Chinese</option>
-                                    </select>
+                                    <button type="button"
+                                            class="search-icon border-0 bg-transparent p-0"
+                                            aria-label="Mở tìm kiếm">
+                                        <i class="bx bx-search"></i>
+                                    </button>
                                 </li>
-                                <li>
-                                    <div class="search-icon">
-                                        <i class='bx bx-search'></i>
-                                    </div>
-                                </li>
-                                <li>
-                                    @if (Session[BBEcom.Common.CommonConstants.USER_SESSION] != null)
-                                    {
-                                        <a href="/lich-su-mua-hang" title="Lịch sử giao dịch"><i class="bx bx-history"></i></a>
-                                    }
-                                </li>
-                                <li>
-                                    @if (Session[BBEcom.Common.CommonConstants.USER_SESSION] != null)
-                                    {
-                                        <a href="/trang-ca-nhan">
-                                            <i class='bx bx-user-circle'></i>
-                                        </a>
-                                    }
-                                    else
-                                    {
-                                        <a href="/dang-nhap">
-                                            <i class='bx bx-log-in'></i>
-                                        </a>
-                                    }
 
-                                </li>
+                                @if (currentUser != null)
+                                {
+                                    <li>
+                                        <a href="/lich-su-mua-hang" title="Lịch sử giao dịch">
+                                            <i class="bx bx-history"></i>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="/trang-ca-nhan" title="Trang cá nhân">
+                                            <i class="bx bx-user-circle"></i>
+                                        </a>
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li>
+                                        <a href="/dang-nhap" title="Đăng nhập">
+                                            <i class="bx bx-log-in"></i>
+                                        </a>
+                                    </li>
+                                }
+
                                 <li>
-                                    <a href="/gio-hang" class="position-relative">
-                                        <i class='bx bx-cart'></i>
-                                        <span class="cart-count @(layoutCartCount > 0 ? "has-items" : "")">@layoutCartCount</span>
+                                    <a href="/gio-hang" class="position-relative" title="Giỏ hàng">
+                                        <i class="bx bx-cart"></i>
+                                        <span class="cart-count @(layoutCartCount > 0 ? "has-items" : "")">
+                                            @layoutCartCount
+                                        </span>
                                     </a>
                                 </li>
                             </ul>
@@ -192,195 +216,92 @@
         </div>
     </div>
 
+    <div class="search-overlay">
+        <div class="d-table">
+            <div class="d-table-cell">
+                <div class="search-overlay-layer"></div>
+                <div class="search-overlay-layer"></div>
+                <div class="search-overlay-layer"></div>
+
+                <button type="button" class="search-overlay-close" aria-label="Đóng tìm kiếm">
+                    <span class="search-overlay-close-line"></span>
+                    <span class="search-overlay-close-line"></span>
+                </button>
+
+                <div class="search-overlay-form">
+                    @using (Html.BeginForm("Search", "Product", FormMethod.Get))
+                    {
+                        <input type="text"
+                               name="keyword"
+                               class="input-search"
+                               value="@currentKeyword"
+                               placeholder="Nhập tên sản phẩm hoặc danh mục..."
+                               autocomplete="off"
+                               aria-label="Từ khóa tìm kiếm">
+                        <button type="submit" aria-label="Tìm kiếm sản phẩm">
+                            <i class="bx bx-search"></i>
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
 
     @RenderBody()
-
 
     <footer class="footer-area">
         <div class="container">
             <div class="row">
-                <div class="col-lg-3 col-md-6 col-sm-6">
+                <div class="col-lg-4 col-md-6 col-sm-12">
                     <div class="single-footer-widget">
-                        <h3>
-                            TỔNG ĐÀI HỖ TRỢ
-                        </h3>
+                        <h3>TỔNG ĐÀI HỖ TRỢ</h3>
                         <ul class="footer-contact-info">
                             <li><span>Hotline:</span> <a href="tel:123456789">123456789</a></li>
                             <li><span>Tư vấn:</span> <a href="tel:0987654231">0987654231</a></li>
-                            <li>
-                                <span>Email:</span> support@gifttoi.vn
-                            </li>
-                            <li>
-                                <span>Địa chỉ:</span> Ngọc Hồi,Thanh Trì, Hà Nội, Việt Nam
-                            </li>
+                            <li><span>Email:</span> <a href="mailto:support@gifttoi.vn">support@gifttoi.vn</a></li>
+                            <li><span>Địa chỉ:</span> Ngọc Hồi, Thanh Trì, Hà Nội, Việt Nam</li>
                         </ul>
                     </div>
                 </div>
-                <div class="col-lg-3 col-md-6 col-sm-6">
-                    <div class="single-footer-widget pl-4">
+
+                <div class="col-lg-4 col-md-6 col-sm-12">
+                    <div class="single-footer-widget">
                         <h3>THÔNG TIN</h3>
                         <ul class="custom-links">
-                            <li><a href="/gioi-thieu-ve-chung-toi">Giới thiệu</a></li>
+                            <li><a href="/gioi-thieu-ve-chung-toi">Giới thiệu về GiftToi</a></li>
+                            <li><a href="/tin-tuc">Tin tức và hướng dẫn</a></li>
+                            <li><a href="@Url.Action("Search", "Product")">Tất cả sản phẩm</a></li>
                         </ul>
                     </div>
                 </div>
-                <div class="col-lg-3 col-md-6 col-sm-6">
+
+                <div class="col-lg-4 col-md-12 col-sm-12">
                     <div class="single-footer-widget">
-                        <h3>CHÍNH SÁCH</h3>
-                        <ul class="custom-links">
-                            <li><a href="#">Chính sách bảo hành</a></li>
-                            <li><a href="#">Chính sách bảo mật</a></li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6 col-sm-6">
-                    <div class="single-footer-widget">
-                        <h3>PHƯƠNG THỨC THANH TOÁN</h3>
-                        <div class="payment-types">
-                            <div class="d-flex align-items-center">
-                                <ul>
-                                    <li><img src="/Content/Client/img/payment/vnpay.png" alt="vnpay"></li>
-                                    <li><img src="/Content/Client/img/payment/visa.png" alt="visa"></li>
-                                    <li><img src="/Content/Client/img/payment/mc.png" alt="master-card"></li>
-                                    <li><img src="/Content/Client/img/payment/paypal.png" alt="paypal"></li>
-                                    <li><img src="/Content/Client/img/payment/ae.png" alt="american-express"></li>
-                                    <li><img src="/Content/Client/img/payment/discover.png" alt="discover"></li>
-                                </ul>
-                            </div>
-                        </div>
+                        <h3>THANH TOÁN AN TOÀN</h3>
+                        <p>
+                            <i class="bx bx-qr-scan"></i>
+                            Thanh toán chuyển khoản QR qua SePay. Đơn hàng được kiểm tra trước khi cấp mã.
+                        </p>
+                        <p>
+                            <i class="bx bx-lock-alt"></i>
+                            Thông tin tài khoản và giao dịch được xử lý tại phía máy chủ.
+                        </p>
                     </div>
                 </div>
             </div>
         </div>
+
         <div class="copyright-area">
             <div class="container">
                 <p>
-                    Copyright @DateTime.Now.Year <span>Giftoi</span>. Design & Developed by <a href="/">GIFTTOI</a>
+                    Copyright @DateTime.Now.Year <span>GiftToi</span>.
+                    Design &amp; Developed by <a href="@Url.Action("Index", "Home")">GIFTTOI</a>
                 </p>
             </div>
         </div>
     </footer>
 
-    <div class="go-top"><i class='bx bx-upvote'></i></div>
-
-    <div class="productsFilterModal modal right fade" id="productsFilterModal" tabindex="-1" role="dialog">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                <div class="modal-body">
-                    <aside class="widget-area">
-                        <div class="widget widget_categories">
-                            <h3 class="widget-title"><span>Categories</span></h3>
-                            <ul>
-                                <li><a href="shop-left-sidebar.html">Business</a></li>
-                                <li><a href="shop-left-sidebar.html">Privacy</a></li>
-                                <li><a href="shop-left-sidebar.html">Technology</a></li>
-                                <li><a href="shop-left-sidebar.html">Tips</a></li>
-                                <li><a href="shop-left-sidebar.html">Log in</a></li>
-                                <li><a href="shop-left-sidebar.html">Uncategorized</a></li>
-                            </ul>
-                        </div>
-                        <div class="widget widget_price_filter">
-                            <h3 class="widget-title"><span>Filter by Price</span></h3>
-                            <div class="collection_filter_by_price">
-                                <input class="js-range-of-price" type="text" data-min="0" data-max="1055"
-                                       name="filter_by_price" data-step="10">
-                            </div>
-                        </div>
-                        <div class="widget widget_patoi_posts_thumb">
-                            <h3 class="widget-title"><span>Our Best Sellers</span></h3>
-                            <article class="item">
-                                <a href="products-details.html" class="thumb">
-                                    <img src="/Content/Client/img/products/products1.jpg" alt="blog-image">
-                                </a>
-                                <div class="info">
-                                    <h4 class="title"><a href="products-details.html">Pet brash</a></h4>
-                                    <div class="star-rating">
-                                        <i class='bx bxs-star'></i>
-                                        <i class='bx bxs-star'></i>
-                                        <i class='bx bxs-star'></i>
-                                        <i class='bx bxs-star'></i>
-                                        <i class='bx bxs-star'></i>
-                                    </div>
-                                    <span class="price">$150.00</span>
-                                </div>
-                            </article>
-                            <article class="item">
-                                <a href="products-details.html" class="thumb">
-                                    <img src="/Content/Client/img/products/products2.jpg" alt="blog-image">
-                                </a>
-                                <div class="info">
-                                    <h4 class="title"><a href="products-details.html">Automatic dog blue leash</a></h4>
-                                    <div class="star-rating">
-                                        <i class='bx bxs-star'></i>
-                                        <i class='bx bxs-star'></i>
-                                        <i class='bx bxs-star'></i>
-                                        <i class='bx bxs-star'></i>
-                                        <i class='bx bxs-star'></i>
-                                    </div>
-                                    <span class="price">$150.00</span>
-                                </div>
-                            </article>
-                            <article class="item">
-                                <a href="products-details.html" class="thumb">
-                                    <img src="/Content/Client/img/products/products3.jpg" alt="blog-image">
-                                </a>
-                                <div class="info">
-                                    <h4 class="title"><a href="products-details.html">Cat toilet bowl</a></h4>
-                                    <div class="star-rating">
-                                        <i class='bx bxs-star'></i>
-                                        <i class='bx bxs-star'></i>
-                                        <i class='bx bxs-star'></i>
-                                        <i class='bx bxs-star'></i>
-                                        <i class='bx bxs-star'></i>
-                                    </div>
-                                    <span class="price">$150.00</span>
-                                </div>
-                            </article>
-                            <article class="item">
-                                <a href="products-details.html" class="thumb">
-                                    <img src="/Content/Client/img/products/products4.jpg" alt="blog-image">
-                                </a>
-                                <div class="info">
-                                    <h4 class="title"><a href="products-details.html">Bowl with rubber toy</a></h4>
-                                    <div class="star-rating">
-                                        <i class='bx bxs-star'></i>
-                                        <i class='bx bxs-star'></i>
-                                        <i class='bx bxs-star'></i>
-                                        <i class='bx bxs-star'></i>
-                                        <i class='bx bxs-star'></i>
-                                    </div>
-                                    <span class="price">$150.00</span>
-                                </div>
-                            </article>
-                        </div>
-                        <div class="widget widget_tag_cloud">
-                            <h3 class="widget-title"><span>Tags</span></h3>
-                            <div class="tagcloud">
-                                <a href="shop-left-sidebar.html">Advertisment</a>
-                                <a href="shop-left-sidebar.html">Business</a>
-                                <a href="shop-left-sidebar.html">Life</a>
-                                <a href="shop-left-sidebar.html">Lifestyle</a>
-                                <a href="shop-left-sidebar.html">Fashion</a>
-                                <a href="shop-left-sidebar.html">Ads</a>
-                                <a href="shop-left-sidebar.html">Advertisment</a>
-                            </div>
-                        </div>
-                        <div class="widget widget_follow_us">
-                            <h3 class="widget-title"><span>Follow Us</span></h3>
-                            <ul>
-                                <li><a href="#" target="_blank">Facebook</a></li>
-                                <li><a href="#" target="_blank">Twitter</a></li>
-                                <li><a href="#" target="_blank">Instagram</a></li>
-                                <li><a href="#" target="_blank">Pinterest</a></li>
-                                <li><a href="#" target="_blank">Linkedin</a></li>
-                            </ul>
-                        </div>
-                    </aside>
-                </div>
-            </div>
-        </div>
-    </div>
+    <div class="go-top"><i class="bx bx-upvote"></i></div>
 
     <script src="/Content/Client/js/jquery.min.js"></script>
     <script src="/Scripts/jquery.unobtrusive-ajax.js"></script>
@@ -398,24 +319,36 @@
     <script src="/Content/Client/js/contact-form-script.js"></script>
     <script src="/Content/Client/js/ajaxchimp.min.js"></script>
     <script src="/Content/Client/js/main.js"></script>
-    <script src="/Content/Client/js/site-modern.js?v=20260725-2"></script>
+    <script src="/Content/Client/js/site-modern.js?v=20260730-1"></script>
 
     <script>
         window.Toastify = window.Toastify || function (options) {
-            return { showToast: function () {
-                var toast = document.createElement('div');
-                toast.className = 'site-toast'; toast.textContent = options.text || '';
-                if (options.style && options.style.background) toast.style.background = options.style.background;
-                document.body.appendChild(toast);
-                requestAnimationFrame(function () { toast.classList.add('show'); });
-                setTimeout(function () { toast.classList.remove('show'); setTimeout(function () { toast.remove(); }, 250); }, options.duration || 3000);
-            }};
+            return {
+                showToast: function () {
+                    var toast = document.createElement('div');
+                    toast.className = 'site-toast';
+                    toast.textContent = options.text || '';
+
+                    if (options.style && options.style.background) {
+                        toast.style.background = options.style.background;
+                    }
+
+                    document.body.appendChild(toast);
+                    requestAnimationFrame(function () {
+                        toast.classList.add('show');
+                    });
+
+                    setTimeout(function () {
+                        toast.classList.remove('show');
+                        setTimeout(function () {
+                            toast.remove();
+                        }, 250);
+                    }, options.duration || 3000);
+                }
+            };
         };
     </script>
 
     @RenderSection("jsFooter", required: false)
 </body>
-
-<!-- Mirrored from templates.envytheme.com/patoi/default/index.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 01 Dec 2021 12:20:57 GMT -->
-
 </html>

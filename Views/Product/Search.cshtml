@@ -1,0 +1,314 @@
+@using PagedList
+@using PagedList.Mvc
+@using System.Collections.Generic
+@using System.Linq
+@model IPagedList<Models.EF.Product>
+@{
+    ViewBag.Title = "Tìm kiếm sản phẩm";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var keyword = ViewBag.Keyword as string ?? string.Empty;
+    var sort = ViewBag.Sort as string ?? "sale";
+    var pageSize = ViewBag.PageSize == null ? 12 : Convert.ToInt32(ViewBag.PageSize);
+
+    var sortOptions = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "sale", Text = "Ưu đãi nổi bật", Selected = sort == "sale" },
+        new SelectListItem { Value = "latest", Text = "Mới nhất", Selected = sort == "latest" },
+        new SelectListItem { Value = "price_asc", Text = "Giá thấp đến cao", Selected = sort == "price_asc" },
+        new SelectListItem { Value = "price_desc", Text = "Giá cao đến thấp", Selected = sort == "price_desc" },
+        new SelectListItem { Value = "name_asc", Text = "Tên A–Z", Selected = sort == "name_asc" },
+        new SelectListItem { Value = "name_desc", Text = "Tên Z–A", Selected = sort == "name_desc" }
+    };
+
+    var pageSizeOptions = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "8", Text = "8 sản phẩm", Selected = pageSize == 8 },
+        new SelectListItem { Value = "12", Text = "12 sản phẩm", Selected = pageSize == 12 },
+        new SelectListItem { Value = "16", Text = "16 sản phẩm", Selected = pageSize == 16 },
+        new SelectListItem { Value = "24", Text = "24 sản phẩm", Selected = pageSize == 24 }
+    };
+}
+
+<style>
+    .store-search-panel {
+        background: #fff;
+        border: 1px solid rgba(20, 33, 61, .09);
+        border-radius: 18px;
+        box-shadow: 0 14px 40px rgba(20, 33, 61, .08);
+        padding: 22px;
+        margin-bottom: 32px;
+    }
+
+    .store-search-input {
+        min-height: 52px;
+        border-radius: 12px 0 0 12px;
+    }
+
+    .store-search-button {
+        min-height: 52px;
+        border: 0;
+        padding: 0 24px;
+        border-radius: 0 12px 12px 0;
+        background: #111827;
+        color: #fff;
+        font-weight: 600;
+    }
+
+    .store-search-filter label {
+        font-size: 13px;
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+
+    .store-search-filter .form-select {
+        min-height: 46px;
+        border-radius: 10px;
+    }
+
+    .search-result-summary {
+        color: #5f6570;
+    }
+
+    .empty-search-result {
+        background: #fff;
+        border: 1px dashed #ccd1da;
+        border-radius: 18px;
+        padding: 60px 20px;
+    }
+
+    @@media (max-width: 767px) {
+        .store-search-panel {
+            padding: 16px;
+        }
+
+        .store-search-button {
+            padding: 0 16px;
+        }
+    }
+</style>
+
+<div class="page-title-area">
+    <div class="container">
+        <div class="page-title-content">
+            <h1>Tìm kiếm sản phẩm</h1>
+            <ul>
+                <li><a href="@Url.Action("Index", "Home")">Trang chủ</a></li>
+                <li>Tìm kiếm</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<section class="products-area ptb-100">
+    <div class="container">
+        <div class="store-search-panel">
+            <div class="row align-items-end g-3">
+                <div class="col-lg-7 col-md-12">
+                    @using (Html.BeginForm("Search", "Product", FormMethod.Get, new { @class = "m-0" }))
+                    {
+                        <input type="hidden" name="sort" value="@sort" />
+                        <input type="hidden" name="pageSize" value="@pageSize" />
+
+                        <label for="keyword" class="form-label fw-bold">Từ khóa sản phẩm</label>
+                        <div class="input-group">
+                            <input type="text"
+                                   id="keyword"
+                                   name="keyword"
+                                   class="form-control store-search-input"
+                                   value="@keyword"
+                                   placeholder="Nhập tên gift card hoặc danh mục..."
+                                   autocomplete="off" />
+                            <button type="submit" class="store-search-button">
+                                <i class="bx bx-search"></i>
+                                Tìm kiếm
+                            </button>
+                        </div>
+                    }
+                </div>
+
+                <div class="col-lg-5 col-md-12">
+                    @using (Html.BeginForm("Search", "Product", FormMethod.Get, new { id = "productFilterForm", @class = "m-0" }))
+                    {
+                        <input type="hidden" name="keyword" value="@keyword" />
+                        <div class="row g-2 store-search-filter">
+                            <div class="col-sm-7">
+                                <label for="sort">Sắp xếp</label>
+                                @Html.DropDownList(
+                                    "sort",
+                                    sortOptions,
+                                    new
+                                    {
+                                        @class = "form-select",
+                                        onchange = "document.getElementById('productFilterForm').submit();"
+                                    })
+                            </div>
+                            <div class="col-sm-5">
+                                <label for="pageSize">Hiển thị</label>
+                                @Html.DropDownList(
+                                    "pageSize",
+                                    pageSizeOptions,
+                                    new
+                                    {
+                                        @class = "form-select",
+                                        onchange = "document.getElementById('productFilterForm').submit();"
+                                    })
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="search-result-summary mb-4">
+            @if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                <p>
+                    Tìm thấy <strong>@Model.TotalItemCount</strong> sản phẩm cho từ khóa
+                    <strong>“@keyword”</strong>.
+                </p>
+            }
+            else
+            {
+                <p>Đang hiển thị <strong>@Model.TotalItemCount</strong> sản phẩm đang hoạt động.</p>
+            }
+        </div>
+
+        @if (Model != null && Model.Any())
+        {
+            <div class="row justify-content-center">
+                @foreach (var item in Model)
+                {
+                    var hasSale = item.Price > 0
+                                  && item.PriceSale.HasValue
+                                  && item.PriceSale.Value > 0
+                                  && item.PriceSale.Value < item.Price;
+                    var displayPrice = hasSale ? item.PriceSale.Value : item.Price;
+                    var stock = item.Giftcard == null
+                        ? 0
+                        : item.Giftcard.Count(x => x.ProductId == item.Id);
+
+                    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
+                        <article class="single-products-box modern-product-card">
+                            <div class="image">
+                                @if (hasSale)
+                                {
+                                    var percent = (int)Math.Round((item.Price - item.PriceSale.Value) * 100m / item.Price);
+                                    <span class="store-sale-badge">-@percent%</span>
+                                }
+                                else
+                                {
+                                    <span class="store-new-badge">MỚI</span>
+                                }
+
+                                <a href="/san-pham/@item.Alias-@item.Id" class="product-image-link">
+                                    <img src="@item.Images"
+                                         alt="@item.Name"
+                                         loading="lazy"
+                                         onerror="this.onerror=null;this.src='/Content/Client/img/logo.png';" />
+                                </a>
+
+                                <div class="product-card-actions">
+                                    <a href="/san-pham/@item.Alias-@item.Id" aria-label="Xem chi tiết @item.Name">
+                                        <i class="bx bx-show"></i>
+                                    </a>
+                                    @if (stock > 0)
+                                    {
+                                        <a href="/san-pham/@item.Alias-@item.Id" aria-label="Chọn mua @item.Name">
+                                            <i class="bx bx-cart-add"></i>
+                                        </a>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="content">
+                                <div class="product-card-meta">
+                                    <span>@(item.Category == null ? "Gift Card" : item.Category.Name)</span>
+                                    <span><i class="bx bxs-star"></i> 5.0</span>
+                                </div>
+
+                                <h3>
+                                    <a href="/san-pham/@item.Alias-@item.Id">@item.Name</a>
+                                </h3>
+
+                                <div class="product-card-bottom">
+                                    <div class="price">
+                                        <span class="new-price">@BBEcom.Common.CommonHelper.ConvertMoney(displayPrice)đ</span>
+                                        @if (hasSale)
+                                        {
+                                            <span class="old-price">@BBEcom.Common.CommonHelper.ConvertMoney(item.Price)đ</span>
+                                        }
+                                    </div>
+                                    <span class="stock-mini @(stock > 0 ? "" : "sold-out")">
+                                        @(stock > 0 ? "Còn hàng" : "Hết hàng")
+                                    </span>
+                                </div>
+
+                                <div class="product-card-cta">
+                                    <a class="detail-card-btn" href="/san-pham/@item.Alias-@item.Id">
+                                        <i class="bx bx-show"></i>
+                                        <span>Xem chi tiết</span>
+                                    </a>
+
+                                    @if (stock > 0)
+                                    {
+                                        <button type="button"
+                                                class="cart-card-btn js-quick-add"
+                                                data-url="/gio-hang/them-@item.Id-1">
+                                            <i class="bx bx-cart-add"></i>
+                                            <span>Thêm vào giỏ</span>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="cart-card-btn" disabled>
+                                            <i class="bx bx-x-circle"></i>
+                                            <span>Hết hàng</span>
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                }
+            </div>
+
+            if (Model.PageCount > 1)
+            {
+                <div class="storefront-pagination mt-4">
+                    @Html.PagedListPager(
+                        Model,
+                        page => Url.Action(
+                            "Search",
+                            "Product",
+                            new
+                            {
+                                keyword = keyword,
+                                sort = sort,
+                                page = page,
+                                pageSize = pageSize
+                            }),
+                        new PagedListRenderOptions
+                        {
+                            DisplayLinkToFirstPage = PagedListDisplayMode.IfNeeded,
+                            DisplayLinkToLastPage = PagedListDisplayMode.IfNeeded,
+                            DisplayLinkToPreviousPage = PagedListDisplayMode.IfNeeded,
+                            DisplayLinkToNextPage = PagedListDisplayMode.IfNeeded,
+                            MaximumPageNumbersToDisplay = 5
+                        })
+                </div>
+            }
+        }
+        else
+        {
+            <div class="empty-search-result text-center">
+                <i class="bx bx-search-alt" style="font-size: 72px;"></i>
+                <h3>Không tìm thấy sản phẩm phù hợp</h3>
+                <p>Hãy thử từ khóa ngắn hơn hoặc xem toàn bộ sản phẩm đang được bán.</p>
+                <a href="@Url.Action("Search", "Product")" class="default-btn">
+                    <span>Xem tất cả sản phẩm</span>
+                </a>
+            </div>
+        }
+    </div>
+</section>

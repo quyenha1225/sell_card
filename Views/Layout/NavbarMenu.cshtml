@@ -1,34 +1,84 @@
-﻿@{
-    var listPro = ViewBag.MostProduct;
-    var listCate = ViewBag.MostCategory;
+@using System
+@using Models.EF
+@using System.Collections.Generic
+@using System.Linq
+@{
+    var listPro = ViewBag.MostProduct as IEnumerable<Product> ?? Enumerable.Empty<Product>();
+    var listCate = ViewBag.MostCategory as IEnumerable<Category> ?? Enumerable.Empty<Category>();
+
+    var currentController = Convert.ToString(ViewContext.RouteData.Values["controller"]);
+    var currentAction = Convert.ToString(ViewContext.RouteData.Values["action"]);
+    var isHome = currentController.Equals("Home", StringComparison.OrdinalIgnoreCase)
+                 && currentAction.Equals("Index", StringComparison.OrdinalIgnoreCase);
 }
 
 <li class="nav-item">
-    <a href="/" class="nav-link active">Trang chủ</a>
+    <a href="@Url.Action("Index", "Home")"
+       class="nav-link @(isHome ? "active" : "")">
+        Trang chủ
+    </a>
 </li>
-<li class="nav-item">
-    <a href="#" class="dropdown-toggle nav-link">Danh mục sản phẩm</a>
-    <ul class="dropdown-menu">
 
-        @foreach (var item in listCate)
+<li class="nav-item">
+    <a href="javascript:void(0)" class="dropdown-toggle nav-link">
+        Danh mục sản phẩm
+    </a>
+    <ul class="dropdown-menu">
+        @if (listCate.Any())
+        {
+            foreach (var item in listCate)
+            {
+                <li class="nav-item">
+                    <a href="/danh-muc/@item.Alias-@item.Id" class="nav-link">
+                        @item.Name
+                    </a>
+                </li>
+            }
+        }
+        else
         {
             <li class="nav-item">
-                <a href="/danh-muc/@item.Alias-@item.Id" class="nav-link">@item.Name</a>
+                <span class="nav-link">Chưa có danh mục</span>
             </li>
         }
-
     </ul>
 </li>
+
 <li class="nav-item">
-    <a href="#" class="dropdown-toggle nav-link">Sản phẩm nổi bật</a>
+    <a href="javascript:void(0)" class="dropdown-toggle nav-link">
+        Sản phẩm nổi bật
+    </a>
     <ul class="dropdown-menu">
-        @foreach (var item in listPro)
+        @if (listPro.Any())
+        {
+            foreach (var item in listPro)
+            {
+                <li class="nav-item">
+                    <a href="/san-pham/@item.Alias-@item.Id" class="nav-link">
+                        @item.Name
+                    </a>
+                </li>
+            }
+        }
+        else
         {
             <li class="nav-item">
-                <a href="/san-pham/@item.Alias-@item.Id" class="nav-link">@item.Name</a>
+                <span class="nav-link">Chưa có sản phẩm</span>
             </li>
         }
     </ul>
 </li>
-<li class="nav-item"><a href="/tin-tuc" class="nav-link">Tin tức</a></li>
-<li class="nav-item"><a href="/gioi-thieu-ve-chung-toi" class="nav-link">Giới thiệu</a></li>
+
+<li class="nav-item">
+    <a href="@Url.Action("Search", "Product")" class="nav-link">
+        Tất cả sản phẩm
+    </a>
+</li>
+
+<li class="nav-item">
+    <a href="/tin-tuc" class="nav-link">Tin tức</a>
+</li>
+
+<li class="nav-item">
+    <a href="/gioi-thieu-ve-chung-toi" class="nav-link">Giới thiệu</a>
+</li>

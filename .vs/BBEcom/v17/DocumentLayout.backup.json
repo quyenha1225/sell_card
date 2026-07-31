@@ -1,25 +1,57 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\PC\\Documents\\GitHub\\sell_card\\",
+  "WorkspaceRootPath": "D:\\CMC_Uni\\HocKi_5\\sell_card\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|c:\\users\\pc\\documents\\github\\sell_card\\readme.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "AbsoluteMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|D:\\CMC_Uni\\HocKi_5\\sell_card\\views\\layout\\navbarmenu.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|solutionrelative:views\\layout\\navbarmenu.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|D:\\CMC_Uni\\HocKi_5\\sell_card\\models\\dao\\productdao.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|solutionrelative:models\\dao\\productdao.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|d:\\cmc_uni\\hocki_5\\sell_card\\views\\home\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|solutionrelative:views\\home\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|D:\\CMC_Uni\\HocKi_5\\sell_card\\web.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
+      "RelativeMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|solutionrelative:web.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|D:\\CMC_Uni\\HocKi_5\\sell_card\\data\\seed.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}",
+      "RelativeMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|solutionrelative:data\\seed.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|D:\\CMC_Uni\\HocKi_5\\sell_card\\readme.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
       "RelativeMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|solutionrelative:readme.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|c:\\users\\pc\\documents\\github\\sell_card\\web.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
-      "RelativeMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|solutionrelative:web.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
+      "AbsoluteMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|D:\\CMC_Uni\\HocKi_5\\sell_card\\controllers\\productcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|solutionrelative:controllers\\productcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|D:\\CMC_Uni\\HocKi_5\\sell_card\\packages.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
+      "RelativeMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|solutionrelative:packages.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
     }
   ],
   "DocumentGroupContainers": [
     {
-      "Orientation": 0,
+      "Orientation": 1,
       "VerticalTabListWidth": 256,
       "DocumentGroups": [
         {
-          "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "DockedHeight": 295,
+          "SelectedChildIndex": 6,
           "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{cce594b6-0c39-4442-ba28-10c64ac7e89f}"
+            },
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
@@ -27,28 +59,121 @@
             {
               "$type": "Document",
               "DocumentIndex": 1,
+              "Title": "ProductDAO.cs",
+              "DocumentMoniker": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Models\\DAO\\ProductDAO.cs",
+              "RelativeDocumentMoniker": "Models\\DAO\\ProductDAO.cs",
+              "ToolTip": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Models\\DAO\\ProductDAO.cs",
+              "RelativeToolTip": "Models\\DAO\\ProductDAO.cs",
+              "ViewState": "AgIAAG4AAAAAAAAAAAAYwGsAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-29T08:53:11.397Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "ProductController.cs",
+              "DocumentMoniker": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Controllers\\ProductController.cs",
+              "RelativeDocumentMoniker": "Controllers\\ProductController.cs",
+              "ToolTip": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Controllers\\ProductController.cs",
+              "RelativeToolTip": "Controllers\\ProductController.cs",
+              "ViewState": "AgIAABoAAAAAAAAAAAA5wCgAAAA5AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-29T08:52:35.042Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Index.cshtml",
+              "DocumentMoniker": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Views\\Home\\Index.cshtml",
+              "RelativeDocumentMoniker": "Views\\Home\\Index.cshtml",
+              "ToolTip": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Views\\Home\\Index.cshtml",
+              "RelativeToolTip": "Views\\Home\\Index.cshtml",
+              "ViewState": "AgIAAHgAAAAAAAAAAAAAAHgAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-07-29T08:52:17.99Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "NavbarMenu.cshtml",
+              "DocumentMoniker": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Views\\Layout\\NavbarMenu.cshtml",
+              "RelativeDocumentMoniker": "Views\\Layout\\NavbarMenu.cshtml",
+              "ToolTip": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Views\\Layout\\NavbarMenu.cshtml",
+              "RelativeToolTip": "Views\\Layout\\NavbarMenu.cshtml",
+              "ViewState": "AgIAAA0AAAAAAAAAAAAQwBkAAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-07-29T08:51:47.06Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "seed.sql ",
+              "DocumentMoniker": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Data\\seed.sql",
+              "RelativeDocumentMoniker": "Data\\seed.sql",
+              "ToolTip": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Data\\seed.sql",
+              "RelativeToolTip": "Data\\seed.sql",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000826|",
+              "WhenOpened": "2026-07-29T07:36:23.888Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
               "Title": "Web.config",
-              "DocumentMoniker": "C:\\Users\\PC\\Documents\\GitHub\\sell_card\\Web.config",
+              "DocumentMoniker": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Web.config",
               "RelativeDocumentMoniker": "Web.config",
-              "ToolTip": "C:\\Users\\PC\\Documents\\GitHub\\sell_card\\Web.config",
+              "ToolTip": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Web.config",
               "RelativeToolTip": "Web.config",
-              "ViewState": "AgIAADwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAA4AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000601|",
               "WhenOpened": "2026-07-24T11:10:51.714Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 7,
+              "Title": "packages.config",
+              "DocumentMoniker": "D:\\CMC_Uni\\HocKi_5\\sell_card\\packages.config",
+              "RelativeDocumentMoniker": "packages.config",
+              "ToolTip": "D:\\CMC_Uni\\HocKi_5\\sell_card\\packages.config",
+              "RelativeToolTip": "packages.config",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAALAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000601|",
+              "WhenOpened": "2026-07-29T07:17:19.64Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
               "Title": "README.md",
-              "DocumentMoniker": "C:\\Users\\PC\\Documents\\GitHub\\sell_card\\README.md",
+              "DocumentMoniker": "D:\\CMC_Uni\\HocKi_5\\sell_card\\README.md",
               "RelativeDocumentMoniker": "README.md",
-              "ToolTip": "C:\\Users\\PC\\Documents\\GitHub\\sell_card\\README.md",
+              "ToolTip": "D:\\CMC_Uni\\HocKi_5\\sell_card\\README.md",
               "RelativeToolTip": "README.md",
-              "ViewState": "AgIAAI0AAAAAAAAAAAAAAFYAAAAPAAAAAAAAAA==",
+              "ViewState": "AgIAAGMAAAAAAAAAAAAowGUAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
-              "WhenOpened": "2026-07-24T11:06:39.551Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-07-24T11:06:39.551Z"
+            }
+          ]
+        },
+        {
+          "DockedHeight": 25,
+          "SelectedChildIndex": -1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{0ad07096-bba9-4900-a651-0598d26f6d24}"
+            }
+          ]
+        },
+        {
+          "DockedHeight": 54,
+          "SelectedChildIndex": -1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
             }
           ]
         }

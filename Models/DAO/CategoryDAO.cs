@@ -1,54 +1,81 @@
-﻿using Models.EF;
+using Models.EF;
 using PagedList;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Data.Entity;
-using System.Text;
-using System.Threading.Tasks;
+using System.Linq;
 
 namespace Models.DAO
 {
     public class CategoryDAO
     {
-        private KeyDbContext _context;
+        private readonly KeyDbContext _context;
 
         public CategoryDAO()
         {
             _context = new KeyDbContext();
         }
 
-        public IEnumerable<Category> GetCategories(string txtSearch, int page, int pageSize)
+        public IEnumerable<Category> GetCategories(
+            string txtSearch,
+            int page,
+            int pageSize)
         {
-            IQueryable<Category> model = _context.Categories.AsNoTracking();
-            if (!string.IsNullOrEmpty(txtSearch))
+            page = Math.Max(1, page);
+            pageSize = pageSize > 0 ? pageSize : 10;
+
+            IQueryable<Category> query = _context.Categories.AsNoTracking();
+
+            if (!string.IsNullOrWhiteSpace(txtSearch))
             {
-                model = model.Where(x => x.Name.Contains(txtSearch) || x.Alias.Contains(txtSearch));
+                txtSearch = txtSearch.Trim();
+                query = query.Where(x =>
+                    x.Name.Contains(txtSearch) ||
+                    x.Alias.Contains(txtSearch));
             }
-            return model.OrderByDescending(x => x.Id).ToPagedList(page, pageSize);
+
+            return query
+                .OrderByDescending(x => x.Id)
+                .ToPagedList(page, pageSize);
         }
 
         public List<Category> GetCategoriesName(int? top)
         {
-            if (top != null)
+            IQueryable<Category> query = _context.Categories
+                .AsNoTracking()
+                .Where(x => x.Status == true)
+                .OrderByDescending(x => x.CreatedDate)
+                .ThenByDescending(x => x.Id);
+
+            if (top.HasValue && top.Value > 0)
             {
-                return _context.Categories.Where(x => x.Status == true).Take(top.GetValueOrDefault()).OrderByDescending(x => x.CreatedDate).ToList();
+                query = query.Take(top.Value);
             }
-            return _context.Categories.Where(x => x.Status == true).ToList();
+
+            return query.ToList();
         }
 
         public Category GetCategoryById(int id)
         {
-            return _context.Categories.Find(id);
+            return _context.Categories
+                .AsNoTracking()
+                .FirstOrDefault(x => x.Id == id);
         }
 
         public int GetCountProductCategory(int categoryId)
         {
-            return _context.Products.Where(x => x.CategoryId == categoryId).Count();
+            return _context.Products.Count(x =>
+                x.CategoryId == categoryId &&
+                x.Status == true);
         }
 
         public int AddCategory(Category category)
         {
+            if (category == null)
+            {
+                throw new ArgumentNullException(nameof(category));
+            }
+
             _context.Categories.Add(category);
             _context.SaveChanges();
             return category.Id;
@@ -56,13 +83,24 @@ namespace Models.DAO
 
         public bool UpdateCategory(Category category)
         {
+            if (category == null)
+            {
+                return false;
+            }
+
             try
             {
-                var tempCategory = _context.Categories.Find(category.Id);
-                tempCategory.Name = category.Name;
-                tempCategory.Alias = category.Alias;
-                tempCategory.Image = category.Image;
-                tempCategory.Status = category.Status;
+                var currentCategory = _context.Categories.Find(category.Id);
+                if (currentCategory == null)
+                {
+                    return false;
+                }
+
+                currentCategory.Name = category.Name;
+                currentCategory.Alias = category.Alias;
+                currentCategory.Image = category.Image;
+                currentCategory.Status = category.Status;
+
                 _context.SaveChanges();
                 return true;
             }
@@ -76,8 +114,13 @@ namespace Models.DAO
         {
             try
             {
-                var tempCategory = _context.Categories.Find(id);
-                _context.Categories.Remove(tempCategory);
+                var category = _context.Categories.Find(id);
+                if (category == null)
+                {
+                    return false;
+                }
+
+                _context.Categories.Remove(category);
                 _context.SaveChanges();
                 return true;
             }
