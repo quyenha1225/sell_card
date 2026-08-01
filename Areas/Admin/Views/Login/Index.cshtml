@@ -2,69 +2,69 @@
 @{
     Layout = null;
 }
-
 <!doctype html>
 <html lang="vi">
-
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Đăng nhập quản trị | GiftToi</title>
-    <link rel="shortcut icon" type="image/png" href="~/Content/Admin/images/logos/favicon.png" />
     <link rel="stylesheet" href="~/Content/Admin/css/styles.min.css" />
     <link rel="stylesheet" href="~/Content/Admin/css/admin-modern.css" />
     <link rel="stylesheet" href="~/Content/Admin/css/admin-login-modern.css" />
 </head>
-
 <body class="admin-login-page">
-    <!--  Body Wrapper -->
-    <div class="page-wrapper" id="main-wrapper" data-layout="vertical" data-navbarbg="skin6" data-sidebartype="full"
-         data-sidebar-position="fixed" data-header-position="fixed">
-        <div class="position-relative overflow-hidden radial-gradient min-vh-100 d-flex align-items-center justify-content-center">
-            <div class="d-flex align-items-center justify-content-center w-100">
-                <div class="row justify-content-center w-100">
-                    <div class="col-md-8 col-lg-6 col-xxl-3">
-                        <div class="card mb-0">
-                            <div class="card-body">
-                                <a href="/Admin" class="text-nowrap logo-img text-center d-block py-3 w-100">
-                                    <img src="~/Content/Admin/images/logos/dark-logo.svg" width="180" alt="">
-                                </a>
-                                <p class="text-center">Trung tâm quản trị GiftToi</p>
-                                @using (Html.BeginForm("Login", "Login", FormMethod.Post))
-                                {
-                                    @Html.AntiForgeryToken()
-                                    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
-                                    <div class="mb-3">
-                                        <label for="exampleInputEmail1" class="form-label">Tên đăng nhập</label>
-                                        @Html.TextBoxFor(x => x.UserName, new { @class = "form-control", @placeholder = "Nhập tên đăng nhập...", @autofocus = "autofocus" })
-                                    </div>
-                                    <div class="mb-4">
-                                        <label for="exampleInputPassword1" class="form-label">Mật khẩu</label>
-                                        @Html.TextBoxFor(x => x.Password, new { @class = "form-control", @type = "password", @placeholder = "Nhập mật khẩu..." })
-                                    </div>
-                                    <div class="d-flex align-items-center justify-content-between mb-4">
-                                        <div class="form-check">
-                                            @*<input class="form-check-input primary" type="checkbox" value="" id="flexCheckChecked" checked>*@
-                                            @Html.CheckBoxFor(x => x.RememberMe, new { @class = "form-check-input primary", @id = "flexCheckChecked", @checked = "checked" })
-                                            <label class="form-check-label text-dark" for="flexCheckChecked">
-                                                Lưu đăng nhập
-                                            </label>
-                                        </div>
-                                        <a class="text-primary fw-bold" href="#">Quên mật khẩu ?</a>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary w-100 py-8 fs-4 mb-4 rounded-2">ĐĂNG NHẬP</button>
-                                    <div class="text-center"><a class="text-primary fw-bold" href="/">← Trở về cửa hàng</a></div>
-                                }
+    <div class="min-vh-100 d-flex align-items-center justify-content-center radial-gradient">
+        <div class="card" style="width:min(92vw,440px)">
+            <div class="card-body">
+                <h3 class="text-center mb-3">QUẢN TRỊ GIFTTOI</h3>
 
-                            </div>
-                        </div>
+                @using (Html.BeginForm(
+                    "Login", "Login",
+                    new { returnUrl = ViewBag.ReturnUrl },
+                    FormMethod.Post, null))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
+                    <div class="mb-3">
+                        <label class="form-label">Tên đăng nhập</label>
+                        @Html.TextBoxFor(x => x.UserName, new
+                        {
+                            @class = "form-control",
+                            autocomplete = "username",
+                            autofocus = "autofocus"
+                        })
                     </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Mật khẩu</label>
+                        @Html.PasswordFor(x => x.Password, new
+                        {
+                            @class = "form-control",
+                            autocomplete = "current-password"
+                        })
+                    </div>
+
+                    <div class="form-check mb-4">
+                        @Html.CheckBoxFor(x => x.RememberMe, new
+                        {
+                            @class = "form-check-input",
+                            id = "adminRemember"
+                        })
+                        <label for="adminRemember">Duy trì đăng nhập</label>
+                    </div>
+
+                    <button class="btn btn-primary w-100">
+                        ĐĂNG NHẬP
+                    </button>
+                }
+
+                <div class="text-center mt-3">
+                    <a href="/">← Trở về cửa hàng</a>
                 </div>
             </div>
         </div>
     </div>
-    <script src="~/Content/Admin/libs/jquery/dist/jquery.min.js"></script>
-    <script src="~/Content/Admin/libs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-
 </html>
+

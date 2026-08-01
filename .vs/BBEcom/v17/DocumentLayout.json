@@ -3,36 +3,52 @@
   "WorkspaceRootPath": "D:\\CMC_Uni\\HocKi_5\\sell_card\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|d:\\cmc_uni\\hocki_5\\sell_card\\views\\home\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "AbsoluteMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|D:\\CMC_Uni\\HocKi_5\\sell_card\\views\\shared\\listproduct.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|solutionrelative:views\\shared\\listproduct.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|d:\\cmc_uni\\hocki_5\\sell_card\\views\\shared\\profilemenu.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|solutionrelative:views\\shared\\profilemenu.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|D:\\CMC_Uni\\HocKi_5\\sell_card\\views\\home\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
       "RelativeMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|solutionrelative:views\\home\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|D:\\CMC_Uni\\HocKi_5\\sell_card\\views\\layout\\navbarmenu.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|solutionrelative:views\\layout\\navbarmenu.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+      "AbsoluteMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|D:\\CMC_Uni\\HocKi_5\\sell_card\\content\\client\\css\\storefront-part1.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}",
+      "RelativeMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|solutionrelative:content\\client\\css\\storefront-part1.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|D:\\CMC_Uni\\HocKi_5\\sell_card\\controllers\\productcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|solutionrelative:controllers\\productcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|D:\\CMC_Uni\\HocKi_5\\sell_card\\views\\shared\\_productcard.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|solutionrelative:views\\shared\\_productcard.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|D:\\CMC_Uni\\HocKi_5\\sell_card\\models\\dao\\productdao.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|solutionrelative:models\\dao\\productdao.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|D:\\CMC_Uni\\HocKi_5\\sell_card\\views\\shared\\products.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|solutionrelative:views\\shared\\products.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|D:\\CMC_Uni\\HocKi_5\\sell_card\\global.asax.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|solutionrelative:global.asax.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|D:\\CMC_Uni\\HocKi_5\\sell_card\\readme_news_fix.txt||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|solutionrelative:readme_news_fix.txt||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|D:\\CMC_Uni\\HocKi_5\\sell_card\\content\\client\\css\\auth-part2.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}",
+      "RelativeMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|solutionrelative:content\\client\\css\\auth-part2.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|D:\\CMC_Uni\\HocKi_5\\sell_card\\common\\auth\\jwttokenservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|solutionrelative:common\\auth\\jwttokenservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|D:\\CMC_Uni\\HocKi_5\\sell_card\\web.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
       "RelativeMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|solutionrelative:web.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|D:\\CMC_Uni\\HocKi_5\\sell_card\\data\\seed.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}",
-      "RelativeMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|solutionrelative:data\\seed.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|D:\\CMC_Uni\\HocKi_5\\sell_card\\readme.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
-      "RelativeMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|solutionrelative:readme.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|D:\\CMC_Uni\\HocKi_5\\sell_card\\packages.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
-      "RelativeMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|solutionrelative:packages.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
+      "AbsoluteMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|D:\\CMC_Uni\\HocKi_5\\sell_card\\web.config.part2.bak||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
+      "RelativeMoniker": "D:0:0:{1DA4C284-CF5E-4190-8780-7F28D14CBB2F}|BBEcom.csproj|solutionrelative:web.config.part2.bak||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
     }
   ],
   "DocumentGroupContainers": [
@@ -41,30 +57,12 @@
       "VerticalTabListWidth": 256,
       "DocumentGroups": [
         {
-          "DockedHeight": 295,
-          "SelectedChildIndex": 0,
+          "DockedHeight": 22,
+          "SelectedChildIndex": 10,
           "Children": [
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "Index.cshtml",
-              "DocumentMoniker": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Views\\Home\\Index.cshtml",
-              "RelativeDocumentMoniker": "Views\\Home\\Index.cshtml",
-              "ToolTip": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Views\\Home\\Index.cshtml",
-              "RelativeToolTip": "Views\\Home\\Index.cshtml",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAHgAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-07-29T08:52:17.99Z",
-              "IsPinned": true,
-              "EditorCaption": ""
-            },
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{cce594b6-0c39-4442-ba28-10c64ac7e89f}"
             },
             {
               "$type": "Bookmark",
@@ -72,105 +70,155 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "ProductDAO.cs",
-              "DocumentMoniker": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Models\\DAO\\ProductDAO.cs",
-              "RelativeDocumentMoniker": "Models\\DAO\\ProductDAO.cs",
-              "ToolTip": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Models\\DAO\\ProductDAO.cs",
-              "RelativeToolTip": "Models\\DAO\\ProductDAO.cs",
-              "ViewState": "AgIAAG4AAAAAAAAAAAAYwGsAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-29T08:53:11.397Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "ProductController.cs",
-              "DocumentMoniker": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Controllers\\ProductController.cs",
-              "RelativeDocumentMoniker": "Controllers\\ProductController.cs",
-              "ToolTip": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Controllers\\ProductController.cs",
-              "RelativeToolTip": "Controllers\\ProductController.cs",
-              "ViewState": "AgIAABsAAAAAAAAAAAAgwCgAAAA5AAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-29T08:52:35.042Z",
-              "EditorCaption": ""
+              "DocumentIndex": 4,
+              "Title": "_ProductCard.cshtml",
+              "DocumentMoniker": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Views\\Shared\\_ProductCard.cshtml",
+              "RelativeDocumentMoniker": "Views\\Shared\\_ProductCard.cshtml",
+              "ToolTip": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Views\\Shared\\_ProductCard.cshtml",
+              "RelativeToolTip": "Views\\Shared\\_ProductCard.cshtml",
+              "ViewState": "AgIAAFkAAAAAAAAAAAAuwGkAAAAZAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-08-01T14:18:58.899Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "NavbarMenu.cshtml",
-              "DocumentMoniker": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Views\\Layout\\NavbarMenu.cshtml",
-              "RelativeDocumentMoniker": "Views\\Layout\\NavbarMenu.cshtml",
-              "ToolTip": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Views\\Layout\\NavbarMenu.cshtml",
-              "RelativeToolTip": "Views\\Layout\\NavbarMenu.cshtml",
-              "ViewState": "AgIAAA8AAAAAAAAAAAAAABkAAAAJAAAAAAAAAA==",
+              "Title": "ProfileMenu.cshtml",
+              "DocumentMoniker": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Views\\Shared\\ProfileMenu.cshtml",
+              "RelativeDocumentMoniker": "Views\\Shared\\ProfileMenu.cshtml",
+              "ToolTip": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Views\\Shared\\ProfileMenu.cshtml",
+              "RelativeToolTip": "Views\\Shared\\ProfileMenu.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-07-29T08:51:47.06Z",
+              "WhenOpened": "2026-08-01T14:18:36.389Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 5,
-              "Title": "seed.sql ",
-              "DocumentMoniker": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Data\\seed.sql",
-              "RelativeDocumentMoniker": "Data\\seed.sql",
-              "ToolTip": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Data\\seed.sql",
-              "RelativeToolTip": "Data\\seed.sql",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000826|",
-              "WhenOpened": "2026-07-29T07:36:23.888Z"
+              "Title": "Products.cshtml",
+              "DocumentMoniker": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Views\\Shared\\Products.cshtml",
+              "RelativeDocumentMoniker": "Views\\Shared\\Products.cshtml",
+              "ToolTip": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Views\\Shared\\Products.cshtml",
+              "RelativeToolTip": "Views\\Shared\\Products.cshtml",
+              "ViewState": "AgIAAD4AAAAAAAAAAAAuwFwAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-08-01T14:18:32.379Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 7,
+              "Title": "README_NEWS_FIX.txt",
+              "DocumentMoniker": "D:\\CMC_Uni\\HocKi_5\\sell_card\\README_NEWS_FIX.txt",
+              "RelativeDocumentMoniker": "README_NEWS_FIX.txt",
+              "ToolTip": "D:\\CMC_Uni\\HocKi_5\\sell_card\\README_NEWS_FIX.txt",
+              "RelativeToolTip": "README_NEWS_FIX.txt",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003109|",
+              "WhenOpened": "2026-08-01T14:07:01.903Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "storefront-part1.css",
+              "DocumentMoniker": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Content\\Client\\css\\storefront-part1.css",
+              "RelativeDocumentMoniker": "Content\\Client\\css\\storefront-part1.css",
+              "ToolTip": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Content\\Client\\css\\storefront-part1.css",
+              "RelativeToolTip": "Content\\Client\\css\\storefront-part1.css",
+              "ViewState": "AgIAAG4BAAAAAAAAAAAuwIABAAAbAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003000|",
+              "WhenOpened": "2026-08-01T14:05:41.315Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "auth-part2.css",
+              "DocumentMoniker": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Content\\Client\\css\\auth-part2.css",
+              "RelativeDocumentMoniker": "Content\\Client\\css\\auth-part2.css",
+              "ToolTip": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Content\\Client\\css\\auth-part2.css",
+              "RelativeToolTip": "Content\\Client\\css\\auth-part2.css",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003000|",
+              "WhenOpened": "2026-08-01T14:05:34.152Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "Global.asax.cs",
+              "DocumentMoniker": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Global.asax.cs",
+              "RelativeDocumentMoniker": "Global.asax.cs",
+              "ToolTip": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Global.asax.cs",
+              "RelativeToolTip": "Global.asax.cs",
+              "ViewState": "AgIAADcAAAAAAAAAAAAqwDgAAAANAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-08-01T14:04:04.683Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Index.cshtml",
+              "DocumentMoniker": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Views\\Home\\Index.cshtml",
+              "RelativeDocumentMoniker": "Views\\Home\\Index.cshtml",
+              "ToolTip": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Views\\Home\\Index.cshtml",
+              "RelativeToolTip": "Views\\Home\\Index.cshtml",
+              "ViewState": "AgIAAE0AAAAAAAAAAAAuwFYAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-08-01T13:57:23.673Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "ListProduct.cshtml",
+              "DocumentMoniker": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Views\\Shared\\ListProduct.cshtml",
+              "RelativeDocumentMoniker": "Views\\Shared\\ListProduct.cshtml",
+              "ToolTip": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Views\\Shared\\ListProduct.cshtml",
+              "RelativeToolTip": "Views\\Shared\\ListProduct.cshtml",
+              "ViewState": "AgIAAAEAAAAAAAAAAAAuwDsAAAAYAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-08-01T13:52:24.514Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "Web.config.part2.bak",
+              "DocumentMoniker": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Web.config.part2.bak",
+              "RelativeDocumentMoniker": "Web.config.part2.bak",
+              "ToolTip": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Web.config.part2.bak",
+              "RelativeToolTip": "Web.config.part2.bak",
+              "ViewState": "AgIAAHgAAAAAAAAAAAAAABQAAAAbAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2026-08-01T13:09:27.015Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
               "Title": "Web.config",
               "DocumentMoniker": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Web.config",
               "RelativeDocumentMoniker": "Web.config",
               "ToolTip": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Web.config",
               "RelativeToolTip": "Web.config",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAA4AAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAA7AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000601|",
-              "WhenOpened": "2026-07-24T11:10:51.714Z",
+              "WhenOpened": "2026-08-01T13:08:02.433Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "packages.config",
-              "DocumentMoniker": "D:\\CMC_Uni\\HocKi_5\\sell_card\\packages.config",
-              "RelativeDocumentMoniker": "packages.config",
-              "ToolTip": "D:\\CMC_Uni\\HocKi_5\\sell_card\\packages.config",
-              "RelativeToolTip": "packages.config",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAALAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000601|",
-              "WhenOpened": "2026-07-29T07:17:19.64Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "README.md",
-              "DocumentMoniker": "D:\\CMC_Uni\\HocKi_5\\sell_card\\README.md",
-              "RelativeDocumentMoniker": "README.md",
-              "ToolTip": "D:\\CMC_Uni\\HocKi_5\\sell_card\\README.md",
-              "RelativeToolTip": "README.md",
-              "ViewState": "AgIAAGMAAAAAAAAAAAAowGUAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
-              "WhenOpened": "2026-07-24T11:06:39.551Z"
+              "DocumentIndex": 9,
+              "Title": "JwtTokenService.cs",
+              "DocumentMoniker": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Common\\Auth\\JwtTokenService.cs",
+              "RelativeDocumentMoniker": "Common\\Auth\\JwtTokenService.cs",
+              "ToolTip": "D:\\CMC_Uni\\HocKi_5\\sell_card\\Common\\Auth\\JwtTokenService.cs",
+              "RelativeToolTip": "Common\\Auth\\JwtTokenService.cs",
+              "ViewState": "AgIAAFkAAAAAAAAAAAAUwGkAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-08-01T12:41:01.06Z"
             }
           ]
         },
         {
-          "DockedHeight": 25,
-          "SelectedChildIndex": -1,
-          "Children": [
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{0ad07096-bba9-4900-a651-0598d26f6d24}"
-            }
-          ]
-        },
-        {
-          "DockedHeight": 54,
+          "DockedHeight": 328,
           "SelectedChildIndex": -1,
           "Children": [
             {

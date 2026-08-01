@@ -36,6 +36,12 @@ namespace Models.DAO
             return _context.Giftcards.Count(x => x.ProductId == productID);
         }
 
+        // Used by cart validation to return the exact remaining quantity.
+        public int GetAvailableStock(int productID)
+        {
+            return GetStock(productID);
+        }
+
         public IEnumerable<Giftcard> GetGifts(string txtSearch, int page, int pageSize)
         {
             IQueryable<Giftcard> model = _context.Giftcards.AsNoTracking().Include(x => x.Product);

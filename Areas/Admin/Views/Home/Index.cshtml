@@ -1,5 +1,141 @@
 ﻿@using Models.EF
-@{ ViewBag.Title = "Tổng quan"; var products = ViewBag.RecentProducts as IEnumerable<Product>; }
-<section class="admin-welcome"><div><span>TRUNG TÂM ĐIỀU HÀNH</span><h1>Chào mừng trở lại 👋</h1><p>Theo dõi nhanh cửa hàng và quản lý dữ liệu tại một nơi.</p></div><a href="/Admin/Product/Create"><i class="ti ti-plus"></i> Thêm sản phẩm</a></section>
-<div class="admin-stat-grid"><article><i class="ti ti-package"></i><div><span>Sản phẩm</span><strong>@ViewBag.ProductCount</strong></div><small>Đang quản lý</small></article><article><i class="ti ti-category"></i><div><span>Danh mục</span><strong>@ViewBag.CategoryCount</strong></div><small>Nhóm sản phẩm</small></article><article><i class="ti ti-users"></i><div><span>Người dùng</span><strong>@ViewBag.UserCount</strong></div><small>Tài khoản</small></article><article><i class="ti ti-key"></i><div><span>Gift code</span><strong>@ViewBag.CodeCount</strong></div><small>Sẵn trong kho</small></article></div>
-<div class="card admin-data-card"><div class="card-body"><div class="admin-card-heading"><div><span>CẬP NHẬT GẦN ĐÂY</span><h2>Sản phẩm mới</h2></div><a href="/Admin/Product">Xem tất cả <i class="ti ti-arrow-right"></i></a></div><div class="table-responsive"><table class="table align-middle"><thead><tr><th>Sản phẩm</th><th>Giá</th><th>Ngày tạo</th><th>Trạng thái</th><th></th></tr></thead><tbody>@if(products != null){foreach(var item in products){<tr><td><div class="admin-product-cell"><img src="@item.Images" alt="@item.Name"/><strong>@item.Name</strong></div></td><td>@BBEcom.Common.CommonHelper.ConvertMoney(item.PriceSale > 0 ? item.PriceSale.Value : item.Price)đ</td><td>@(item.CreatedDate.HasValue ? item.CreatedDate.Value.ToString("dd/MM/yyyy") : "--")</td><td><span class="admin-status @(item.Status == true ? "is-active" : "")">@(item.Status == true ? "Hiển thị" : "Đang ẩn")</span></td><td><a class="admin-row-action" href="/Admin/Product/Edit/@item.Id"><i class="ti ti-edit"></i></a></td></tr>}}</tbody></table></div></div></div>
+@using System.Collections.Generic
+
+@{
+    ViewBag.Title = "Tổng quan";
+    var products =
+        ViewBag.RecentProducts as IEnumerable<Product>;
+}
+
+<section class="admin-welcome">
+    <div>
+        <span>TRUNG TÂM ĐIỀU HÀNH</span>
+        <h1>Chào mừng trở lại 👋</h1>
+        <p>Theo dõi nhanh cửa hàng và quản lý dữ liệu tại một nơi.</p>
+    </div>
+
+    <a href="/Admin/Product/Create">
+        <i class="ti ti-plus"></i>
+        Thêm sản phẩm
+    </a>
+</section>
+
+<div class="admin-stat-grid">
+    <article>
+        <i class="ti ti-package"></i>
+        <div>
+            <span>Sản phẩm</span>
+            <strong>@ViewBag.ProductCount</strong>
+        </div>
+        <small>Đang quản lý</small>
+    </article>
+
+    <article>
+        <i class="ti ti-category"></i>
+        <div>
+            <span>Danh mục</span>
+            <strong>@ViewBag.CategoryCount</strong>
+        </div>
+        <small>Nhóm sản phẩm</small>
+    </article>
+
+    <article>
+        <i class="ti ti-users"></i>
+        <div>
+            <span>Người dùng</span>
+            <strong>@ViewBag.UserCount</strong>
+        </div>
+        <small>Tài khoản</small>
+    </article>
+
+    <article>
+        <i class="ti ti-key"></i>
+        <div>
+            <span>Gift code</span>
+            <strong>@ViewBag.CodeCount</strong>
+        </div>
+        <small>Sẵn trong kho</small>
+    </article>
+</div>
+
+<div class="card admin-data-card">
+    <div class="card-body">
+        <div class="admin-card-heading">
+            <div>
+                <span>CẬP NHẬT GẦN ĐÂY</span>
+                <h2>Sản phẩm mới</h2>
+            </div>
+
+            <a href="/Admin/Product">
+                Xem tất cả
+                <i class="ti ti-arrow-right"></i>
+            </a>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Sản phẩm</th>
+                        <th>Giá</th>
+                        <th>Ngày tạo</th>
+                        <th>Trạng thái</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @if (products != null)
+                    {
+                        foreach (var item in products)
+                        {
+                            var image =
+                                BBEcom.Common.CommonHelper.ResolveProductImage(
+                                    item.Alias,
+                                    item.Images
+                                );
+
+                            var price =
+                                BBEcom.Common.CommonHelper.GetSellingPrice(item);
+
+                            <tr>
+                                <td>
+                                    <div class="admin-product-cell">
+                                        <img src="@image"
+                                             alt="@item.Name"
+                                             loading="lazy"
+                                             onerror="this.onerror=null;this.src='/Content/Client/img/error.png';" />
+                                        <strong>@item.Name</strong>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    @BBEcom.Common.CommonHelper.ConvertMoney(price)đ
+                                </td>
+
+                                <td>
+                                    @(item.CreatedDate.HasValue
+                                        ? item.CreatedDate.Value.ToString("dd/MM/yyyy")
+                                        : "--")
+                                </td>
+
+                                <td>
+                                    <span class="admin-status @(item.Status == true ? "is-active" : "")">
+                                        @(item.Status == true ? "Hiển thị" : "Đang ẩn")
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <a class="admin-row-action"
+                                       href="/Admin/Product/Edit/@item.Id">
+                                        <i class="ti ti-edit"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

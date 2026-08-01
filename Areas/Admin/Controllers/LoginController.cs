@@ -1,65 +1,66 @@
 ﻿using BBEcom.Areas.Admin.Models;
-using BBEcom.Common;
-using Microsoft.Ajax.Utilities;
-using Models;
+using BBEcom.Common.Auth;
 using Models.DAO;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 using System.Web.Mvc;
-using System.Web.Security;
-using System.Web.UI.WebControls;
 
 namespace BBEcom.Areas.Admin.Controllers
 {
     public class LoginController : Controller
     {
-        // GET: Admin/Login
         [HttpGet]
-        public ActionResult Index()
+        public ActionResult Index(string returnUrl = null)
         {
-            return View();
+            if (CurrentUser.IsAuthenticated && CurrentUser.IsAdmin)
+                return RedirectToAction("Index", "Home");
+
+            ViewBag.ReturnUrl = returnUrl;
+            return View(new LoginModel { RememberMe = true });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Login(LoginModel model)
+        public ActionResult Login(
+            LoginModel model, string returnUrl = null)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-
-                var dao = new AccountDAO();
-                var res = dao.Login(model.UserName, Encryptor.MD5Hash(model.Password));
-                if (res == 1)
-                {
-                    var user = dao.GetAccountByUsername(model.UserName);
-                    var userSession = new UserLogin();
-                    userSession.UserName = user.UserName;
-                    userSession.UserId = user.Id;
-                    userSession.Name = user.Name;
-                    userSession.IsAdmin = user.IsAdmin;
-                    Session.Add(CommonConstants.USER_SESSION, userSession);
-                    return RedirectToAction("Index", "Home");
-                }
-                else if (res == -1)
-                {
-                    ModelState.AddModelError("", "Tài khoản của bạn đã bị khoá");
-
-                }
-                else
-                {
-                    ModelState.AddModelError("", "Thông tin đăng nhập không hợp lệ");
-
-                }
+                ViewBag.ReturnUrl = returnUrl;
+                return View("Index", model);
             }
-            return View("Index");
+
+            var account = new AccountDAO().ValidateCredentials(
+                model.UserName, model.Password);
+
+            if (account == null || !account.Status || !account.IsAdmin)
+            {
+                ModelState.AddModelError(
+                    "", "Tài khoản quản trị không hợp lệ.");
+                ViewBag.ReturnUrl = returnUrl;
+                return View("Index", model);
+            }
+
+            var token = JwtTokenService.CreateAccessToken(
+                account.Id, account.UserName, account.Name,
+                account.Email, true, model.RememberMe);
+
+            AuthCookieService.WriteAccessCookie(
+                Response, token, model.RememberMe,
+                Request.IsSecureConnection);
+
+            if (!String.IsNullOrWhiteSpace(returnUrl)
+                && Url.IsLocalUrl(returnUrl))
+                return Redirect(returnUrl);
+
+            return RedirectToAction("Index", "Home");
         }
 
+        [HttpGet]
         public ActionResult Logout()
         {
-            Session.Remove(CommonConstants.USER_SESSION);
-            return RedirectToAction("Index", "Login");
+            AuthCookieService.ClearAccessCookie(
+                Response, Request.IsSecureConnection);
+            return RedirectToAction("Index");
         }
     }
 }

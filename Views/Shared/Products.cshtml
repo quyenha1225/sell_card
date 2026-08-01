@@ -1,108 +1,36 @@
-@using PagedList
+﻿@using PagedList
 @using PagedList.Mvc
 @using System.Linq
 @model IPagedList<Models.EF.Product>
+
 @{
-    var categoryId = ViewBag.CategoryId == null ? 0 : Convert.ToInt32(ViewBag.CategoryId);
-    var categoryAlias = ViewBag.CategoryAlias as string ?? string.Empty;
-    var sort = ViewBag.Sort as string ?? "sale";
-    var pageSize = ViewBag.PageSize == null ? 8 : Convert.ToInt32(ViewBag.PageSize);
+    var categoryId =
+        ViewBag.CategoryId == null
+            ? 0
+            : Convert.ToInt32(ViewBag.CategoryId);
+
+    var categoryAlias =
+        Convert.ToString(ViewBag.CategoryAlias ?? "");
+
+    var sort =
+        Convert.ToString(ViewBag.Sort ?? "featured");
+
+    var pageSize =
+        ViewBag.PageSize == null
+            ? 8
+            : Convert.ToInt32(ViewBag.PageSize);
 }
+
+<div id="storefrontAntiForgery" class="d-none">
+    @Html.AntiForgeryToken()
+</div>
 
 @if (Model != null && Model.Any())
 {
     foreach (var item in Model)
     {
-        var hasSale = item.Price > 0
-                      && item.PriceSale.HasValue
-                      && item.PriceSale.Value > 0
-                      && item.PriceSale.Value < item.Price;
-        var displayPrice = hasSale ? item.PriceSale.Value : item.Price;
-        var stock = item.Giftcard == null
-            ? 0
-            : item.Giftcard.Count(x => x.ProductId == item.Id);
-
-        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
-            <article class="single-products-box modern-product-card">
-                <div class="image">
-                    @if (hasSale)
-                    {
-                        var percent = (int)Math.Round((item.Price - item.PriceSale.Value) * 100m / item.Price);
-                        <span class="store-sale-badge">-@percent%</span>
-                    }
-                    else
-                    {
-                        <span class="store-new-badge">MỚI</span>
-                    }
-
-                    <a href="/san-pham/@item.Alias-@item.Id" class="product-image-link">
-                        <img src="@item.Images"
-                             alt="@item.Name"
-                             loading="lazy"
-                             onerror="this.onerror=null;this.src='/Content/Client/img/logo.png';" />
-                    </a>
-
-                    <div class="product-card-actions">
-                        <a href="/san-pham/@item.Alias-@item.Id" aria-label="Xem chi tiết @item.Name">
-                            <i class="bx bx-show"></i>
-                        </a>
-                        @if (stock > 0)
-                        {
-                            <a href="/san-pham/@item.Alias-@item.Id" aria-label="Chọn mua @item.Name">
-                                <i class="bx bx-cart-add"></i>
-                            </a>
-                        }
-                    </div>
-                </div>
-
-                <div class="content">
-                    <div class="product-card-meta">
-                        <span>@(item.Category == null ? "Gift Card" : item.Category.Name)</span>
-                        <span><i class="bx bxs-star"></i> 5.0</span>
-                    </div>
-
-                    <h3>
-                        <a href="/san-pham/@item.Alias-@item.Id">@item.Name</a>
-                    </h3>
-
-                    <div class="product-card-bottom">
-                        <div class="price">
-                            <span class="new-price">@BBEcom.Common.CommonHelper.ConvertMoney(displayPrice)đ</span>
-                            @if (hasSale)
-                            {
-                                <span class="old-price">@BBEcom.Common.CommonHelper.ConvertMoney(item.Price)đ</span>
-                            }
-                        </div>
-                        <span class="stock-mini @(stock > 0 ? "" : "sold-out")">
-                            @(stock > 0 ? "Còn hàng" : "Hết hàng")
-                        </span>
-                    </div>
-
-                    <div class="product-card-cta">
-                        <a class="detail-card-btn" href="/san-pham/@item.Alias-@item.Id">
-                            <i class="bx bx-show"></i>
-                            <span>Xem chi tiết</span>
-                        </a>
-
-                        @if (stock > 0)
-                        {
-                            <button type="button"
-                                    class="cart-card-btn js-quick-add"
-                                    data-url="/gio-hang/them-@item.Id-1">
-                                <i class="bx bx-cart-add"></i>
-                                <span>Thêm vào giỏ</span>
-                            </button>
-                        }
-                        else
-                        {
-                            <button type="button" class="cart-card-btn" disabled>
-                                <i class="bx bx-x-circle"></i>
-                                <span>Hết hàng</span>
-                            </button>
-                        }
-                    </div>
-                </div>
-            </article>
+        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12">
+            @Html.Partial("~/Views/Shared/_ProductCard.cshtml", item)
         </div>
     }
 
@@ -121,15 +49,31 @@
                         sort = sort,
                         page = page,
                         pageSize = pageSize
-                    }),
+                    }
+                ),
                 new PagedListRenderOptions
                 {
-                    DisplayLinkToFirstPage = PagedListDisplayMode.IfNeeded,
-                    DisplayLinkToLastPage = PagedListDisplayMode.IfNeeded,
-                    DisplayLinkToPreviousPage = PagedListDisplayMode.IfNeeded,
-                    DisplayLinkToNextPage = PagedListDisplayMode.IfNeeded,
-                    MaximumPageNumbersToDisplay = 5
-                })
+                    DisplayLinkToFirstPage =
+                        PagedListDisplayMode.IfNeeded,
+
+                    DisplayLinkToLastPage =
+                        PagedListDisplayMode.IfNeeded,
+
+                    DisplayLinkToPreviousPage =
+                        PagedListDisplayMode.IfNeeded,
+
+                    DisplayLinkToNextPage =
+                        PagedListDisplayMode.IfNeeded,
+
+                    MaximumPageNumbersToDisplay = 5,
+
+                    UlElementClasses =
+                        new[] { "pagination", "justify-content-center" },
+
+                    LiElementClasses =
+                        new[] { "page-item" }
+                }
+            )
         </div>
     }
 }
@@ -137,12 +81,13 @@ else
 {
     <div class="col-12">
         <div class="text-center py-5">
-            <i class="bx bx-package" style="font-size: 64px;"></i>
+            <i class="bx bx-package empty-icon"></i>
+
             <h3>Danh mục chưa có sản phẩm</h3>
-            <p>Các sản phẩm mới sẽ được cập nhật trong thời gian sớm nhất.</p>
-            <a href="@Url.Action("Search", "Product")" class="default-btn">
-                <span>Xem tất cả sản phẩm</span>
-            </a>
+
+            <p>
+                Các sản phẩm mới sẽ được cập nhật sớm.
+            </p>
         </div>
     </div>
 }

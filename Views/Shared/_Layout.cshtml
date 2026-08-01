@@ -1,9 +1,9 @@
-@using System.Linq
+﻿@using System.Linq
 @{
     var layoutCart = Session["CART_SESSION"] as System.Collections.Generic.List<BBEcom.Models.Cart>;
     var layoutCartCount = layoutCart == null ? 0 : layoutCart.Sum(x => x.Quantity);
     var currentKeyword = Convert.ToString(Request.QueryString["keyword"]);
-    var currentUser = Session[BBEcom.Common.CommonConstants.USER_SESSION] as BBEcom.UserLogin;
+    var currentUser = BBEcom.Common.Auth.CurrentUser.Get();
 }
 <!doctype html>
 <html lang="vi">
@@ -106,13 +106,7 @@
                         <div class="others-option">
                             <div class="d-flex align-items-center">
                                 <ul>
-                                    <li>
-                                        <button type="button"
-                                                class="search-icon border-0 bg-transparent p-0"
-                                                aria-label="Mở tìm kiếm">
-                                            <i class="bx bx-search"></i>
-                                        </button>
-                                    </li>
+                                    
 
                                     @if (currentUser != null)
                                     {
@@ -170,13 +164,7 @@
                     <div class="option-inner">
                         <div class="others-option">
                             <ul>
-                                <li>
-                                    <button type="button"
-                                            class="search-icon border-0 bg-transparent p-0"
-                                            aria-label="Mở tìm kiếm">
-                                        <i class="bx bx-search"></i>
-                                    </button>
-                                </li>
+                                
 
                                 @if (currentUser != null)
                                 {
@@ -211,37 +199,6 @@
                             </ul>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="search-overlay">
-        <div class="d-table">
-            <div class="d-table-cell">
-                <div class="search-overlay-layer"></div>
-                <div class="search-overlay-layer"></div>
-                <div class="search-overlay-layer"></div>
-
-                <button type="button" class="search-overlay-close" aria-label="Đóng tìm kiếm">
-                    <span class="search-overlay-close-line"></span>
-                    <span class="search-overlay-close-line"></span>
-                </button>
-
-                <div class="search-overlay-form">
-                    @using (Html.BeginForm("Search", "Product", FormMethod.Get))
-                    {
-                        <input type="text"
-                               name="keyword"
-                               class="input-search"
-                               value="@currentKeyword"
-                               placeholder="Nhập tên sản phẩm hoặc danh mục..."
-                               autocomplete="off"
-                               aria-label="Từ khóa tìm kiếm">
-                        <button type="submit" aria-label="Tìm kiếm sản phẩm">
-                            <i class="bx bx-search"></i>
-                        </button>
-                    }
                 </div>
             </div>
         </div>
@@ -319,7 +276,7 @@
     <script src="/Content/Client/js/contact-form-script.js"></script>
     <script src="/Content/Client/js/ajaxchimp.min.js"></script>
     <script src="/Content/Client/js/main.js"></script>
-    <script src="/Content/Client/js/site-modern.js?v=20260730-1"></script>
+    <script src="/Content/Client/js/site-modern.js?v=20260801-2"></script>
 
     <script>
         window.Toastify = window.Toastify || function (options) {
@@ -352,3 +309,5 @@
     @RenderSection("jsFooter", required: false)
 </body>
 </html>
+
+

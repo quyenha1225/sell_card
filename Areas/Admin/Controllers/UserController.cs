@@ -1,109 +1,151 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.Helpers;
-using System.Web.Mvc;
-using BBEcom.Common;
+﻿using BBEcom.Areas.Admin.Models;
+using BBEcom.Common.Auth;
 using Models.DAO;
 using Models.EF;
-using PagedList;
+using System;
+using System.Web.Mvc;
 
 namespace BBEcom.Areas.Admin.Controllers
 {
     public class UserController : BaseController
     {
-        // GET: Admin/User
-        public ActionResult Index(string txtSearch, int page = 1, int pageSize = 10)
+        public ActionResult Index(
+            string txtSearch, int page = 1, int pageSize = 10)
         {
-            var dao = new AccountDAO();
-            var users = dao.GetListAccounts(txtSearch, page, pageSize);
+            page = Math.Max(1, page);
+            pageSize = Math.Max(5, Math.Min(100, pageSize));
+
             ViewBag.Search = txtSearch;
-            return View(users);
+            ViewBag.PageSize = pageSize;
+
+            return View(new AccountDAO().GetListAccounts(
+                txtSearch, page, pageSize));
         }
 
         [HttpGet]
         public ActionResult Create()
         {
-            return View();
+            return View(new UserAdminViewModel { Status = true });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(Account acc)
+        public ActionResult Create(UserAdminViewModel model)
         {
-            if (ModelState.IsValid)
-            {
-                var dao = new AccountDAO();
-                acc.Password = Encryptor.MD5Hash(acc.Password);
-                int id = dao.InsertUser(acc);
-                if (id > 0)
-                {
-                    SetAlert("Thêm người dùng thành công", "success");
-                    return RedirectToAction("Index", "User");
-                }
-                else
-                {
-                    SetAlert("Thêm thất bại", "error");
-                    ModelState.AddModelError("", "Thêm người dùng thất bại");
-                }
-               
-            }
-            return View("Index");
+            if (String.IsNullOrWhiteSpace(model.Password))
+                ModelState.AddModelError(
+                    "Password", "Vui lòng nhập mật khẩu.");
 
+            var dao = new AccountDAO();
+
+            if (dao.GetAccountByUsername(model.UserName) != null)
+                ModelState.AddModelError(
+                    "UserName", "Tên đăng nhập đã tồn tại.");
+
+            if (dao.GetAccountByEmail(model.Email) != null)
+                ModelState.AddModelError(
+                    "Email", "Email đã tồn tại.");
+
+            if (!ModelState.IsValid) return View(model);
+
+            var id = dao.InsertUser(new Account
+            {
+                UserName = model.UserName.Trim(),
+                Name = model.Name.Trim(),
+                Email = model.Email.Trim(),
+                Password = PasswordService.Hash(model.Password),
+                IsAdmin = model.IsAdmin,
+                Status = model.Status
+            });
+
+            SetAlert(
+                id > 0 ? "Thêm người dùng thành công."
+                    : "Không thể thêm người dùng.",
+                id > 0 ? "success" : "error");
+
+            return id > 0
+                ? RedirectToAction("Index")
+                : (ActionResult)View(model);
         }
 
         [HttpGet]
         public ActionResult Edit(int id)
         {
-            var userInfo = new AccountDAO().GetAccountById(id);
-            return View(userInfo);
+            var account = new AccountDAO().GetAccountById(id);
+            if (account == null) return HttpNotFound();
+
+            return View(new UserAdminViewModel
+            {
+                Id = account.Id,
+                UserName = account.UserName,
+                Name = account.Name,
+                Email = account.Email,
+                IsAdmin = account.IsAdmin,
+                Status = account.Status
+            });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(Account acc)
-        {
-            if (ModelState.IsValid)
-            {
-                var dao = new AccountDAO();
-
-                if (!string.IsNullOrEmpty(acc.Password))
-                {
-                    var encrypPass = Encryptor.MD5Hash(acc.Password);
-                    acc.Password = encrypPass;
-                }
-
-                var res = dao.UpdateUser(acc);
-                if (res)
-                {
-                    SetAlert("Sửa thông tin người dùng thành công", "success");
-                    return RedirectToAction("Index", "User");
-                }
-                else
-                {
-                    SetAlert("Thao tác thất bại", "error");
-                    ModelState.AddModelError("", "Không thể sửa thông tin");
-                }
-            }
-            return View("Index");
-        }
-
-        [HttpDelete]
-        public ActionResult Delete(int id)
+        public ActionResult Edit(UserAdminViewModel model)
         {
             var dao = new AccountDAO();
-            var res = dao.DeleteUser(id);
-            if (res)
+            var existing = dao.GetAccountById(model.Id);
+            if (existing == null) return HttpNotFound();
+
+            var sameUser = dao.GetAccountByUsername(model.UserName);
+            if (sameUser != null && sameUser.Id != model.Id)
+                ModelState.AddModelError(
+                    "UserName", "Tên đăng nhập đã tồn tại.");
+
+            var sameEmail = dao.GetAccountByEmail(model.Email);
+            if (sameEmail != null && sameEmail.Id != model.Id)
+                ModelState.AddModelError(
+                    "Email", "Email đã tồn tại.");
+
+            if (!ModelState.IsValid) return View(model);
+
+            var result = dao.UpdateUser(new Account
             {
-                SetAlert("Xoá người dùng thành công", "warning");
-            }
-            else
-            {
-                SetAlert("Thao tác thất bại", "error");
-            }
-            return RedirectToAction("Index");
+                Id = model.Id,
+                UserName = model.UserName.Trim(),
+                Name = model.Name.Trim(),
+                Email = model.Email.Trim(),
+                IsAdmin = model.IsAdmin,
+                Status = model.Status,
+                Password = String.IsNullOrWhiteSpace(model.Password)
+                    ? null : PasswordService.Hash(model.Password)
+            });
+
+            SetAlert(
+                result ? "Cập nhật người dùng thành công."
+                    : "Không thể cập nhật người dùng.",
+                result ? "success" : "error");
+
+            return result
+                ? RedirectToAction("Index")
+                : (ActionResult)View(model);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Delete(int id)
+        {
+            if (id == CurrentUser.UserId)
+            {
+                SetAlert(
+                    "Không thể xóa tài khoản đang đăng nhập.", "error");
+                return RedirectToAction("Index");
+            }
+
+            var result = new AccountDAO().DeleteUser(id);
+
+            SetAlert(
+                result ? "Xóa người dùng thành công."
+                    : "Không thể xóa người dùng.",
+                result ? "warning" : "error");
+
+            return RedirectToAction("Index");
+        }
     }
 }

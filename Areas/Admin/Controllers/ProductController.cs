@@ -1,110 +1,139 @@
-﻿using BBEcom.Common;
+﻿using BBEcom.Areas.Admin.Models;
+using BBEcom.Common;
 using Models.DAO;
 using Models.EF;
-using PagedList;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 using System.Web.Mvc;
 
 namespace BBEcom.Areas.Admin.Controllers
 {
     public class ProductController : BaseController
     {
-        // GET: Admin/Product
-        public ActionResult Index(string txtSearch, int page = 1, int pageSize = 10)
+        public ActionResult Index(
+            string txtSearch, int page = 1, int pageSize = 10)
         {
-            SetViewBag();
-            var list = new ProductDAO().GetProducts(txtSearch, page, pageSize);
+            page = Math.Max(1, page);
+            pageSize = Math.Max(5, Math.Min(100, pageSize));
+
             ViewBag.Search = txtSearch;
-            return View(list);
+            ViewBag.PageSize = pageSize;
+
+            return View(new ProductDAO().GetProducts(
+                txtSearch, page, pageSize));
         }
 
         [HttpGet]
         public ActionResult Create()
         {
             SetViewBag();
-            return View();
+            return View(new ProductAdminViewModel { Status = true });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(Product model)
+        public ActionResult Create(ProductAdminViewModel model)
         {
-            SetViewBag();
-            if (ModelState.IsValid)
+            SetViewBag(model.CategoryId);
+            if (!ModelState.IsValid) return View(model);
+
+            var entity = new Product
             {
-                model.CreatedDate = DateTime.Now;
-                model.Alias = CommonHelper.ChuyenCoDauThanhKhongDau(model.Name);
-                var res = new ProductDAO().AddProduct(model);
-                if (res > 0)
-                {
-                    SetAlert("Thêm người dùng thành công", "success");
-                    return RedirectToAction("Index", "Product");
-                }
-                else
-                {
-                    SetAlert("Thêm thất bại", "error");
-                    ModelState.AddModelError("", "Thêm người dùng thất bại");
-                }
+                Name = model.Name.Trim(),
+                Alias = CommonHelper.ChuyenCoDauThanhKhongDau(model.Name),
+                CategoryId = model.CategoryId,
+                Images = model.Images.Trim(),
+                Price = model.Price,
+                PriceSale = model.PriceSale.GetValueOrDefault() > 0
+                    ? model.PriceSale : null,
+                Detail = model.Detail,
+                Status = model.Status,
+                CreatedDate = DateTime.Now
+            };
+
+            var id = new ProductDAO().AddProduct(entity);
+
+            if (id <= 0)
+            {
+                ModelState.AddModelError("", "Không thể thêm sản phẩm.");
+                return View(model);
             }
-            return View();
+
+            SetAlert("Thêm sản phẩm thành công.", "success");
+            return RedirectToAction("Index");
         }
 
         [HttpGet]
         public ActionResult Edit(int id)
         {
-            var dao = new ProductDAO();
-            var product = dao.GetProductById(id);
+            var product = new ProductDAO().GetProductById(id);
+            if (product == null) return HttpNotFound();
+
             SetViewBag(product.CategoryId);
-            return View(product);
+
+            return View(new ProductAdminViewModel
+            {
+                Id = product.Id,
+                Name = product.Name,
+                CategoryId = product.CategoryId,
+                Images = product.Images,
+                Price = product.Price,
+                PriceSale = product.PriceSale,
+                Detail = product.Detail,
+                Status = product.Status.GetValueOrDefault()
+            });
         }
 
         [HttpPost]
-        public ActionResult Edit(Product model)
+        [ValidateAntiForgeryToken]
+        public ActionResult Edit(ProductAdminViewModel model)
         {
-            if (ModelState.IsValid)
-            {
-                var dao = new ProductDAO();
-                model.Alias = CommonHelper.ChuyenCoDauThanhKhongDau(model.Name);
-                var res = dao.UpdateProduct(model);
-                if (res)
-                {
-                    SetAlert("Sửa thông tin sản phẩm thành công", "success");
-                    return RedirectToAction("Index", "Product");
-                }
-                else
-                {
-                    SetAlert("Thao tác thất bại", "error");
-                    ModelState.AddModelError("", "Không thể sửa thông tin");
-                }
-            }
             SetViewBag(model.CategoryId);
-            return View();
+            if (!ModelState.IsValid) return View(model);
+
+            var entity = new Product
+            {
+                Id = model.Id,
+                Name = model.Name.Trim(),
+                Alias = CommonHelper.ChuyenCoDauThanhKhongDau(model.Name),
+                CategoryId = model.CategoryId,
+                Images = model.Images.Trim(),
+                Price = model.Price,
+                PriceSale = model.PriceSale.GetValueOrDefault() > 0
+                    ? model.PriceSale : null,
+                Detail = model.Detail,
+                Status = model.Status
+            };
+
+            if (!new ProductDAO().UpdateProduct(entity))
+            {
+                ModelState.AddModelError("", "Không thể cập nhật sản phẩm.");
+                return View(model);
+            }
+
+            SetAlert("Cập nhật sản phẩm thành công.", "success");
+            return RedirectToAction("Index");
         }
 
-        [HttpDelete]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Delete(int id)
         {
-            var res = new ProductDAO().DeleteProduct(id);
-            if (res)
-            {
-                SetAlert("Xoá thành công", "warning");
-                return RedirectToAction("Index", "Product");
-            }
-            else
-            {
-                SetAlert("Thao tác thất bại", "error");
-                ModelState.AddModelError("", "Không thể sửa thông tin");
-            }
-            return View("Index");
+            var result = new ProductDAO().DeleteProduct(id);
+
+            SetAlert(
+                result
+                    ? "Xóa sản phẩm thành công."
+                    : "Không thể xóa sản phẩm đang có dữ liệu liên quan.",
+                result ? "warning" : "error");
+
+            return RedirectToAction("Index");
         }
 
-        public void SetViewBag(int? selectedID = null)
+        private void SetViewBag(int? selectedId = null)
         {
-            var dao = new CategoryDAO();
-            ViewBag.productCategoryID = new SelectList(dao.GetCategoriesName(null), "Id", "Name", selectedID);
+            ViewBag.productCategoryID = new SelectList(
+                new CategoryDAO().GetCategoriesName(null),
+                "Id", "Name", selectedId);
         }
     }
 }

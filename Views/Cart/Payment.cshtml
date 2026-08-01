@@ -1,66 +1,224 @@
-@model List<BBEcom.Models.Cart>
+﻿@model List<BBEcom.Models.Cart>
 @using BBEcom.Common
+
 @{
     ViewBag.Title = "Thanh toán";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var user = Session[CommonConstants.USER_SESSION] as UserLogin;
-    var total = Model == null ? 0 : Model.Sum(item => (item.product.PriceSale > 0 ? item.product.PriceSale.Value : item.product.Price) * item.Quantity);
+
+    var user = BBEcom.Common.Auth.CurrentUser.Get();
+
+    var total =
+        Model == null
+            ? 0
+            : Model.Sum(item =>
+                CommonHelper.GetSellingPrice(item.product)
+                * item.Quantity
+            );
 }
-<link rel="stylesheet" href="/Content/Client/css/checkout-history.css?v=20260725-2" />
+
+<link rel="stylesheet"
+      href="/Content/Client/css/checkout-history.css?v=20260725-2" />
+<link rel="stylesheet"
+      href="/Content/Client/css/storefront-part1.css?v=20260801-1" />
 
 <main class="flow-page checkout-page">
     <div class="container">
-        <nav class="flow-breadcrumb"><a href="/">Trang chủ</a><i class="bx bx-chevron-right"></i><a href="/gio-hang">Giỏ hàng</a><i class="bx bx-chevron-right"></i><span>Thanh toán</span></nav>
+        <nav class="flow-breadcrumb">
+            <a href="/">Trang chủ</a>
+            <i class="bx bx-chevron-right"></i>
+            <a href="/gio-hang">Giỏ hàng</a>
+            <i class="bx bx-chevron-right"></i>
+            <span>Thanh toán</span>
+        </nav>
+
         <header class="flow-heading">
-            <div><span class="flow-eyebrow">THANH TOÁN AN TOÀN</span><h1>Hoàn tất đơn hàng</h1><p>Kiểm tra sản phẩm và thanh toán nhanh qua SePay.</p></div>
-            <div class="secure-pill"><i class="bx bx-shield-quarter"></i><span><strong>Kết nối bảo mật</strong>Thông tin được mã hóa</span></div>
+            <div>
+                <span class="flow-eyebrow">
+                    THANH TOÁN AN TOÀN
+                </span>
+                <h1>Hoàn tất đơn hàng</h1>
+                <p>
+                    Kiểm tra sản phẩm và thanh toán qua SePay.
+                </p>
+            </div>
         </header>
 
         @if (Model != null && Model.Any())
         {
-            using (Html.BeginForm("Payment", "Cart", FormMethod.Post, new { id = "sepayCheckoutForm", @class = "checkout-layout" }))
+            using (Html.BeginForm(
+                "Payment",
+                "Cart",
+                FormMethod.Post,
+                new
+                {
+                    id = "sepayCheckoutForm",
+                    @class = "checkout-layout"
+                }))
             {
                 @Html.AntiForgeryToken()
+
                 <section class="flow-card checkout-products">
-                    <div class="card-title"><span class="step-number">1</span><div><h2>Sản phẩm</h2><p>@Model.Sum(x => x.Quantity) sản phẩm trong đơn</p></div><a href="/gio-hang">Chỉnh sửa</a></div>
+                    <div class="card-title">
+                        <span class="step-number">1</span>
+                        <div>
+                            <h2>Sản phẩm</h2>
+                            <p>
+                                @Model.Sum(x => x.Quantity)
+                                sản phẩm trong đơn
+                            </p>
+                        </div>
+                        <a href="/gio-hang">Chỉnh sửa</a>
+                    </div>
+
                     <div class="checkout-list">
                         @foreach (var item in Model)
                         {
-                            var price = item.product.PriceSale > 0 ? item.product.PriceSale.Value : item.product.Price;
+                            var price =
+                                CommonHelper.GetSellingPrice(
+                                    item.product
+                                );
+
+                            var image =
+                                CommonHelper.ResolveProductImage(
+                                    item.product.Alias,
+                                    item.product.Images
+                                );
+
                             <article class="checkout-item">
-                                <img src="@item.product.Images" alt="@item.product.Name" loading="lazy" />
-                                <div class="checkout-item-info"><h3>@item.product.Name</h3><span>Mã kỹ thuật số · Giao tự động</span><small>Số lượng: @item.Quantity</small></div>
-                                <strong>@CommonHelper.ConvertMoney(price * item.Quantity)đ</strong>
+                                <img src="@image"
+                                     alt="@item.product.Name"
+                                     loading="lazy"
+                                     onerror="this.onerror=null;this.src='/Content/Client/img/error.png';" />
+
+                                <div class="checkout-item-info">
+                                    <h3>@item.product.Name</h3>
+                                    <span>
+                                        Mã kỹ thuật số · Giao tự động
+                                    </span>
+                                    <small>
+                                        Số lượng: @item.Quantity
+                                    </small>
+                                </div>
+
+                                <strong>
+                                    @CommonHelper.ConvertMoney(
+                                        price * item.Quantity
+                                    )đ
+                                </strong>
                             </article>
                         }
                     </div>
-                    <div class="customer-strip"><i class="bx bx-user-check"></i><div><small>Thanh toán với tài khoản</small><strong>@(user == null ? "Khách hàng" : (String.IsNullOrWhiteSpace(user.Name) ? user.UserName : user.Name))</strong></div><span>Đã đăng nhập</span></div>
+
+                    <div class="customer-strip">
+                        <i class="bx bx-user-check"></i>
+                        <div>
+                            <small>Thanh toán với tài khoản</small>
+                            <strong>
+                                @(user == null
+                                    ? "Khách hàng"
+                                    : (String.IsNullOrWhiteSpace(user.Name)
+                                        ? user.UserName
+                                        : user.Name))
+                            </strong>
+                        </div>
+                    </div>
                 </section>
 
                 <aside class="flow-card checkout-summary">
-                    <div class="card-title compact"><span class="step-number">2</span><div><h2>Tóm tắt</h2><p>Thông tin thanh toán</p></div></div>
-                    <div class="summary-lines"><div><span>Tạm tính</span><strong>@CommonHelper.ConvertMoney(total)đ</strong></div><div><span>Phí xử lý</span><strong class="free-text">Miễn phí</strong></div><div class="summary-total"><span>Thành tiền</span><strong>@CommonHelper.ConvertMoney(total)đ</strong></div></div>
-                    <div class="payment-choice"><div class="payment-logo"><i class="bx bx-qr-scan"></i></div><div><strong>Chuyển khoản QR SePay</strong><span>Quét QR bằng ứng dụng ngân hàng</span></div><i class="bx bxs-check-circle selected-icon"></i></div>
-                    <button type="submit" class="checkout-submit"><i class="bx bx-lock-alt"></i><span>Thanh toán @CommonHelper.ConvertMoney(total)đ</span></button>
-                    <p class="checkout-note"><i class="bx bx-bolt-circle"></i> Code được cấp trong lịch sử mua hàng ngay khi thanh toán thành công.</p>
-                    <div class="trust-row"><span><i class="bx bx-check-shield"></i>An toàn</span><span><i class="bx bx-time-five"></i>Nhanh chóng</span><span><i class="bx bx-support"></i>Hỗ trợ</span></div>
+                    <div class="card-title compact">
+                        <span class="step-number">2</span>
+                        <div>
+                            <h2>Tóm tắt</h2>
+                            <p>Thông tin thanh toán</p>
+                        </div>
+                    </div>
+
+                    <div class="summary-lines">
+                        <div>
+                            <span>Tạm tính</span>
+                            <strong>
+                                @CommonHelper.ConvertMoney(total)đ
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>Phí xử lý</span>
+                            <strong class="free-text">
+                                Miễn phí
+                            </strong>
+                        </div>
+
+                        <div class="summary-total">
+                            <span>Thành tiền</span>
+                            <strong>
+                                @CommonHelper.ConvertMoney(total)đ
+                            </strong>
+                        </div>
+                    </div>
+
+                    <div class="payment-choice">
+                        <div class="payment-logo">
+                            <i class="bx bx-qr-scan"></i>
+                        </div>
+                        <div>
+                            <strong>Chuyển khoản QR SePay</strong>
+                            <span>
+                                Quét QR bằng ứng dụng ngân hàng
+                            </span>
+                        </div>
+                    </div>
+
+                    <button type="submit"
+                            class="checkout-submit">
+                        <i class="bx bx-lock-alt"></i>
+                        <span>
+                            Thanh toán
+                            @CommonHelper.ConvertMoney(total)đ
+                        </span>
+                    </button>
                 </aside>
             }
         }
         else
         {
-            <section class="flow-card empty-state"><i class="bx bx-cart"></i><h2>Chưa có sản phẩm để thanh toán</h2><p>Chọn một gói phù hợp để tiếp tục.</p><a href="/">Khám phá sản phẩm</a></section>
+            <section class="flow-card empty-state">
+                <i class="bx bx-cart"></i>
+                <h2>Chưa có sản phẩm để thanh toán</h2>
+                <a href="/">Khám phá sản phẩm</a>
+            </section>
         }
     </div>
 </main>
 
 @section jsFooter {
 <script>
-document.getElementById('sepayCheckoutForm')?.addEventListener('submit', function () {
-    var button = this.querySelector('.checkout-submit');
-    button.disabled = true;
-    button.classList.add('is-loading');
-    button.querySelector('span').textContent = 'Đang chuyển đến SePay...';
-});
+(function () {
+    var form =
+        document.getElementById('sepayCheckoutForm');
+
+    if (!form) {
+        return;
+    }
+
+    form.addEventListener('submit', function () {
+        var button =
+            form.querySelector('.checkout-submit');
+
+        if (!button) {
+            return;
+        }
+
+        button.disabled = true;
+        button.classList.add('is-loading');
+
+        var text = button.querySelector('span');
+
+        if (text) {
+            text.textContent =
+                'Đang chuyển đến SePay...';
+        }
+    });
+})();
 </script>
 }
+

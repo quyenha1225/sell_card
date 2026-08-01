@@ -62,6 +62,12 @@
                             {
                                 foreach (var item in Model)
                                 {
+                                    var image =
+                                        BBEcom.Common.CommonHelper.VersionedImage(
+                                            item.Image,
+                                            "/Content/Client/img/error.png"
+                                        );
+
                                     <tr id="row_@item.Id">
                                         <td class="border-bottom-0">
                                             <h6 class="fw-semibold mb-0">@item.Id</h6>
@@ -70,7 +76,10 @@
                                             <h6 class="fw-semibold mb-1">@item.Name</h6>
                                         </td>
                                         <td class="border-bottom-0">
-                                            <img src="@item.Image" alt="Ảnh @item.Name" class="w-25" />
+                                            <img src="@image"
+                                                 alt="Ảnh @item.Name"
+                                                 loading="lazy"
+                                                 onerror="this.onerror=null;this.src='/Content/Client/img/error.png';" />
                                         </td>
                                         <td class="border-bottom-0">
                                             <p class="mb-0 fw-normal">@item.CreatedDate.ToString()</p>
@@ -102,7 +111,7 @@
                             }
                         </tbody>
                     </table>
-                    @Html.PagedListPager(Model, page => Url.Action("Index", new { page, @txtSearch = @ViewBag.Search }))
+                    @Html.PagedListPager(Model, page => Url.Action("Index", new { page, pageSize = ViewBag.PageSize, @txtSearch = @ViewBag.Search }))
                 </div>
             </div>
         </div>

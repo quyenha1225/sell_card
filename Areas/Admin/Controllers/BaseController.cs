@@ -1,8 +1,4 @@
-﻿using BBEcom.Common;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+﻿using BBEcom.Common.Auth;
 using System.Web.Mvc;
 using System.Web.Routing;
 
@@ -10,45 +6,42 @@ namespace BBEcom.Areas.Admin.Controllers
 {
     public class BaseController : Controller
     {
-        protected override void OnActionExecuting(ActionExecutingContext filterContext)
+        protected override void OnActionExecuting(
+            ActionExecutingContext filterContext)
         {
-            var sess = (UserLogin)Session[CommonConstants.USER_SESSION];
-            if (sess == null)
+            if (!CurrentUser.IsAuthenticated)
             {
-                filterContext.Result = new RedirectToRouteResult(new RouteValueDictionary(new
-                {
-                    controller = "Login",
-                    action = "Index",
-                    Area = "Admin"
-                }));
-
-            } else if(sess.IsAdmin != true)
-            {
-                filterContext.Result = new RedirectToRouteResult(new RouteValueDictionary(new
-                {
-                    controller = "Home",
-                    action = "Index",
-                    Area = ""
-                }));
+                filterContext.Result = new RedirectToRouteResult(
+                    new RouteValueDictionary(new
+                    {
+                        controller = "Login",
+                        action = "Index",
+                        area = "Admin",
+                        returnUrl =
+                            filterContext.HttpContext.Request.RawUrl
+                    }));
             }
+            else if (!CurrentUser.IsAdmin)
+            {
+                filterContext.Result = new RedirectToRouteResult(
+                    new RouteValueDictionary(new
+                    {
+                        controller = "Home",
+                        action = "Index",
+                        area = ""
+                    }));
+            }
+
             base.OnActionExecuting(filterContext);
         }
 
         protected void SetAlert(string message, string type)
         {
             TempData["AlertMsg"] = message;
-            if (type == "success")
-            {
-                TempData["AlertType"] = "alert-success";
-            }
-            else if (type == "warning")
-            {
-                TempData["AlertType"] = "alert-warning";
-            }
-            else if (type == "error")
-            {
-                TempData["AlertType"] = "alert-danger";
-            }
+            TempData["AlertType"] =
+                type == "success" ? "alert-success"
+                : type == "warning" ? "alert-warning"
+                : "alert-danger";
         }
     }
 }

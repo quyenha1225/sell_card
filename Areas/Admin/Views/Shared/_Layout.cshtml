@@ -5,10 +5,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Trang quản trị | @ViewBag.Title </title>
-    <link rel="shortcut icon" type="image/png" href="~/Content/Admin/images/logos/favicon.png" />
+    <link rel="shortcut icon" type="image/png" href="~/Content/Admin/img/logos/favicon.png" />
     <link rel="stylesheet" href="~/Content/Admin/css/styles.min.css" />
     <link href="~/Content/PagedList.css" rel="stylesheet" />
-    <link href="~/Content/Admin/css/admin-modern.css" rel="stylesheet" />
+    <link href="~/Content/Admin/css/admin-modern.css?v=20260801-2" rel="stylesheet" />
     <link href="~/Content/Admin/css/admin-layout-fixes.css" rel="stylesheet" />
 </head>
 
@@ -23,7 +23,7 @@
             <div>
                 <div class="brand-logo d-flex align-items-center justify-content-between">
                     <a href="/Admin" class="text-nowrap logo-img">
-                        <img src="~/Content/Admin/images/logos/dark-logo.svg" width="180" alt="" />
+                        <img src="~/Content/Admin/img/logos/dark-logo.svg" width="180" alt="" />
                     </a>
                     <div class="close-btn d-xl-none d-block sidebartoggler cursor-pointer" id="sidebarCollapse">
                         <i class="ti ti-x fs-8"></i>
@@ -153,29 +153,17 @@
                                 <i class="ti ti-menu-2"></i>
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link nav-icon-hover" href="javascript:void(0)">
-                                <i class="ti ti-bell-ringing"></i>
-                                <div class="notification bg-primary rounded-circle"></div>
-                            </a>
-                        </li>
+                        @Html.Partial("_AdminNotifications")
                     </ul>
                     <div class="navbar-collapse justify-content-end px-0" id="navbarNav">
                         <ul class="navbar-nav flex-row ms-auto align-items-center justify-content-end">
                             <a href="#" target="_blank" class="btn btn-primary">
-                                @{
-                                    string name = "Khách";
-                                    var sess = (UserLogin)Session[BBEcom.Common.CommonConstants.USER_SESSION];
-                                    if (sess != null)
-                                    {
-                                        name = sess.Name;
-                                    } }
-                                @name
+                                @BBEcom.Common.Auth.CurrentUser.DisplayName
                             </a>
                             <li class="nav-item dropdown">
                                 <a class="nav-link nav-icon-hover" href="javascript:void(0)" id="drop2" data-bs-toggle="dropdown"
                                    aria-expanded="false">
-                                    <img src="~/Content/Admin/images/profile/user-1.jpg" alt="" width="35" height="35" class="rounded-circle">
+                                    <img src="~/Content/Admin/img/profile/user-1.jpg" alt="" width="35" height="35" class="rounded-circle">
                                 </a>
                                 <div class="dropdown-menu dropdown-menu-end dropdown-menu-animate-up" aria-labelledby="drop2">
                                     <div class="message-body">
@@ -226,8 +214,9 @@
         <script src="~/Content/Admin/ckfinder/ckfinder.js"></script>
         <script src="~/Content/Admin/ckeditor/ckeditor.js"></script>
     }
-    <script src="~/Content/Admin/js/admin-modern.js"></script>
+    <script src="~/Content/Admin/js/admin-modern.js?v=20260801-2"></script>
     @RenderSection("scripts", required: false)
 </body>
 
 </html>
+

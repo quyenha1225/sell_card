@@ -1,4 +1,4 @@
-using Models.DAO;
+﻿using Models.DAO;
 using System;
 using System.Web.Mvc;
 
@@ -15,7 +15,7 @@ namespace BBEcom.Controllers
         // Trang danh mục sản phẩm.
         public ActionResult Category(
             int id,
-            string sort = "sale",
+            string sort = "latest",
             int page = 1,
             int pageSize = 8)
         {
@@ -53,7 +53,7 @@ namespace BBEcom.Controllers
         [ChildActionOnly]
         public ActionResult Products(
             int id,
-            string sort = "sale",
+            string sort = "latest",
             int page = 1,
             int pageSize = 8)
         {
@@ -85,7 +85,7 @@ namespace BBEcom.Controllers
         [HttpGet]
         public ActionResult Search(
             string keyword,
-            string sort = "sale",
+            string sort = "latest",
             int page = 1,
             int pageSize = 12)
         {
@@ -133,7 +133,7 @@ namespace BBEcom.Controllers
                 case "sale":
                     return sort.Trim().ToLowerInvariant();
                 default:
-                    return "sale";
+                    return "latest";
             }
         }
     }

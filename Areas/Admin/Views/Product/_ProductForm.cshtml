@@ -1,0 +1,78 @@
+﻿@model BBEcom.Areas.Admin.Models.ProductAdminViewModel
+
+<div class="mb-3">
+    <label class="form-label">Tên sản phẩm</label>
+    @Html.TextBoxFor(x => x.Name, new { @class = "form-control" })
+    @Html.ValidationMessageFor(x => x.Name, "", new { @class = "text-danger" })
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Danh mục</label>
+    @Html.DropDownListFor(
+        x => x.CategoryId,
+        (SelectList)ViewBag.productCategoryID,
+        "Chọn danh mục",
+        new { @class = "form-select" })
+    @Html.ValidationMessageFor(x => x.CategoryId, "", new { @class = "text-danger" })
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Đường dẫn ảnh</label>
+    <div class="input-group">
+        @Html.TextBoxFor(x => x.Images, new
+        {
+            @class = "form-control",
+            id = "txtImages"
+        })
+        <button type="button" id="btnSelectImage"
+                class="btn btn-outline-primary">
+            Chọn ảnh
+        </button>
+    </div>
+    @Html.ValidationMessageFor(x => x.Images, "", new { @class = "text-danger" })
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <label class="form-label">Giá gốc</label>
+        @Html.TextBoxFor(x => x.Price, new
+        {
+            @class = "form-control",
+            type = "number",
+            min = "1000"
+        })
+        @Html.ValidationMessageFor(x => x.Price, "", new { @class = "text-danger" })
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <label class="form-label">Giá bán</label>
+        @Html.TextBoxFor(x => x.PriceSale, new
+        {
+            @class = "form-control",
+            type = "number",
+            min = "0"
+        })
+        @Html.ValidationMessageFor(x => x.PriceSale, "", new { @class = "text-danger" })
+    </div>
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Chi tiết</label>
+    @Html.TextAreaFor(x => x.Detail, new
+    {
+        @class = "form-control",
+        id = "txtDetail",
+        rows = "8"
+    })
+</div>
+
+<div class="form-check mb-4">
+    @Html.CheckBoxFor(x => x.Status, new
+    {
+        @class = "form-check-input",
+        id = "productStatus"
+    })
+    <label class="form-check-label" for="productStatus">
+        Hiển thị sản phẩm
+    </label>
+</div>

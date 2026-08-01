@@ -1,0 +1,8 @@
+
+bin/
+obj/
+.vs/
+*.bak
+*.backup*
+GiftToi_FINAL_PATCH/
+Web.config

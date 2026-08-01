@@ -1,4 +1,4 @@
-@model IEnumerable<Models.EF.Order>
+﻿@model IEnumerable<Models.EF.Order>
 @{
     ViewBag.Title = "Lịch sử mua hàng";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -26,8 +26,26 @@
                         <div class="order-products">
                             @foreach (var detail in order.OrderDetail)
                             {
+                                var productName =
+                                    detail.Product == null
+                                        ? "Sản phẩm"
+                                        : detail.Product.Name;
+
+                                var productImage =
+                                    detail.Product == null
+                                        ? BBEcom.Common.CommonHelper.VersionedImage(
+                                            "/Content/Client/img/favicon.png"
+                                          )
+                                        : BBEcom.Common.CommonHelper.ResolveProductImage(
+                                            detail.Product.Alias,
+                                            detail.Product.Images
+                                          );
+
                                 <div class="history-product">
-                                    <img src="@(detail.Product == null ? "/Content/Client/img/favicon.png" : detail.Product.Images)" alt="@(detail.Product == null ? "Sản phẩm" : detail.Product.Name)" loading="lazy" />
+                                    <img src="@productImage"
+                                         alt="@productName"
+                                         loading="lazy"
+                                         onerror="this.onerror=null;this.src='/Content/Client/img/error.png';" />
                                     <div><strong>@(detail.Product == null ? "Sản phẩm" : detail.Product.Name)</strong><span>@BBEcom.Common.CommonHelper.ConvertMoney(detail.Price)đ</span></div>
                                     @if (order.Status && !String.Equals(detail.Code, "PENDING", StringComparison.OrdinalIgnoreCase))
                                     {<button type="button" class="code-copy" data-code="@detail.Code" title="Sao chép code"><span>@detail.Code</span><i class="bx bx-copy"></i></button>}

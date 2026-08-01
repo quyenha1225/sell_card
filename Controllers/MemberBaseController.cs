@@ -1,52 +1,64 @@
-﻿using BBEcom.Common;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+﻿using BBEcom.Common.Auth;
 using System.Web.Mvc;
 using System.Web.Routing;
-using Models.DAO;
 
 namespace BBEcom.Controllers
 {
     public class MemberBaseController : Controller
     {
-        protected override void OnActionExecuting(ActionExecutingContext filterContext)
+        protected override void OnActionExecuting(
+            ActionExecutingContext filterContext)
         {
-            var allowAnonymous = filterContext.ActionDescriptor.IsDefined(typeof(AllowAnonymousAttribute), true)
-                || filterContext.ActionDescriptor.ControllerDescriptor.IsDefined(typeof(AllowAnonymousAttribute), true);
+            var allowAnonymous =
+                filterContext.ActionDescriptor.IsDefined(
+                    typeof(AllowAnonymousAttribute), true)
+                || filterContext.ActionDescriptor.ControllerDescriptor
+                    .IsDefined(typeof(AllowAnonymousAttribute), true);
 
-            if (allowAnonymous)
+            if (!allowAnonymous && !CurrentUser.IsAuthenticated)
             {
-                base.OnActionExecuting(filterContext);
-                return;
-            }
-
-            var sess = Session[CommonConstants.USER_SESSION] as UserLogin;
-            if (sess == null && Request.IsAuthenticated && User != null && User.Identity != null)
-            {
-                var account = new AccountDAO().GetAccountByUsername(User.Identity.Name);
-                if (account != null && account.Status)
+                if (filterContext.HttpContext.Request.IsAjaxRequest())
                 {
-                    sess = new UserLogin
+                    filterContext.HttpContext.Response.StatusCode = 401;
+                    filterContext.HttpContext.Response
+                        .SuppressFormsAuthenticationRedirect = true;
+
+                    filterContext.Result = new JsonResult
                     {
-                        UserId = account.Id,
-                        UserName = account.UserName,
-                        Name = account.Name,
-                        IsAdmin = account.IsAdmin
+                        Data = new
+                        {
+                            status = false,
+                            requiresLogin = true,
+                            loginUrl = Url.Action(
+                                "Index",
+                                "Login",
+                                new
+                                {
+                                    returnUrl =
+                                        filterContext.HttpContext
+                                            .Request.RawUrl
+                                }
+                            ),
+                            message =
+                                "Vui lòng đăng nhập để tiếp tục."
+                        },
+                        JsonRequestBehavior =
+                            JsonRequestBehavior.AllowGet
                     };
-                    Session[CommonConstants.USER_SESSION] = sess;
+                }
+                else
+                {
+                    filterContext.Result = new RedirectToRouteResult(
+                        new RouteValueDictionary(new
+                        {
+                            controller = "Login",
+                            action = "Index",
+                            returnUrl =
+                                filterContext.HttpContext.Request.RawUrl
+                        }));
                 }
             }
-            if (sess == null)
-            {
-                filterContext.Result = new RedirectToRouteResult(new RouteValueDictionary(new
-                {
-                    controller = "Login",
-                    action = "Index",
-                    returnUrl = filterContext.HttpContext.Request.RawUrl
-                }));
-            }
+
             base.OnActionExecuting(filterContext);
         }
     }

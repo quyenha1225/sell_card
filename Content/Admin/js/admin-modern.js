@@ -39,3 +39,92 @@
 
     if (document.readyState === 'interactive' || document.readyState === 'complete') finishLoading();
 }());
+
+(function () {
+    'use strict';
+
+    var storageKey = 'gifttoi.admin.readNotifications';
+
+    function getReadIds() {
+        try {
+            return JSON.parse(localStorage.getItem(storageKey) || '[]');
+        } catch (error) {
+            return [];
+        }
+    }
+
+    function saveReadIds(ids) {
+        try {
+            localStorage.setItem(storageKey, JSON.stringify(ids));
+        } catch (error) {
+            // Trình duyệt chặn localStorage thì chuông vẫn hoạt động bình thường.
+        }
+    }
+
+    function refreshNotificationState() {
+        var readIds = getReadIds();
+        var unread = 0;
+
+        document.querySelectorAll('[data-notification-id]')
+            .forEach(function (item) {
+                var id = item.getAttribute('data-notification-id');
+                var isRead = readIds.indexOf(id) >= 0;
+
+                item.classList.toggle('is-read', isRead);
+
+                if (!isRead) {
+                    unread += 1;
+                }
+            });
+
+        var badge = document.querySelector('[data-notification-count]');
+
+        if (badge) {
+            badge.textContent = unread;
+            badge.style.display = unread > 0 ? 'grid' : 'none';
+        }
+    }
+
+    document.addEventListener('click', function (event) {
+        var notification =
+            event.target.closest('[data-notification-id]');
+
+        if (notification) {
+            var ids = getReadIds();
+            var id = notification.getAttribute('data-notification-id');
+
+            if (ids.indexOf(id) < 0) {
+                ids.push(id);
+                saveReadIds(ids.slice(-100));
+                refreshNotificationState();
+            }
+        }
+
+        var markAll =
+            event.target.closest('[data-mark-all-notifications]');
+
+        if (markAll) {
+            event.preventDefault();
+
+            var allIds = Array.prototype.map.call(
+                document.querySelectorAll('[data-notification-id]'),
+                function (item) {
+                    return item.getAttribute('data-notification-id');
+                }
+            );
+
+            saveReadIds(allIds.slice(-100));
+            refreshNotificationState();
+        }
+    });
+
+    document.addEventListener(
+        'DOMContentLoaded',
+        refreshNotificationState
+    );
+
+    if (document.readyState === 'interactive' ||
+        document.readyState === 'complete') {
+        refreshNotificationState();
+    }
+}());

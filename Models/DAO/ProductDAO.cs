@@ -1,4 +1,4 @@
-using Models.EF;
+﻿using Models.EF;
 using PagedList;
 using System;
 using System.Collections.Generic;
@@ -214,7 +214,7 @@ namespace Models.DAO
         {
             return GetListProductByCategory(
                 categoryId,
-                "sale",
+                "latest",
                 page,
                 pageSize);
         }

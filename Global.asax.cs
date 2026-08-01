@@ -1,42 +1,75 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using BBEcom.Common.Auth;
+using System;
+using System.Security.Claims;
+using System.Threading;
 using System.Web;
+using System.Web.Helpers;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
-using BBEcom.Common;
-using Models.DAO;
 
 namespace BBEcom
 {
-    public class MvcApplication : System.Web.HttpApplication
+    public class MvcApplication : HttpApplication
     {
         protected void Application_Start()
         {
+            // Database đã tồn tại và được cập nhật bằng SQL.
+            // Không cho Entity Framework kiểm tra hoặc tự tạo lại database.
+            System.Data.Entity.Database.SetInitializer<
+                global::Models.EF.KeyDbContext
+            >(
+                new System.Data.Entity.NullDatabaseInitializer<
+                    global::Models.EF.KeyDbContext
+                >()
+            );
+
+            // Dùng AccountId trong JWT làm định danh duy nhất
+            // khi ASP.NET MVC tạo Anti-Forgery Token.
+            AntiForgeryConfig.UniqueClaimTypeIdentifier =
+                ClaimTypes.NameIdentifier;
+
             AreaRegistration.RegisterAllAreas();
-            FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
-            RouteConfig.RegisterRoutes(RouteTable.Routes);
-            BundleConfig.RegisterBundles(BundleTable.Bundles);
+
+            FilterConfig.RegisterGlobalFilters(
+                GlobalFilters.Filters
+            );
+
+            RouteConfig.RegisterRoutes(
+                RouteTable.Routes
+            );
+
+            BundleConfig.RegisterBundles(
+                BundleTable.Bundles
+            );
         }
 
-        protected void Application_AcquireRequestState(object sender, EventArgs e)
+        protected void Application_AuthenticateRequest(
+            object sender,
+            EventArgs e)
         {
-            if (Context.Session == null || Context.Session[CommonConstants.USER_SESSION] != null ||
-                Context.User == null || Context.User.Identity == null || !Context.User.Identity.IsAuthenticated)
+            HttpCookie cookie = Request.Cookies[
+                JwtTokenService.AccessCookieName
+            ];
+
+            if (cookie == null ||
+                String.IsNullOrWhiteSpace(cookie.Value))
             {
                 return;
             }
 
-            var account = new AccountDAO().GetAccountByUsername(Context.User.Identity.Name);
-            if (account == null || !account.Status) return;
-            Context.Session[CommonConstants.USER_SESSION] = new UserLogin
+            ClaimsPrincipal principal =
+                JwtTokenService.ValidateAccessToken(
+                    cookie.Value
+                );
+
+            if (principal == null)
             {
-                UserId = account.Id,
-                UserName = account.UserName,
-                Name = account.Name,
-                IsAdmin = account.IsAdmin
-            };
+                return;
+            }
+
+            Context.User = principal;
+            Thread.CurrentPrincipal = principal;
         }
     }
 }

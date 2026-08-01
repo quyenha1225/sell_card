@@ -1,120 +1,189 @@
-@{
+﻿@{
     ViewBag.Title = "Trang chủ";
+
+    var fallbackImage =
+        BBEcom.Common.CommonHelper.VersionedImage(
+            "/Content/Client/img/error.png"
+        );
+
+    var banner1 =
+        BBEcom.Common.CommonHelper.VersionedImage(
+            "/Content/Client/img/banner/banner1.png"
+        );
+
+    var banner2 =
+        BBEcom.Common.CommonHelper.VersionedImage(
+            "/Content/Client/img/banner/banner2.png"
+        );
+
+    var banner3 =
+        BBEcom.Common.CommonHelper.VersionedImage(
+            "/Content/Client/img/banner/banner3.png"
+        );
 }
 
-<div class="main-banner-area">
+<link rel="stylesheet"
+      href="@Url.Content("~/Content/Client/css/storefront-part1.css?v=20260801-3")" />
+
+<!-- ==================== BANNER ==================== -->
+<section class="main-banner-area">
     <div class="container-fluid">
         <div class="row align-items-center">
+
             <div class="col-lg-6 col-md-12">
                 <div class="main-banner-content">
-                    <span class="sub-title">Chào mừng bạn đến với GiftToi</span>
-                    <h1>Gift card chính hãng, nhận mã nhanh sau thanh toán</h1>
-                    <p>Tìm kiếm sản phẩm phù hợp, thanh toán bằng QR và quản lý mã đã mua ngay trong tài khoản.</p>
-                    <a href="#storefront-products" class="default-btn">
+
+                    <span class="sub-title">
+                        Chào mừng bạn đến với GiftToi
+                    </span>
+
+                    <h1>
+                        Gift card chính hãng,
+                        nhận mã nhanh sau thanh toán
+                    </h1>
+
+                    <p>
+                        Tìm gift card phù hợp, thanh toán bằng QR
+                        và quản lý mã đã mua ngay trong tài khoản.
+                    </p>
+
+                    <a href="#storefront-products"
+                       class="default-btn">
                         <span>Xem sản phẩm</span>
                     </a>
                 </div>
             </div>
+
             <div class="col-lg-6 col-md-12">
                 <div class="main-banner-image">
-                    <img src="/Content/Client/img/banner/banner1.png" alt="Gift card nổi bật 1">
-                    <img src="/Content/Client/img/banner/banner2.png" alt="Gift card nổi bật 2">
-                    <img src="/Content/Client/img/banner/banner3.png" alt="Gift card nổi bật 3">
+
+                    <img src="@banner1"
+                         alt="Gift card chính hãng"
+                         class="banner-image banner-image-main"
+                         loading="eager"
+                         decoding="async"
+                         onerror="this.onerror=null;this.src='@fallbackImage';" />
+
+                    <img src="@banner2"
+                         alt="Gift card giao mã nhanh"
+                         class="banner-image banner-image-secondary"
+                         loading="eager"
+                         decoding="async"
+                         onerror="this.onerror=null;this.style.display='none';" />
+
+                    <img src="@banner3"
+                         alt="Thanh toán gift card bằng QR"
+                         class="banner-image banner-image-decoration"
+                         loading="eager"
+                         decoding="async"
+                         onerror="this.onerror=null;this.style.display='none';" />
+
                 </div>
             </div>
+
         </div>
     </div>
-</div>
+</section>
 
-<div class="offer-area pt-50 pb-75">
+<!-- ==================== DANH MỤC ==================== -->
+<section class="categories-area pt-100 pb-75">
     <div class="container">
-        <div class="search-overlay-form" style="max-width: 760px; margin: 0 auto; position: static; transform: none;">
-            @using (Html.BeginForm("Search", "Product", FormMethod.Get, new { @class = "home-product-search" }))
-            {
-                <input type="text"
-                       name="keyword"
-                       class="input-search"
-                       placeholder="Tìm gift card, sản phẩm hoặc nền tảng..."
-                       autocomplete="off"
-                       aria-label="Từ khóa tìm kiếm" />
-                <button type="submit" aria-label="Tìm kiếm sản phẩm">
-                    <i class="bx bx-search"></i>
-                </button>
-            }
-        </div>
-    </div>
-</div>
 
-<div class="categories-area pb-75">
-    <div class="container">
         <div class="section-title">
             <h2>Danh mục sản phẩm</h2>
-            <p>Chọn danh mục để xem những gift card đang có sẵn.</p>
-        </div>
-        <div class="categories-slides owl-carousel owl-theme">
-            @{ Html.RenderAction("Categories", "Home"); }
-        </div>
-    </div>
-</div>
 
-<div class="products-area pb-75" id="storefront-products">
+            <p>
+                Chọn nền tảng để xem những gift card
+                đang được cung cấp.
+            </p>
+        </div>
+
+        <div class="categories-slides owl-carousel owl-theme">
+            @{
+                Html.RenderAction(
+                    "Categories",
+                    "Home"
+                );
+            }
+        </div>
+
+    </div>
+</section>
+
+<!-- ==================== SẢN PHẨM ==================== -->
+<section class="products-area pb-75"
+         id="storefront-products">
+
     <div class="container">
+
         <div class="section-title">
-            <span class="home-section-kicker">ƯU ĐÃI NỔI BẬT</span>
+            <span class="home-section-kicker">
+                SẢN PHẨM NỔI BẬT
+            </span>
+
             <h2>Sản phẩm dành cho bạn</h2>
-            <p>Ưu đãi giảm giá được ưu tiên trước, tiếp theo là những sản phẩm mới nhất.</p>
+
+            <p>
+                Các gift card và mã sản phẩm số mới nhất
+                đang được cung cấp.
+            </p>
         </div>
-        <div class="row justify-content-center">
-            @{ Html.RenderAction("ListProduct", "Home", new { page = ViewBag.ProductPage }); }
+
+        <div class="row justify-content-center product-grid">
+            @{
+                Html.RenderAction(
+                    "ListProduct",
+                    "Home",
+                    new
+                    {
+                        page = ViewBag.ProductPage,
+                        pageSize = 8
+                    }
+                );
+            }
         </div>
+
         <div class="text-center mt-4">
-            <a href="@Url.Action("Search", "Product")" class="default-btn">
+            <a href="@Url.Action(
+                         "Search",
+                         "Product",
+                         new
+                         {
+                             keyword = "",
+                             page = 1,
+                             pageSize = 12
+                         }
+                     )"
+               class="default-btn">
+
                 <span>Xem tất cả sản phẩm</span>
             </a>
         </div>
-    </div>
-</div>
 
-<div class="offer-area pb-75">
-    <div class="container">
-        <div class="single-offer-box">
-            <a href="@Url.Action("Search", "Product", new { sort = "sale" })" class="d-block">
-                <img src="/Content/Client/img/offer/offer6.jpg" alt="Xem các sản phẩm đang giảm giá">
-            </a>
-        </div>
     </div>
-</div>
+</section>
 
-<div class="brands-area pb-75">
+<!-- ==================== TIN TỨC ==================== -->
+<section class="blog-area pt-100 pb-75">
     <div class="container">
-        <div class="section-title">
-            <h2>Các nền tảng nổi bật</h2>
-            <p>Khám phá toàn bộ gift card và mã sản phẩm số đang được cung cấp.</p>
-        </div>
-        <div class="row justify-content-center align-items-center">
-            @for (var i = 1; i <= 6; i++)
-            {
-                <div class="col-lg-2 col-md-3 col-sm-4 col-4">
-                    <div class="single-brands-box">
-                        <a href="@Url.Action("Search", "Product")" class="d-block">
-                            <img src="/Content/Client/img/brands/brands@(i).png"
-                                 alt="Nền tảng gift card nổi bật @i"
-                                 loading="lazy">
-                        </a>
-                    </div>
-                </div>
-            }
-        </div>
-    </div>
-</div>
 
-<div class="blog-area pt-100 pb-75">
-    <div class="container">
         <div class="section-title">
             <h2>Tin tức</h2>
+
+            <p>
+                Cập nhật hướng dẫn, thông báo
+                và thông tin mới từ GiftToi.
+            </p>
         </div>
-        <div class="row justify-content-center">
-            @{ Html.RenderAction("NewsPost", "Home"); }
+
+        <div class="row justify-content-center news-grid">
+            @{
+                Html.RenderAction(
+                    "NewsPost",
+                    "Home"
+                );
+            }
         </div>
+
     </div>
-</div>
+</section>

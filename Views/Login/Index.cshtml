@@ -3,61 +3,92 @@
     ViewBag.Title = "Đăng nhập";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-
-
-<div class="page-title-area">
-    <div class="container">
-        <div class="page-title-content">
-            <h1>Tài khoản</h1>
-            <ul>
-                <li><a href="/">Trang chủ</a></li>
-                <li>Đăng nhập tài khoản</li>
-            </ul>
-        </div>
-    </div>
-</div>
-
+<link rel="stylesheet" href="/Content/Client/css/auth-part2.css?v=20260801-1" />
 
 <div class="profile-authentication-area ptb-100">
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-lg-6 col-md-12">
-                <div class="login-form">
+            <div class="col-lg-6 col-md-10">
+                <div class="login-form auth-card">
                     <h2>ĐĂNG NHẬP</h2>
+
                     @if (TempData["LoginSuccess"] != null)
                     {
-                        <div class="alert alert-success"><i class="bx bx-check-circle"></i> @TempData["LoginSuccess"]</div>
+                        <div class="alert alert-success">@TempData["LoginSuccess"]</div>
                     }
-                    @using (Html.BeginForm("Login", "Login", new { returnUrl = ViewBag.ReturnUrl }, FormMethod.Post, null))
+                    @if (TempData["PasswordResetSuccess"] != null)
+                    {
+                        <div class="alert alert-success">@TempData["PasswordResetSuccess"]</div>
+                    }
+                    @if (TempData["LoginError"] != null)
+                    {
+                        <div class="alert alert-danger">@TempData["LoginError"]</div>
+                    }
+
+                    @using (Html.BeginForm(
+                        "Login", "Login",
+                        new { returnUrl = ViewBag.ReturnUrl },
+                        FormMethod.Post,
+                        new { autocomplete = "on" }))
                     {
                         @Html.AntiForgeryToken()
                         @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
                         <div class="form-group">
                             <label>Tên đăng nhập</label>
-                            @*<input type="text" class="form-control" placeholder="Tên đăng nhập">*@
-                            @Html.TextBoxFor(x => x.UserName, new { @class = "form-control", @placeholder = "Nhập tên đăng nhập...", @autofocus = "autofocus" })
+                            @Html.TextBoxFor(x => x.UserName, new
+                            {
+                                @class = "form-control",
+                                autocomplete = "username",
+                                autofocus = "autofocus"
+                            })
+                            @Html.ValidationMessageFor(x => x.UserName, "", new { @class = "text-danger" })
                         </div>
+
                         <div class="form-group">
                             <label>Mật khẩu</label>
-                            @*<input type="password" class="form-control" placeholder="Mật khẩu">*@
-                            @Html.TextBoxFor(x => x.Password, new { @class = "form-control", @type = "password", @placeholder = "Password..." })
+                            @Html.PasswordFor(x => x.Password, new
+                            {
+                                @class = "form-control",
+                                autocomplete = "current-password"
+                            })
+                            @Html.ValidationMessageFor(x => x.Password, "", new { @class = "text-danger" })
                         </div>
-                        <div class="row align-items-center">
-                            <div class="col-lg-6 col-md-6 col-sm-6 col-6 remember-me-wrap">
-                                <div class="form-check">
-                                    @*<input class="form-check-input" type="checkbox" id="remember-me">*@
-                                    @Html.CheckBoxFor(x => x.RememberMe, new { @class = "form-check-input", @id = "remember-me", @checked = "checked" })
-                                    <label class="form-check-label" for="remember-me">Lưu đăng nhập</label>
-                                </div>
+
+                        <div class="auth-options">
+                            <div class="form-check">
+                                @Html.CheckBoxFor(x => x.RememberMe, new
+                                {
+                                    @class = "form-check-input",
+                                    id = "remember-me"
+                                })
+                                <label for="remember-me">Duy trì đăng nhập</label>
                             </div>
-                            <div class="col-lg-6 col-md-6 col-sm-6 col-6 lost-your-password-wrap">
-                                <a href="@Url.Action("Index", "Register", new { returnUrl = ViewBag.ReturnUrl })" class="lost-your-password">Đăng ký mới?</a>
-                                <p></p>
-                                <a href="#" class="lost-your-password">Quên mật khẩu?</a>
-                            </div>
+
+                            <a href="@Url.Action("ForgotPassword", "Login")">
+                                Quên mật khẩu?
+                            </a>
                         </div>
-                        <button type="submit">Đăng nhập</button>
+
+                        <button type="submit" class="auth-primary-btn">
+                            Đăng nhập
+                        </button>
                     }
+
+                    <div class="auth-divider"><span>hoặc</span></div>
+
+                    <a class="google-auth-btn"
+                       href="@Url.Action("Google", "Login", new { returnUrl = ViewBag.ReturnUrl })">
+                        <span class="google-mark">G</span>
+                        Đăng nhập bằng Google
+                    </a>
+
+                    <p class="auth-bottom-link">
+                        Chưa có tài khoản?
+                        <a href="@Url.Action("Index", "Register", new { returnUrl = ViewBag.ReturnUrl })">
+                            Đăng ký ngay
+                        </a>
+                    </p>
                 </div>
             </div>
         </div>

@@ -1,4 +1,5 @@
 ﻿using BBEcom.Common;
+using BBEcom.Common.Auth;
 using BBEcom.Models;
 using Microsoft.Ajax.Utilities;
 using Models.DAO;
@@ -26,88 +27,106 @@ namespace BBEcom.Controllers
         [AllowAnonymous]
         public ActionResult Index()
         {
-            var cart = Session["CART_SESSION"];
-            var list = new List<Cart>();
-            if (cart != null)
-            {
-                list = (List<Cart>)cart;
-            }
+            var list = RefreshCartFromDatabase(
+                Session[CartSession] as List<Cart>
+            );
+
+            Session[CartSession] = list;
             return View(list);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult AddItem(int productID, int quantity)
         {
             var product = new ProductDAO().GetProductById(productID);
+
             if (product == null || product.Status != true)
             {
-                TempData["CartError"] = "Sản phẩm không tồn tại hoặc đã ngừng bán.";
-                return RedirectToAction("Index");
+                return CartFailure(
+                    "Sản phẩm không tồn tại hoặc đã ngừng bán.",
+                    Url.Action("Index", "Home")
+                );
             }
 
             quantity = Math.Max(1, quantity);
-            var cart = Session["CART_SESSION"];
-            var currentQuantity = 0;
-            if (cart != null)
-            {
-                var currentItem = ((List<Cart>)cart).FirstOrDefault(x => x.product.Id == productID);
-                currentQuantity = currentItem == null ? 0 : currentItem.Quantity;
-            }
 
-            if (!new GiftcardDAO().CheckStock(productID, currentQuantity + quantity))
-            {
-                TempData["CartError"] = "Số lượng bạn chọn vượt quá số code đang có trong kho.";
-                return RedirectToAction("Detail", "Product", new { alias = product.Alias, id = product.Id });
-            }
+            var list =
+                Session[CartSession] as List<Cart>
+                ?? new List<Cart>();
 
-            if (cart != null)
+            var currentItem =
+                list.FirstOrDefault(x =>
+                    x.product.Id == productID);
+
+            int currentQuantity =
+                currentItem == null
+                    ? 0
+                    : currentItem.Quantity;
+
+            int available =
+                new GiftcardDAO()
+                    .GetAvailableStock(productID);
+
+            int requested =
+                currentQuantity + quantity;
+
+            if (requested > available)
             {
-                var list = (List<Cart>)cart;
-                if (list.Exists(x => x.product.Id == productID))
-                {
-                    foreach (var item in list)
-                    {
-                        if (item.product.Id == productID)
+                return CartFailure(
+                    "Sản phẩm chỉ còn lại "
+                    + available
+                    + " cái.",
+                    Url.Action(
+                        "Detail",
+                        "Product",
+                        new
                         {
-                            item.Quantity += quantity;
+                            alias = product.Alias,
+                            id = product.Id
                         }
-                    }
-                }
-                else
-                {
-                    var item = new Cart();
-                    item.product = product;
-                    item.Quantity = quantity;
-                    list.Add(item);
-                }
-                Session["CART_SESSION"] = list;
+                    ),
+                    available
+                );
+            }
 
+            if (currentItem == null)
+            {
+                list.Add(new Cart
+                {
+                    product = product,
+                    Quantity = quantity
+                });
             }
             else
             {
-                var item = new Cart();
-                item.product = product;
-                item.Quantity = quantity;
-
-                var list = new List<Cart>();
-                list.Add(item);
-                Session["CART_SESSION"] = list;
+                currentItem.product = product;
+                currentItem.Quantity = requested;
             }
-            var updatedCart = (List<Cart>)Session["CART_SESSION"];
+
+            Session[CartSession] = list;
+
             if (Request.IsAjaxRequest())
             {
                 return Json(new
                 {
                     status = true,
-                    cartCount = updatedCart.Sum(x => x.Quantity),
+                    cartCount = list.Sum(x => x.Quantity),
                     message = "Đã thêm sản phẩm vào giỏ hàng."
                 });
             }
 
-            var returnUrl = Request.UrlReferrer == null ? null : Request.UrlReferrer.PathAndQuery;
-            if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+            var returnUrl =
+                Request.UrlReferrer == null
+                    ? null
+                    : Request.UrlReferrer.PathAndQuery;
+
+            if (!String.IsNullOrWhiteSpace(returnUrl)
+                && Url.IsLocalUrl(returnUrl))
             {
                 return Redirect(returnUrl);
             }
+
             return RedirectToAction("Index");
         }
 
@@ -117,79 +136,229 @@ namespace BBEcom.Controllers
         {
             var product = new ProductDAO().GetProductById(productID);
             quantity = Math.Max(1, quantity);
+
             if (product == null || product.Status != true)
             {
-                TempData["CartError"] = "Sản phẩm không tồn tại hoặc đã ngừng bán.";
+                TempData["CartError"] =
+                    "Sản phẩm không tồn tại hoặc đã ngừng bán.";
+
                 return RedirectToAction("Index", "Home");
             }
-            if (!new GiftcardDAO().CheckStock(productID, quantity))
+
+            int available =
+                new GiftcardDAO()
+                    .GetAvailableStock(productID);
+
+            if (quantity > available)
             {
-                TempData["CartError"] = "Số lượng bạn chọn vượt quá số code đang có trong kho.";
-                return RedirectToAction("Detail", "Product", new { alias = product.Alias, id = product.Id });
+                TempData["CartError"] =
+                    "Sản phẩm chỉ còn lại "
+                    + available
+                    + " cái.";
+
+                return RedirectToAction(
+                    "Detail",
+                    "Product",
+                    new
+                    {
+                        alias = product.Alias,
+                        id = product.Id
+                    }
+                );
             }
 
             Session[CartSession] = new List<Cart>
             {
-                new Cart { product = product, Quantity = quantity }
+                new Cart
+                {
+                    product = product,
+                    Quantity = quantity
+                }
             };
-            return Payment((Order)null);
+
+            // Buy Now stops at the cart for user confirmation.
+            return RedirectToAction("Index");
         }
 
         [AllowAnonymous]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public JsonResult Update(string cartModel)
         {
-            var jsonCart = new JavaScriptSerializer().Deserialize<List<Cart>>(cartModel);
-            var sesCart = (List<Cart>)Session["CART_SESSION"];
-            foreach (var item in sesCart)
+            var sessionCart =
+                Session[CartSession] as List<Cart>;
+
+            if (sessionCart == null || !sessionCart.Any())
             {
-                var jsonItem = jsonCart.SingleOrDefault(x => x.product.Id == item.product.Id);
-                if (jsonItem != null)
+                return Json(new
                 {
-                    // jsonItem.Quantity: input quantity
-
-                    bool dem = new GiftcardDAO().CheckStock(jsonItem.product.Id, jsonItem.Quantity);
-                    if (dem == true)
-                    {
-                        item.Quantity = jsonItem.Quantity;
-                    }
-                    else
-                    {
-                        return Json(new { status = false });
-                    }
-
-                }
+                    status = false,
+                    message = "Giỏ hàng đang trống."
+                });
             }
-            Session["CART_SESSION"] = sesCart;
 
-            return Json(new { status = true });
+            List<Cart> requested;
 
+            try
+            {
+                requested =
+                    new JavaScriptSerializer()
+                        .Deserialize<List<Cart>>(cartModel);
+            }
+            catch
+            {
+                return Json(new
+                {
+                    status = false,
+                    message = "Dữ liệu giỏ hàng không hợp lệ."
+                });
+            }
+
+            if (requested == null)
+            {
+                return Json(new
+                {
+                    status = false,
+                    message = "Dữ liệu giỏ hàng không hợp lệ."
+                });
+            }
+
+            var productDao = new ProductDAO();
+            var giftcardDao = new GiftcardDAO();
+
+            foreach (var cartItem in sessionCart)
+            {
+                var requestedItem =
+                    requested.FirstOrDefault(x =>
+                        x.product != null
+                        && x.product.Id == cartItem.product.Id);
+
+                if (requestedItem == null)
+                {
+                    continue;
+                }
+
+                int quantity =
+                    Math.Max(1, requestedItem.Quantity);
+
+                var currentProduct =
+                    productDao.GetProductById(
+                        cartItem.product.Id
+                    );
+
+                if (currentProduct == null
+                    || currentProduct.Status != true)
+                {
+                    return Json(new
+                    {
+                        status = false,
+                        productId = cartItem.product.Id,
+                        message = "Một sản phẩm đã ngừng bán."
+                    });
+                }
+
+                int available =
+                    giftcardDao.GetAvailableStock(
+                        currentProduct.Id
+                    );
+
+                if (quantity > available)
+                {
+                    return Json(new
+                    {
+                        status = false,
+                        productId = currentProduct.Id,
+                        availableStock = available,
+                        message =
+                            "Sản phẩm "
+                            + currentProduct.Name
+                            + " chỉ còn lại "
+                            + available
+                            + " cái."
+                    });
+                }
+
+                cartItem.product = currentProduct;
+                cartItem.Quantity = quantity;
+            }
+
+            Session[CartSession] = sessionCart;
+
+            var responseItems = sessionCart.Select(x =>
+            {
+                int unitPrice =
+                    CommonHelper.GetSellingPrice(x.product);
+
+                return new
+                {
+                    productId = x.product.Id,
+                    quantity = x.Quantity,
+                    unitPrice = unitPrice,
+                    lineTotal = unitPrice * x.Quantity
+                };
+            }).ToList();
+
+            int total =
+                responseItems.Sum(x => x.lineTotal);
+
+            return Json(new
+            {
+                status = true,
+                cartCount = sessionCart.Sum(x => x.Quantity),
+                total = total,
+                items = responseItems,
+                message = "Giỏ hàng đã được cập nhật."
+            });
         }
 
         [AllowAnonymous]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public JsonResult DeleteAllCart()
         {
-            Session["CART_SESSION"] = null;
-            return Json(new { status = true });
+            Session[CartSession] = null;
+
+            return Json(new
+            {
+                status = true,
+                cartCount = 0,
+                total = 0
+            });
         }
 
         [AllowAnonymous]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public JsonResult Delete(long id)
         {
-            var sesCart = (List<Cart>)Session["CART_SESSION"];
-            sesCart.RemoveAll(x => x.product.Id == id);
-            Session["CART_SESSION"] = sesCart;
-            return Json(new { status = true });
+            var list =
+                Session[CartSession] as List<Cart>
+                ?? new List<Cart>();
+
+            list.RemoveAll(x => x.product.Id == id);
+            Session[CartSession] = list;
+
+            int total = list.Sum(x =>
+                CommonHelper.GetSellingPrice(x.product)
+                * x.Quantity
+            );
+
+            return Json(new
+            {
+                status = true,
+                cartCount = list.Sum(x => x.Quantity),
+                total = total
+            });
         }
 
         [HttpGet]
         public ActionResult Payment()
         {
-            var cart = Session["CART_SESSION"];
-            var list = new List<Cart>();
-            if (cart != null)
-            {
-                list = (List<Cart>)cart;
-            }
+            var list = RefreshCartFromDatabase(
+                Session[CartSession] as List<Cart>
+            );
+
+            Session[CartSession] = list;
             return View(list);
         }
 
@@ -197,33 +366,81 @@ namespace BBEcom.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Payment(Order ignoredOrder)
         {
-            var list = Session[CartSession] as List<Cart>;
+            var list = RefreshCartFromDatabase(
+                Session[CartSession] as List<Cart>
+            );
+
             if (list == null || !list.Any())
             {
                 TempData["CartError"] = "Giỏ hàng đang trống.";
                 return RedirectToAction("Index");
             }
 
-            var merchantId = ConfigurationManager.AppSettings["SePayMerchantId"];
-            var secretKey = ConfigurationManager.AppSettings["SePaySecretKey"];
-            if (string.IsNullOrWhiteSpace(merchantId) || merchantId.StartsWith("YOUR_") || string.IsNullOrWhiteSpace(secretKey) || secretKey.StartsWith("YOUR_"))
+            var merchantId =
+                ConfigurationManager.AppSettings["SePayMerchantId"];
+
+            var secretKey =
+                ConfigurationManager.AppSettings["SePaySecretKey"];
+
+            if (String.IsNullOrWhiteSpace(merchantId)
+                || merchantId.StartsWith("YOUR_")
+                || String.IsNullOrWhiteSpace(secretKey)
+                || secretKey.StartsWith("YOUR_"))
             {
-                TempData["CartError"] = "SePay chưa được cấu hình Merchant ID và Secret Key.";
+                TempData["CartError"] =
+                    "SePay chưa được cấu hình Merchant ID và Secret Key.";
+
                 return RedirectToAction("Index");
             }
 
+            var giftcardDao = new GiftcardDAO();
+
             foreach (var item in list)
             {
-                if (!new GiftcardDAO().CheckStock(item.product.Id, item.Quantity))
+                int available =
+                    giftcardDao.GetAvailableStock(item.product.Id);
+
+                if (item.Quantity > available)
                 {
-                    TempData["CartError"] = "Sản phẩm " + item.product.Name + " không còn đủ số lượng.";
+                    TempData["CartError"] =
+                        "Sản phẩm "
+                        + item.product.Name
+                        + " chỉ còn lại "
+                        + available
+                        + " cái.";
+
+                    Session[CartSession] = list;
                     return RedirectToAction("Index");
                 }
             }
 
-            var user = (UserLogin)Session[CommonConstants.USER_SESSION];
-            var orderCode = "DH" + DateTime.UtcNow.ToString("yyyyMMddHHmmss") + Guid.NewGuid().ToString("N").Substring(0, 5).ToUpperInvariant();
-            var total = list.Sum(item => (item.product.PriceSale > 0 ? item.product.PriceSale.Value : item.product.Price) * item.Quantity);
+            var user =
+                CurrentUser.Get();
+
+            if (user == null)
+            {
+                return RedirectToAction(
+                    "Index",
+                    "Login",
+                    new
+                    {
+                        returnUrl = Url.Action("Payment", "Cart")
+                    }
+                );
+            }
+
+            var orderCode =
+                "DH"
+                + DateTime.UtcNow.ToString("yyyyMMddHHmmss")
+                + Guid.NewGuid().ToString("N")
+                    .Substring(0, 5)
+                    .ToUpperInvariant();
+
+            int total = list.Sum(item =>
+                CommonHelper.GetSellingPrice(item.product)
+                * item.Quantity
+            );
+
             var order = new Order
             {
                 OrderCode = orderCode,
@@ -235,8 +452,12 @@ namespace BBEcom.Controllers
 
             foreach (var item in list)
             {
-                var unitPrice = item.product.PriceSale > 0 ? item.product.PriceSale.Value : item.product.Price;
-                for (var index = 0; index < item.Quantity; index++)
+                int unitPrice =
+                    CommonHelper.GetSellingPrice(item.product);
+
+                for (int index = 0;
+                     index < item.Quantity;
+                     index++)
                 {
                     order.OrderDetail.Add(new OrderDetail
                     {
@@ -251,36 +472,106 @@ namespace BBEcom.Controllers
             new OrderDAO().AddOrder(order);
             Session["SEPAY_PENDING_ORDER"] = orderCode;
 
-            var publicUrl = (ConfigurationManager.AppSettings["SePayPublicBaseUrl"] ?? Request.Url.GetLeftPart(UriPartial.Authority)).TrimEnd('/');
+            var publicUrl =
+                (ConfigurationManager.AppSettings["SePayPublicBaseUrl"]
+                ?? Request.Url.GetLeftPart(UriPartial.Authority))
+                .TrimEnd('/');
+
             var fields = new List<KeyValuePair<string, string>>
             {
-                new KeyValuePair<string, string>("order_amount", total.ToString(CultureInfo.InvariantCulture)),
+                new KeyValuePair<string, string>(
+                    "order_amount",
+                    total.ToString(CultureInfo.InvariantCulture)
+                ),
                 new KeyValuePair<string, string>("merchant", merchantId),
                 new KeyValuePair<string, string>("currency", "VND"),
                 new KeyValuePair<string, string>("operation", "PURCHASE"),
-                new KeyValuePair<string, string>("order_description", "Thanh toan don hang " + orderCode),
-                new KeyValuePair<string, string>("order_invoice_number", orderCode),
-                new KeyValuePair<string, string>("customer_id", user.UserId.ToString(CultureInfo.InvariantCulture)),
-                new KeyValuePair<string, string>("payment_method", "BANK_TRANSFER"),
-                new KeyValuePair<string, string>("success_url", publicUrl + Url.Action("SePaySuccess", "Cart", new { invoice = orderCode })),
-                new KeyValuePair<string, string>("error_url", publicUrl + Url.Action("SePayError", "Cart", new { invoice = orderCode })),
-                new KeyValuePair<string, string>("cancel_url", publicUrl + Url.Action("SePayCancel", "Cart", new { invoice = orderCode }))
+                new KeyValuePair<string, string>(
+                    "order_description",
+                    "Thanh toan don hang " + orderCode
+                ),
+                new KeyValuePair<string, string>(
+                    "order_invoice_number",
+                    orderCode
+                ),
+                new KeyValuePair<string, string>(
+                    "customer_id",
+                    user.UserId.ToString(CultureInfo.InvariantCulture)
+                ),
+                new KeyValuePair<string, string>(
+                    "payment_method",
+                    "BANK_TRANSFER"
+                ),
+                new KeyValuePair<string, string>(
+                    "success_url",
+                    publicUrl
+                    + Url.Action(
+                        "SePaySuccess",
+                        "Cart",
+                        new { invoice = orderCode }
+                    )
+                ),
+                new KeyValuePair<string, string>(
+                    "error_url",
+                    publicUrl
+                    + Url.Action(
+                        "SePayError",
+                        "Cart",
+                        new { invoice = orderCode }
+                    )
+                ),
+                new KeyValuePair<string, string>(
+                    "cancel_url",
+                    publicUrl
+                    + Url.Action(
+                        "SePayCancel",
+                        "Cart",
+                        new { invoice = orderCode }
+                    )
+                )
             };
 
-            var signatureData = string.Join(",", fields.Select(field => field.Key + "=" + field.Value));
+            var signatureData =
+                String.Join(
+                    ",",
+                    fields.Select(field =>
+                        field.Key + "=" + field.Value
+                    )
+                );
+
             string signature;
-            using (var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secretKey)))
+
+            using (var hmac =
+                new HMACSHA256(
+                    Encoding.UTF8.GetBytes(secretKey)
+                ))
             {
-                signature = Convert.ToBase64String(hmac.ComputeHash(Encoding.UTF8.GetBytes(signatureData)));
+                signature =
+                    Convert.ToBase64String(
+                        hmac.ComputeHash(
+                            Encoding.UTF8.GetBytes(signatureData)
+                        )
+                    );
             }
 
-            var sandbox = string.Equals(ConfigurationManager.AppSettings["SePayEnvironment"], "sandbox", StringComparison.OrdinalIgnoreCase);
+            var sandbox =
+                String.Equals(
+                    ConfigurationManager.AppSettings["SePayEnvironment"],
+                    "sandbox",
+                    StringComparison.OrdinalIgnoreCase
+                );
+
             var model = new SePayCheckoutViewModel
             {
-                CheckoutUrl = sandbox ? "https://pay-sandbox.sepay.vn/v1/checkout/init" : "https://pay.sepay.vn/v1/checkout/init",
+                CheckoutUrl =
+                    sandbox
+                        ? "https://pay-sandbox.sepay.vn/v1/checkout/init"
+                        : "https://pay.sepay.vn/v1/checkout/init",
                 Fields = fields,
                 Signature = signature
             };
+
+            Session[CartSession] = list;
             return View("SePayRedirect", model);
         }
 
@@ -433,6 +724,68 @@ namespace BBEcom.Controllers
             return View("VnpayReturn");
         }
 
+        private ActionResult CartFailure(
+            string message,
+            string redirectUrl,
+            int? availableStock = null)
+        {
+            if (Request.IsAjaxRequest())
+            {
+                return Json(new
+                {
+                    status = false,
+                    availableStock = availableStock,
+                    message = message
+                });
+            }
+
+            TempData["CartError"] = message;
+
+            if (!String.IsNullOrWhiteSpace(redirectUrl)
+                && Url.IsLocalUrl(redirectUrl))
+            {
+                return Redirect(redirectUrl);
+            }
+
+            return RedirectToAction("Index");
+        }
+
+        private List<Cart> RefreshCartFromDatabase(
+            List<Cart> cart)
+        {
+            if (cart == null || !cart.Any())
+            {
+                return new List<Cart>();
+            }
+
+            var productDao = new ProductDAO();
+            var refreshed = new List<Cart>();
+
+            foreach (var item in cart)
+            {
+                if (item == null || item.product == null)
+                {
+                    continue;
+                }
+
+                var product =
+                    productDao.GetProductById(item.product.Id);
+
+                if (product == null || product.Status != true)
+                {
+                    continue;
+                }
+
+                refreshed.Add(new Cart
+                {
+                    product = product,
+                    Quantity = Math.Max(1, item.Quantity)
+                });
+            }
+
+            return refreshed;
+        }
+
         private static bool SecureEquals(string expected, string received)
         {
             var expectedBytes = Encoding.UTF8.GetBytes(expected);
@@ -513,8 +866,17 @@ namespace BBEcom.Controllers
                     if (vnp_ResponseCode == "00" && vnp_TransactionStatus == "00")
                     {
                         var dao = new OrderDAO();
-                        var sess = (UserLogin)Session[BBEcom.Common.CommonConstants.USER_SESSION];
-                        var customerID = sess.UserId;
+                        var customerID = CurrentUser.UserId;
+
+                        if (customerID <= 0)
+                        {
+                            ViewBag.TrangThai = false;
+                            ViewBag.InnerText =
+                                "Phiên đăng nhập đã hết hạn. "
+                                + "Vui lòng đăng nhập lại để kiểm tra đơn hàng.";
+
+                            return View();
+                        }
 
                         var cart = Session["CART_SESSION"];
                         var list = new List<Cart>();
@@ -658,3 +1020,4 @@ public ActionResult BankTransfer(int orderId)
         }
 
     } }
+

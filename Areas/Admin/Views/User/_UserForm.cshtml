@@ -1,0 +1,32 @@
+﻿@model BBEcom.Areas.Admin.Models.UserAdminViewModel
+
+<div class="mb-3">
+    <label class="form-label">Tên đăng nhập</label>
+    @Html.TextBoxFor(x => x.UserName, new { @class = "form-control" })
+    @Html.ValidationMessageFor(x => x.UserName, "", new { @class = "text-danger" })
+</div>
+<div class="mb-3">
+    <label class="form-label">
+        Mật khẩu @if (Model.Id > 0) { <small>(để trống nếu không đổi)</small> }
+    </label>
+    @Html.PasswordFor(x => x.Password, new { @class = "form-control", autocomplete = "new-password" })
+    @Html.ValidationMessageFor(x => x.Password, "", new { @class = "text-danger" })
+</div>
+<div class="mb-3">
+    <label class="form-label">Họ tên</label>
+    @Html.TextBoxFor(x => x.Name, new { @class = "form-control" })
+    @Html.ValidationMessageFor(x => x.Name, "", new { @class = "text-danger" })
+</div>
+<div class="mb-3">
+    <label class="form-label">Email</label>
+    @Html.TextBoxFor(x => x.Email, new { @class = "form-control", type = "email" })
+    @Html.ValidationMessageFor(x => x.Email, "", new { @class = "text-danger" })
+</div>
+<div class="form-check mb-3">
+    @Html.CheckBoxFor(x => x.IsAdmin, new { @class = "form-check-input", id = "isAdmin" })
+    <label for="isAdmin">Quản trị viên</label>
+</div>
+<div class="form-check mb-4">
+    @Html.CheckBoxFor(x => x.Status, new { @class = "form-check-input", id = "userStatus" })
+    <label for="userStatus">Tài khoản hoạt động</label>
+</div>
