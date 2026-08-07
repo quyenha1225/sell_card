@@ -12,12 +12,17 @@
     var currentPrice =
         BBEcom.Common.CommonHelper.GetSellingPrice(Model);
 
+    var discount =
+        BBEcom.Common.CommonHelper.GetDiscountPercent(Model);
+
     var imageUrl =
         BBEcom.Common.CommonHelper.ResolveProductImage(
             Model.Alias,
             Model.Images
         );
 
+    // Toàn bộ đăng nhập hiện dùng JWT + GiftToi.AccessToken.
+    // Không kiểm tra USER_SESSION cũ nữa.
     var isLoggedIn =
         BBEcom.Common.Auth.CurrentUser.IsAuthenticated;
 
@@ -70,6 +75,13 @@
 
             <div class="product-card">
                 <div class="product-visual reveal-item">
+                    @if (hasSale)
+                    {
+                        <span class="sale-badge">
+                            -@discount%
+                        </span>
+                    }
+
                     <div class="image-frame">
                         <img src="@imageUrl"
                              alt="@Model.Name"

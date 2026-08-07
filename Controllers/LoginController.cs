@@ -17,10 +17,20 @@ namespace BBEcom.Controllers
         [HttpGet]
         public ActionResult Index(string returnUrl = null)
         {
-            if (CurrentUser.IsAuthenticated)
-                return RedirectToAction("Index", "Home");
+            var safeReturnUrl = NormalizeReturnUrl(returnUrl);
 
-            ViewBag.ReturnUrl = returnUrl;
+            // Nếu JWT hiện tại đã hợp lệ thì không hiển thị lại form đăng nhập.
+            // Điều này tránh việc form Anti-Forgery cũ của người dùng anonymous
+            // bị submit sau khi Google OAuth đã đổi sang ClaimsPrincipal mới.
+            if (CurrentUser.IsAuthenticated)
+            {
+                if (!String.IsNullOrWhiteSpace(safeReturnUrl))
+                    return Redirect(safeReturnUrl);
+
+                return RedirectToAction("Index", "Home");
+            }
+
+            ViewBag.ReturnUrl = safeReturnUrl;
             return View(new LoginModel { RememberMe = true });
         }
 
@@ -55,9 +65,14 @@ namespace BBEcom.Controllers
 
             WriteLogin(account, model.RememberMe);
 
-            if (!String.IsNullOrWhiteSpace(returnUrl)
-                && Url.IsLocalUrl(returnUrl))
-                return Redirect(returnUrl);
+            // Token chống CSRF được tạo trước khi đăng nhập thuộc anonymous user.
+            // Sau khi principal đổi sang JWT user phải bỏ token cũ để trang kế tiếp
+            // tự tạo cặp Anti-Forgery mới cho đúng AccountId.
+            ClearAntiForgeryCookies();
+
+            var safeReturnUrl = NormalizeReturnUrl(returnUrl);
+            if (!String.IsNullOrWhiteSpace(safeReturnUrl))
+                return Redirect(safeReturnUrl);
 
             return RedirectToAction("Index", "Home");
         }
@@ -207,6 +222,7 @@ namespace BBEcom.Controllers
         [HttpGet]
         public ActionResult Google(string returnUrl = null)
         {
+            returnUrl = NormalizeReturnUrl(returnUrl);
             var state = Convert.ToBase64String(RandomBytes(32));
 
             Response.Cookies.Add(new HttpCookie(
@@ -293,9 +309,14 @@ namespace BBEcom.Controllers
                 var returnUrl = returnCookie == null
                     ? null : returnCookie.Value;
 
-                if (!String.IsNullOrWhiteSpace(returnUrl)
-                    && Url.IsLocalUrl(returnUrl))
-                    return Redirect(returnUrl);
+                var safeReturnUrl = NormalizeReturnUrl(returnUrl);
+
+                // Xóa token CSRF của phiên anonymous cũ và cookie OAuth tạm.
+                ClearAntiForgeryCookies();
+                ClearTemporaryOAuthCookies();
+
+                if (!String.IsNullOrWhiteSpace(safeReturnUrl))
+                    return Redirect(safeReturnUrl);
 
                 return RedirectToAction("Index", "Home");
             }
@@ -312,7 +333,81 @@ namespace BBEcom.Controllers
         {
             AuthCookieService.ClearAccessCookie(
                 Response, Request.IsSecureConnection);
+
+            ClearAntiForgeryCookies();
+            ClearTemporaryOAuthCookies();
+
             return RedirectToAction("Index");
+        }
+
+        private string NormalizeReturnUrl(string returnUrl)
+        {
+            if (String.IsNullOrWhiteSpace(returnUrl)
+                || !Url.IsLocalUrl(returnUrl))
+            {
+                return null;
+            }
+
+            var path = returnUrl;
+            var queryIndex = path.IndexOf('?');
+            if (queryIndex >= 0)
+                path = path.Substring(0, queryIndex);
+
+            var hashIndex = path.IndexOf('#');
+            if (hashIndex >= 0)
+                path = path.Substring(0, hashIndex);
+
+            path = path.TrimEnd('/').ToLowerInvariant();
+
+            // Không redirect browser bằng GET vào các action chỉ nhận POST.
+            // Đây chính là nguyên nhân của lỗi 404 /Cart/AddItem sau Google OAuth.
+            if (path == "/cart/additem"
+                || path == "/cart/buynow"
+                || path == "/mua-ngay"
+                || path.StartsWith("/gio-hang/them-")
+                || path == "/login/login")
+            {
+                return null;
+            }
+
+            return returnUrl;
+        }
+
+        private void ClearAntiForgeryCookies()
+        {
+            var keys = Request.Cookies.AllKeys;
+            if (keys == null) return;
+
+            foreach (var key in keys)
+            {
+                if (String.IsNullOrWhiteSpace(key)
+                    || !key.StartsWith(
+                        "__RequestVerificationToken",
+                        StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                ExpireCookie(key);
+            }
+        }
+
+        private void ClearTemporaryOAuthCookies()
+        {
+            ExpireCookie("GiftToi.GoogleState");
+            ExpireCookie("GiftToi.ReturnUrl");
+        }
+
+        private void ExpireCookie(string name)
+        {
+            Response.Cookies.Add(new HttpCookie(name, "")
+            {
+                HttpOnly = true,
+                Secure = Request.IsSecureConnection,
+                SameSite = SameSiteMode.Lax,
+                Path = "/",
+                Expires = DateTime.UtcNow.AddYears(-1)
+            });
         }
 
         private void WriteLogin(

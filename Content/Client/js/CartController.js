@@ -297,8 +297,14 @@
             .fail(function (xhr) {
                 if (xhr.status === 302
                     || xhr.status === 401) {
+                    var returnUrl =
+                        window.location.pathname
+                        + window.location.search
+                        + window.location.hash;
+
                     window.location.href =
-                        '/dang-nhap';
+                        '/dang-nhap?returnUrl='
+                        + encodeURIComponent(returnUrl);
                     return;
                 }
 

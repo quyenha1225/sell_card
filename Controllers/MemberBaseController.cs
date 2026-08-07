@@ -1,4 +1,5 @@
 ﻿using BBEcom.Common.Auth;
+using System;
 using System.Web.Mvc;
 using System.Web.Routing;
 
@@ -17,46 +18,48 @@ namespace BBEcom.Controllers
 
             if (!allowAnonymous && !CurrentUser.IsAuthenticated)
             {
-                if (filterContext.HttpContext.Request.IsAjaxRequest())
-                {
-                    filterContext.HttpContext.Response.StatusCode = 401;
-                    filterContext.HttpContext.Response
-                        .SuppressFormsAuthenticationRedirect = true;
+                var request = filterContext.HttpContext.Request;
 
-                    filterContext.Result = new JsonResult
-                    {
-                        Data = new
-                        {
-                            status = false,
-                            requiresLogin = true,
-                            loginUrl = Url.Action(
-                                "Index",
-                                "Login",
-                                new
-                                {
-                                    returnUrl =
-                                        filterContext.HttpContext
-                                            .Request.RawUrl
-                                }
-                            ),
-                            message =
-                                "Vui lòng đăng nhập để tiếp tục."
-                        },
-                        JsonRequestBehavior =
-                            JsonRequestBehavior.AllowGet
-                    };
-                }
-                else
+                // AJAX không nên bị 302 sang trang Login rồi trả HTML về cho $.ajax.
+                // Trả 401 để JavaScript chủ động chuyển sang trang đăng nhập.
+                if (request.IsAjaxRequest())
                 {
-                    filterContext.Result = new RedirectToRouteResult(
-                        new RouteValueDictionary(new
-                        {
-                            controller = "Login",
-                            action = "Index",
-                            returnUrl =
-                                filterContext.HttpContext.Request.RawUrl
-                        }));
+                    filterContext.Result = new HttpStatusCodeResult(401);
+                    return;
                 }
+
+                // GET có thể quay lại đúng URL hiện tại.
+                // POST (AddItem/BuyNow/...) không được dùng RawUrl làm returnUrl,
+                // vì sau OAuth trình duyệt sẽ GET vào action chỉ nhận POST và gây 404.
+                string returnUrl = null;
+
+                if (String.Equals(
+                    request.HttpMethod,
+                    "GET",
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    returnUrl = request.RawUrl;
+                }
+                else if (request.UrlReferrer != null)
+                {
+                    returnUrl = request.UrlReferrer.PathAndQuery;
+                }
+
+                if (String.IsNullOrWhiteSpace(returnUrl)
+                    || !Url.IsLocalUrl(returnUrl))
+                {
+                    returnUrl = Url.Action("Index", "Home");
+                }
+
+                filterContext.Result = new RedirectToRouteResult(
+                    new RouteValueDictionary(new
+                    {
+                        controller = "Login",
+                        action = "Index",
+                        returnUrl = returnUrl
+                    }));
+
+                return;
             }
 
             base.OnActionExecuting(filterContext);

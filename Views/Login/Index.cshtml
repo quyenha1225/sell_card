@@ -94,3 +94,21 @@
         </div>
     </div>
 </div>
+
+
+@section jsFooter {
+    <script>
+        // Khi quay Back về form đăng nhập sau OAuth, Chrome có thể phục hồi
+        // nguyên form cùng Anti-Forgery token của anonymous user từ BFCache.
+        // Reload buộc server kiểm tra JWT mới và redirect người đã đăng nhập.
+        window.addEventListener('pageshow', function (event) {
+            var nav = window.performance &&
+                performance.getEntriesByType &&
+                performance.getEntriesByType('navigation')[0];
+
+            if (event.persisted || (nav && nav.type === 'back_forward')) {
+                window.location.reload();
+            }
+        });
+    </script>
+}

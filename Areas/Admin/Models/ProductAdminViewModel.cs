@@ -19,7 +19,8 @@ namespace BBEcom.Areas.Admin.Models
         [Required(ErrorMessage = "Vui lòng chọn đường dẫn ảnh.")]
         [StringLength(500)]
         public string Images { get; set; }
-
+        [Range(0, Int32.MaxValue)]
+        public int CostPrice { get; set; }
         [Range(1000, Int32.MaxValue)]
         public int Price { get; set; }
 
@@ -32,15 +33,38 @@ namespace BBEcom.Areas.Admin.Models
         public bool Status { get; set; }
 
         public IEnumerable<ValidationResult> Validate(
-            ValidationContext validationContext)
+    ValidationContext validationContext)
         {
-            if (PriceSale.HasValue
-                && PriceSale.Value > 0
-                && PriceSale.Value >= Price)
+            if (CostPrice <= 0)
             {
                 yield return new ValidationResult(
-                    "Giá bán phải nhỏ hơn giá gốc.",
-                    new[] { "PriceSale" });
+                    "Giá nhập phải lớn hơn 0.",
+                    new[] { "CostPrice" });
+            }
+
+            if (Price <= CostPrice)
+            {
+                yield return new ValidationResult(
+                    "Giá bán phải lớn hơn giá nhập.",
+                    new[] { "Price" });
+            }
+
+            if (PriceSale.HasValue
+                && PriceSale.Value > 0)
+            {
+                if (PriceSale.Value >= Price)
+                {
+                    yield return new ValidationResult(
+                        "Giá khuyến mãi phải nhỏ hơn giá bán.",
+                        new[] { "PriceSale" });
+                }
+
+                if (PriceSale.Value <= CostPrice)
+                {
+                    yield return new ValidationResult(
+                        "Giá khuyến mãi phải lớn hơn giá nhập.",
+                        new[] { "PriceSale" });
+                }
             }
         }
     }
