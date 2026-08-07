@@ -20,15 +20,27 @@ namespace BBEcom.Common.Auth
     public class GoogleOAuthService
     {
         public string BuildAuthorizationUrl(
-            string redirectUri, string state)
+            string redirectUri,
+            string state)
         {
-            var clientId =
-                ConfigurationManager.AppSettings["GoogleClientId"];
+            var clientId = GetRequiredSetting(
+                "GoogleClientId",
+                "GoogleClientId chưa được cấu hình."
+            );
 
-            if (String.IsNullOrWhiteSpace(clientId)
-                || clientId.StartsWith("CHANGE_"))
+            if (String.IsNullOrWhiteSpace(redirectUri))
+            {
                 throw new InvalidOperationException(
-                    "GoogleClientId chưa được cấu hình.");
+                    "Google redirect URI không hợp lệ."
+                );
+            }
+
+            if (String.IsNullOrWhiteSpace(state))
+            {
+                throw new InvalidOperationException(
+                    "Google OAuth state không hợp lệ."
+                );
+            }
 
             return "https://accounts.google.com/o/oauth2/v2/auth"
                 + "?client_id=" + HttpUtility.UrlEncode(clientId)
@@ -36,18 +48,35 @@ namespace BBEcom.Common.Auth
                 + "&response_type=code"
                 + "&scope=" + HttpUtility.UrlEncode("openid email profile")
                 + "&state=" + HttpUtility.UrlEncode(state)
-                + "&access_type=online&prompt=select_account";
+                + "&access_type=online"
+                + "&prompt=select_account";
         }
 
         public async Task<GoogleUserInfo> ExchangeAsync(
-            string code, string redirectUri)
+            string code,
+            string redirectUri)
         {
-            var clientId =
-                ConfigurationManager.AppSettings["GoogleClientId"];
-            var clientSecret =
-                ConfigurationManager.AppSettings["GoogleClientSecret"];
+            if (String.IsNullOrWhiteSpace(code))
+            {
+                throw new InvalidOperationException(
+                    "Google không trả authorization code."
+                );
+            }
 
-            using (var client = new HttpClient())
+            var clientId = GetRequiredSetting(
+                "GoogleClientId",
+                "GoogleClientId chưa được cấu hình."
+            );
+
+            var clientSecret = GetRequiredSetting(
+                "GoogleClientSecret",
+                "GoogleClientSecret chưa được cấu hình."
+            );
+
+            using (var client = new HttpClient
+            {
+                Timeout = TimeSpan.FromSeconds(15)
+            })
             {
                 var response = await client.PostAsync(
                     "https://oauth2.googleapis.com/token",
@@ -59,22 +88,51 @@ namespace BBEcom.Common.Auth
                             { "client_secret", clientSecret },
                             { "redirect_uri", redirectUri },
                             { "grant_type", "authorization_code" }
-                        }));
+                        }
+                    )
+                );
 
-                var tokenJson = await response.Content.ReadAsStringAsync();
+                var tokenJson =
+                    await response.Content.ReadAsStringAsync();
+
                 if (!response.IsSuccessStatusCode)
+                {
                     throw new InvalidOperationException(
-                        "Google từ chối mã đăng nhập.");
+                        "Google từ chối mã đăng nhập."
+                    );
+                }
 
                 var token = JObject.Parse(tokenJson);
                 var accessToken =
                     Convert.ToString(token["access_token"]);
 
-                client.DefaultRequestHeaders.Authorization =
-                    new AuthenticationHeaderValue("Bearer", accessToken);
+                if (String.IsNullOrWhiteSpace(accessToken))
+                {
+                    throw new InvalidOperationException(
+                        "Google không trả access token."
+                    );
+                }
 
-                var userJson = await client.GetStringAsync(
-                    "https://openidconnect.googleapis.com/v1/userinfo");
+                client.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue(
+                        "Bearer",
+                        accessToken
+                    );
+
+                var userResponse = await client.GetAsync(
+                    "https://openidconnect.googleapis.com/v1/userinfo"
+                );
+
+                if (!userResponse.IsSuccessStatusCode)
+                {
+                    throw new InvalidOperationException(
+                        "Không lấy được thông tin tài khoản Google."
+                    );
+                }
+
+                var userJson =
+                    await userResponse.Content.ReadAsStringAsync();
+
                 var user = JObject.Parse(userJson);
 
                 return new GoogleUserInfo
@@ -82,10 +140,35 @@ namespace BBEcom.Common.Auth
                     Subject = Convert.ToString(user["sub"]),
                     Email = Convert.ToString(user["email"]),
                     EmailVerified =
-                        Convert.ToBoolean(user["email_verified"] ?? false),
+                        Convert.ToBoolean(
+                            user["email_verified"] ?? false
+                        ),
                     Name = Convert.ToString(user["name"])
                 };
             }
+        }
+
+        private static string GetRequiredSetting(
+            string key,
+            string errorMessage)
+        {
+            var value =
+                ConfigurationManager.AppSettings[key];
+
+            if (String.IsNullOrWhiteSpace(value)
+                || value.StartsWith(
+                    "CHANGE_",
+                    StringComparison.OrdinalIgnoreCase)
+                || value.StartsWith(
+                    "YOUR_",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException(
+                    errorMessage
+                );
+            }
+
+            return value.Trim();
         }
     }
 }

@@ -23,8 +23,8 @@ namespace BBEcom.Controllers
     public class CartController : MemberBaseController
     {
         private const string CartSession = "CART_SESSION";
+        private const int MaxCartItemQuantity = 100;
         // GET: Cart
-        [AllowAnonymous]
         public ActionResult Index()
         {
             var list = RefreshCartFromDatabase(
@@ -49,7 +49,10 @@ namespace BBEcom.Controllers
                 );
             }
 
-            quantity = Math.Max(1, quantity);
+            quantity = Math.Max(
+                1,
+                Math.Min(MaxCartItemQuantity, quantity)
+            );
 
             var list =
                 Session[CartSession] as List<Cart>
@@ -68,10 +71,10 @@ namespace BBEcom.Controllers
                 new GiftcardDAO()
                     .GetAvailableStock(productID);
 
-            int requested =
-                currentQuantity + quantity;
+            long requestedLong =
+                (long)currentQuantity + quantity;
 
-            if (requested > available)
+            if (requestedLong > available)
             {
                 return CartFailure(
                     "Sản phẩm chỉ còn lại "
@@ -101,7 +104,7 @@ namespace BBEcom.Controllers
             else
             {
                 currentItem.product = product;
-                currentItem.Quantity = requested;
+                currentItem.Quantity = (int)requestedLong;
             }
 
             Session[CartSession] = list;
@@ -135,7 +138,10 @@ namespace BBEcom.Controllers
         public ActionResult BuyNow(int productID, int quantity)
         {
             var product = new ProductDAO().GetProductById(productID);
-            quantity = Math.Max(1, quantity);
+            quantity = Math.Max(
+                1,
+                Math.Min(MaxCartItemQuantity, quantity)
+            );
 
             if (product == null || product.Status != true)
             {
@@ -180,7 +186,6 @@ namespace BBEcom.Controllers
             return RedirectToAction("Index");
         }
 
-        [AllowAnonymous]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public JsonResult Update(string cartModel)
@@ -239,7 +244,13 @@ namespace BBEcom.Controllers
                 }
 
                 int quantity =
-                    Math.Max(1, requestedItem.Quantity);
+                    Math.Max(
+                        1,
+                        Math.Min(
+                            MaxCartItemQuantity,
+                            requestedItem.Quantity
+                        )
+                    );
 
                 var currentProduct =
                     productDao.GetProductById(
@@ -311,7 +322,6 @@ namespace BBEcom.Controllers
             });
         }
 
-        [AllowAnonymous]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public JsonResult DeleteAllCart()
@@ -326,7 +336,6 @@ namespace BBEcom.Controllers
             });
         }
 
-        [AllowAnonymous]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public JsonResult Delete(long id)
@@ -472,10 +481,7 @@ namespace BBEcom.Controllers
             new OrderDAO().AddOrder(order);
             Session["SEPAY_PENDING_ORDER"] = orderCode;
 
-            var publicUrl =
-                (ConfigurationManager.AppSettings["SePayPublicBaseUrl"]
-                ?? Request.Url.GetLeftPart(UriPartial.Authority))
-                .TrimEnd('/');
+            var publicUrl = GetExternalBaseUrl();
 
             var fields = new List<KeyValuePair<string, string>>
             {
@@ -589,17 +595,56 @@ namespace BBEcom.Controllers
             }
 
             Request.InputStream.Position = 0;
-            string body;
-            using (var reader = new System.IO.StreamReader(Request.InputStream)) body = reader.ReadToEnd();
-            var payload = new JavaScriptSerializer().Deserialize<SePayIpnRequest>(body);
-            if (payload == null || payload.notification_type != "ORDER_PAID" || payload.order == null)
+
+            SePayIpnRequest payload;
+
+            try
+            {
+                string body;
+
+                using (var reader =
+                    new System.IO.StreamReader(Request.InputStream))
+                {
+                    body = reader.ReadToEnd();
+                }
+
+                payload = new JavaScriptSerializer()
+                    .Deserialize<SePayIpnRequest>(body);
+            }
+            catch
+            {
+                Response.StatusCode = 400;
+                return Json(new
+                {
+                    success = false,
+                    error = "Invalid payload"
+                });
+            }
+
+            if (payload == null
+                || !String.Equals(
+                    payload.notification_type,
+                    "ORDER_PAID",
+                    StringComparison.OrdinalIgnoreCase)
+                || payload.order == null)
             {
                 return Json(new { success = true });
             }
-            if (payload.order.order_status != "CAPTURED" || payload.order.order_currency != "VND")
+            if (!String.Equals(
+                    payload.order.order_status,
+                    "CAPTURED",
+                    StringComparison.OrdinalIgnoreCase)
+                || !String.Equals(
+                    payload.order.order_currency,
+                    "VND",
+                    StringComparison.OrdinalIgnoreCase))
             {
                 Response.StatusCode = 400;
-                return Json(new { success = false, error = "Invalid payment status" });
+                return Json(new
+                {
+                    success = false,
+                    error = "Invalid payment status"
+                });
             }
 
             decimal paidAmount;
@@ -621,6 +666,12 @@ namespace BBEcom.Controllers
         public ActionResult SePaySuccess(string invoice)
         {
             var order = new OrderDAO().GetOrder(invoice);
+
+            if (order != null && !CanAccessOrderStatus(order, invoice))
+            {
+                return HttpNotFound();
+            }
+
             if (order != null && !order.Status && TryConfirmOrderWithSePay(order))
             {
                 order = new OrderDAO().GetOrder(invoice);
@@ -637,12 +688,35 @@ namespace BBEcom.Controllers
         [HttpGet]
         public JsonResult SePayOrderStatus(string invoice)
         {
-            var order = String.IsNullOrWhiteSpace(invoice) ? null : new OrderDAO().GetOrder(invoice);
-            if (order != null && !order.Status && TryConfirmOrderWithSePay(order))
+            var order =
+                String.IsNullOrWhiteSpace(invoice)
+                    ? null
+                    : new OrderDAO().GetOrder(invoice);
+
+            if (order != null && !CanAccessOrderStatus(order, invoice))
+            {
+                Response.StatusCode = 404;
+                Response.TrySkipIisCustomErrors = true;
+
+                return Json(new
+                {
+                    found = false,
+                    paid = false
+                }, JsonRequestBehavior.AllowGet);
+            }
+
+            if (order != null
+                && !order.Status
+                && TryConfirmOrderWithSePay(order))
             {
                 order = new OrderDAO().GetOrder(invoice);
             }
-            if (order != null && order.Status) Session[CartSession] = null;
+
+            if (order != null && order.Status)
+            {
+                Session[CartSession] = null;
+            }
+
             return Json(new
             {
                 found = order != null,
@@ -684,26 +758,95 @@ namespace BBEcom.Controllers
             }
         }
 
-        private static string CompletePaidOrder(string invoice, decimal paidAmount)
+        private static string CompletePaidOrder(
+            string invoice,
+            decimal paidAmount)
         {
             using (var db = new KeyDbContext())
-            using (var transaction = db.Database.BeginTransaction(System.Data.IsolationLevel.Serializable))
+            using (var transaction =
+                db.Database.BeginTransaction(
+                    System.Data.IsolationLevel.Serializable))
             {
-                var order = db.Orders.Include(x => x.OrderDetail).FirstOrDefault(x => x.OrderCode == invoice);
-                if (order == null || paidAmount != order.TotalAmount) return "Invalid order or amount";
-                if (!order.Status)
+                var order = db.Orders
+                    .Include(x => x.OrderDetail)
+                    .FirstOrDefault(x => x.OrderCode == invoice);
+
+                if (order == null || paidAmount != order.TotalAmount)
                 {
-                    foreach (var detail in order.OrderDetail)
-                    {
-                        var gift = db.Giftcards.FirstOrDefault(x => x.ProductId == detail.ProductID);
-                        if (gift == null) return "Insufficient stock";
-                        detail.Code = gift.Code;
-                        db.Giftcards.Remove(gift);
-                    }
-                    order.Status = true;
-                    db.SaveChanges();
+                    transaction.Rollback();
+                    return "Invalid order or amount";
                 }
+
+                // IPN/Success polling có thể gọi lặp.
+                // Nếu đã hoàn tất thì trả thành công mà không cấp code lần hai.
+                if (order.Status)
+                {
+                    transaction.Commit();
+                    return null;
+                }
+
+                if (order.OrderDetail == null
+                    || !order.OrderDetail.Any())
+                {
+                    transaction.Rollback();
+                    return "Invalid order details";
+                }
+
+                var detailGroups = order.OrderDetail
+                    .GroupBy(x => x.ProductID)
+                    .ToList();
+
+                var allocations =
+                    new List<Tuple<OrderDetail, Giftcard>>();
+
+                foreach (var group in detailGroups)
+                {
+                    var details = group
+                        .OrderBy(x => x.Id)
+                        .ToList();
+
+                    var gifts = db.Giftcards
+                        .Where(x =>
+                            x.ProductId == group.Key
+                            && x.Code != null
+                            && x.Code != "")
+                        .OrderBy(x => x.Id)
+                        .Take(details.Count)
+                        .ToList();
+
+                    if (gifts.Count < details.Count)
+                    {
+                        transaction.Rollback();
+                        return "Insufficient stock";
+                    }
+
+                    for (var index = 0;
+                         index < details.Count;
+                         index++)
+                    {
+                        allocations.Add(
+                            Tuple.Create(
+                                details[index],
+                                gifts[index]
+                            )
+                        );
+                    }
+                }
+
+                foreach (var allocation in allocations)
+                {
+                    allocation.Item1.Code =
+                        allocation.Item2.Code;
+
+                    db.Giftcards.Remove(
+                        allocation.Item2
+                    );
+                }
+
+                order.Status = true;
+                db.SaveChanges();
                 transaction.Commit();
+
                 return null;
             }
         }
@@ -776,14 +919,104 @@ namespace BBEcom.Controllers
                     continue;
                 }
 
+                var available =
+                    new GiftcardDAO()
+                        .GetAvailableStock(product.Id);
+
+                if (available <= 0)
+                {
+                    continue;
+                }
+
                 refreshed.Add(new Cart
                 {
                     product = product,
-                    Quantity = Math.Max(1, item.Quantity)
+                    Quantity = Math.Min(
+                        available,
+                        Math.Max(
+                            1,
+                            Math.Min(
+                                MaxCartItemQuantity,
+                                item.Quantity
+                            )
+                        )
+                    )
                 });
             }
 
             return refreshed;
+        }
+
+        private bool CanAccessOrderStatus(
+            Order order,
+            string invoice)
+        {
+            if (order == null)
+            {
+                return false;
+            }
+
+            if (CurrentUser.IsAuthenticated
+                && CurrentUser.UserId == order.CustomerID)
+            {
+                return true;
+            }
+
+            var pending =
+                Convert.ToString(
+                    Session["SEPAY_PENDING_ORDER"]
+                );
+
+            return !String.IsNullOrWhiteSpace(pending)
+                && String.Equals(
+                    pending,
+                    invoice,
+                    StringComparison.OrdinalIgnoreCase
+                );
+        }
+
+        private string GetExternalBaseUrl()
+        {
+            var forwardedProto =
+                Request.Headers["X-Forwarded-Proto"];
+
+            var scheme =
+                !String.IsNullOrWhiteSpace(forwardedProto)
+                    ? forwardedProto
+                        .Split(',')[0]
+                        .Trim()
+                    : Request.Url.Scheme;
+
+            if (!String.Equals(
+                    scheme,
+                    "https",
+                    StringComparison.OrdinalIgnoreCase)
+                && !String.Equals(
+                    scheme,
+                    "http",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                scheme = Request.Url.Scheme;
+            }
+
+            var forwardedHost =
+                Request.Headers["X-Forwarded-Host"];
+
+            var host =
+                !String.IsNullOrWhiteSpace(forwardedHost)
+                    ? forwardedHost
+                        .Split(',')[0]
+                        .Trim()
+                    : Request.Url.Authority;
+
+            if (host.EndsWith(
+                ".trycloudflare.com",
+                StringComparison.OrdinalIgnoreCase))
+            {
+                scheme = "https";
+            }
+
+            return (scheme + "://" + host).TrimEnd('/');
         }
 
         private static bool SecureEquals(string expected, string received)

@@ -1,4 +1,4 @@
-namespace Models.EF
+﻿namespace Models.EF
 {
     using System;
     using System.Collections.Generic;
@@ -32,8 +32,13 @@ namespace Models.EF
 
         public DateTime? CreatedDate { get; set; }
 
+        // Giá nhập / giá vốn. Chỉ dùng trong khu vực quản trị và tính lợi nhuận.
+        public int CostPrice { get; set; }
+
+        // Giá khuyến mãi; null/0 nghĩa là không giảm giá.
         public int? PriceSale { get; set; }
 
+        // Giá bán niêm yết.
         public int Price { get; set; }
 
         [AllowHtml]

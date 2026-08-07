@@ -39,6 +39,26 @@
         window.alert(message);
     }
 
+    function redirectToLogin(xhr) {
+        if (!xhr || xhr.status !== 401) {
+            return false;
+        }
+
+        var result = xhr.responseJSON || null;
+        var returnUrl =
+            window.location.pathname +
+            window.location.search +
+            window.location.hash;
+
+        window.location.href =
+            result && result.loginUrl
+                ? result.loginUrl
+                : '/dang-nhap?returnUrl=' +
+                  encodeURIComponent(returnUrl);
+
+        return true;
+    }
+
     function collectCart() {
         var items = [];
 
@@ -134,7 +154,11 @@
 
             applyServerCart(response);
         })
-        .fail(function () {
+        .fail(function (xhr) {
+            if (redirectToLogin(xhr)) {
+                return;
+            }
+
             notify(
                 'Không thể kết nối đến máy chủ.',
                 true
@@ -164,8 +188,15 @@
             var value =
                 parseInt(input.val(), 10) || 1;
 
+            var max =
+                parseInt(input.attr('max'), 10);
+
             if ($(this).hasClass('plus-btn')) {
                 value += 1;
+
+                if (Number.isFinite(max)) {
+                    value = Math.min(max, value);
+                }
             } else {
                 value = Math.max(1, value - 1);
             }
@@ -182,7 +213,16 @@
             var value =
                 parseInt($(this).val(), 10) || 1;
 
-            $(this).val(Math.max(1, value));
+            var max =
+                parseInt($(this).attr('max'), 10);
+
+            value = Math.max(1, value);
+
+            if (Number.isFinite(max)) {
+                value = Math.min(max, value);
+            }
+
+            $(this).val(value);
             scheduleUpdate();
         }
     );
@@ -207,7 +247,11 @@
                     window.location.reload();
                 }
             })
-            .fail(function () {
+            .fail(function (xhr) {
+                if (redirectToLogin(xhr)) {
+                    return;
+                }
+
                 notify(
                     'Không thể xóa sản phẩm.',
                     true
@@ -236,7 +280,11 @@
                 window.location.reload();
             }
         })
-        .fail(function () {
+        .fail(function (xhr) {
+            if (redirectToLogin(xhr)) {
+                return;
+            }
+
             notify(
                 'Không thể xóa giỏ hàng.',
                 true
@@ -244,78 +292,4 @@
         });
     });
 
-    $(document).on(
-        'click',
-        '.js-quick-add',
-        function () {
-            var button = $(this);
-            var productId =
-                button.data('product-id');
-
-            if (!productId || button.prop('disabled')) {
-                return;
-            }
-
-            button.prop('disabled', true);
-
-            $.ajax({
-                url: '/Cart/AddItem',
-                type: 'POST',
-                dataType: 'json',
-                data: {
-                    __RequestVerificationToken: token(),
-                    productID: productId,
-                    quantity: 1
-                },
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .done(function (response) {
-                if (!response.status) {
-                    notify(
-                        response.message ||
-                        'Không thể thêm sản phẩm.',
-                        true
-                    );
-                    return;
-                }
-
-                $('.cart-count')
-                    .text(response.cartCount || 0)
-                    .toggleClass(
-                        'has-items',
-                        (response.cartCount || 0) > 0
-                    );
-
-                notify(
-                    response.message ||
-                    'Đã thêm vào giỏ hàng.',
-                    false
-                );
-            })
-            .fail(function (xhr) {
-                if (xhr.status === 302
-                    || xhr.status === 401) {
-                    var returnUrl =
-                        window.location.pathname
-                        + window.location.search
-                        + window.location.hash;
-
-                    window.location.href =
-                        '/dang-nhap?returnUrl='
-                        + encodeURIComponent(returnUrl);
-                    return;
-                }
-
-                notify(
-                    'Không thể thêm sản phẩm vào giỏ.',
-                    true
-                );
-            })
-            .always(function () {
-                button.prop('disabled', false);
-            });
-        }
-    );
 })(jQuery);

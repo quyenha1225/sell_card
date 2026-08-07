@@ -32,13 +32,9 @@
                     @*@Html.LabelFor(model => model.Image, htmlAttributes: new { @class = "form-label col-md-2" })*@
                     <label class="form-label col-md-2">Ảnh bìa</label>
                     <div class="row d-flex">
-                        <div class="col-md-11">
-                            @Html.EditorFor(model => model.Image, new { htmlAttributes = new { @class = "form-control", @id = "txtImage", @readonly = "readonly" } })
+                        <div class="col-md-12">
+                            @Html.EditorFor(model => model.Image, new { htmlAttributes = new { @class = "form-control", @id = "txtImage" } })
                             @Html.ValidationMessageFor(model => model.Image, "", new { @class = "text-danger" })
-                        </div>
-
-                        <div class="col-md-1">
-                            <a href="#" class="btn btn-primary" id="btnSelectImage">Chọn</a>
                         </div>
                     </div>
 
@@ -72,16 +68,7 @@
 
 @section scripts {
     <script>
-        $('#btnSelectImage').on('click', function (e) {
-            e.preventDefault();
-            var finder = new CKFinder();
-            finder.selectActionFunction = function (url) {
-                $('#txtImage').val(url);
-            };
-            finder.popup();
-        })
-
-        var editor = CKEDITOR.replace('txtDes', {
+var editor = CKEDITOR.replace('txtDes', {
             customConfig: '/Content/Admin/ckeditor/config.js'
         })
 

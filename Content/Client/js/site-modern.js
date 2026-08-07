@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
     'use strict';
 
     function getAntiForgeryToken() {
@@ -99,9 +99,26 @@
             }
 
             if (response.status === 401) {
-                return response.json().then(function (result) {
+                return response.text().then(function (raw) {
+                    var result = null;
+
+                    try {
+                        result = raw ? JSON.parse(raw) : null;
+                    } catch (error) {
+                        result = null;
+                    }
+
+                    var returnUrl =
+                        window.location.pathname +
+                        window.location.search +
+                        window.location.hash;
+
                     window.location.href =
-                        result.loginUrl || '/dang-nhap';
+                        result && result.loginUrl
+                            ? result.loginUrl
+                            : '/dang-nhap?returnUrl=' +
+                              encodeURIComponent(returnUrl);
+
                     return null;
                 });
             }

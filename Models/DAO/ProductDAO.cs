@@ -79,6 +79,7 @@ namespace Models.DAO
                 currentProduct.Alias = newProduct.Alias;
                 currentProduct.CategoryId = newProduct.CategoryId;
                 currentProduct.Images = newProduct.Images;
+                currentProduct.CostPrice = newProduct.CostPrice;
                 currentProduct.Price = newProduct.Price;
                 currentProduct.PriceSale = newProduct.PriceSale;
                 currentProduct.Detail = newProduct.Detail;

@@ -46,7 +46,9 @@ namespace BBEcom.Areas.Admin.Controllers
 
             AuthCookieService.WriteAccessCookie(
                 Response, token, model.RememberMe,
-                Request.IsSecureConnection);
+                IsSecureRequest());
+
+            ClearAntiForgeryCookies();
 
             if (!String.IsNullOrWhiteSpace(returnUrl)
                 && Url.IsLocalUrl(returnUrl))
@@ -59,8 +61,71 @@ namespace BBEcom.Areas.Admin.Controllers
         public ActionResult Logout()
         {
             AuthCookieService.ClearAccessCookie(
-                Response, Request.IsSecureConnection);
+                Response, IsSecureRequest());
+            ClearAntiForgeryCookies();
             return RedirectToAction("Index");
+        }
+
+        private bool IsSecureRequest()
+        {
+            var forwardedProto =
+                Request.Headers["X-Forwarded-Proto"];
+
+            if (!String.IsNullOrWhiteSpace(forwardedProto))
+            {
+                var value = forwardedProto
+                    .Split(',')[0]
+                    .Trim();
+
+                if (String.Equals(
+                    value,
+                    "https",
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+
+                if (String.Equals(
+                    value,
+                    "http",
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    return false;
+                }
+            }
+
+            return Request.IsSecureConnection;
+        }
+
+        private void ClearAntiForgeryCookies()
+        {
+            var keys = Request.Cookies.AllKeys;
+            if (keys == null)
+            {
+                return;
+            }
+
+            foreach (var key in keys)
+            {
+                if (String.IsNullOrWhiteSpace(key)
+                    || !key.StartsWith(
+                        "__RequestVerificationToken",
+                        StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                Response.Cookies.Add(
+                    new System.Web.HttpCookie(key, "")
+                    {
+                        HttpOnly = true,
+                        Secure = IsSecureRequest(),
+                        SameSite = System.Web.SameSiteMode.Lax,
+                        Path = "/",
+                        Expires = DateTime.UtcNow.AddYears(-1)
+                    }
+                );
+            }
         }
     }
 }

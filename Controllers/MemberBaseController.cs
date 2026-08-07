@@ -1,7 +1,7 @@
 ﻿using BBEcom.Common.Auth;
 using System;
+using System.Web;
 using System.Web.Mvc;
-using System.Web.Routing;
 
 namespace BBEcom.Controllers
 {
@@ -19,50 +19,70 @@ namespace BBEcom.Controllers
             if (!allowAnonymous && !CurrentUser.IsAuthenticated)
             {
                 var request = filterContext.HttpContext.Request;
+                var returnUrl = ResolveReturnUrl(request);
 
-                // AJAX không nên bị 302 sang trang Login rồi trả HTML về cho $.ajax.
-                // Trả 401 để JavaScript chủ động chuyển sang trang đăng nhập.
+                var loginUrl = Url.Action(
+                    "Index",
+                    "Login",
+                    new { returnUrl = returnUrl }
+                );
+
                 if (request.IsAjaxRequest())
                 {
-                    filterContext.Result = new HttpStatusCodeResult(401);
+                    var response = filterContext.HttpContext.Response;
+
+                    response.StatusCode = 401;
+                    response.TrySkipIisCustomErrors = true;
+                    response.SuppressFormsAuthenticationRedirect = true;
+
+                    filterContext.Result = new JsonResult
+                    {
+                        Data = new
+                        {
+                            status = false,
+                            authRequired = true,
+                            loginUrl = loginUrl,
+                            message = "Phiên đăng nhập đã hết hạn hoặc bạn chưa đăng nhập."
+                        },
+                        JsonRequestBehavior = JsonRequestBehavior.AllowGet
+                    };
+
                     return;
                 }
 
-                // GET có thể quay lại đúng URL hiện tại.
-                // POST (AddItem/BuyNow/...) không được dùng RawUrl làm returnUrl,
-                // vì sau OAuth trình duyệt sẽ GET vào action chỉ nhận POST và gây 404.
-                string returnUrl = null;
-
-                if (String.Equals(
-                    request.HttpMethod,
-                    "GET",
-                    StringComparison.OrdinalIgnoreCase))
-                {
-                    returnUrl = request.RawUrl;
-                }
-                else if (request.UrlReferrer != null)
-                {
-                    returnUrl = request.UrlReferrer.PathAndQuery;
-                }
-
-                if (String.IsNullOrWhiteSpace(returnUrl)
-                    || !Url.IsLocalUrl(returnUrl))
-                {
-                    returnUrl = Url.Action("Index", "Home");
-                }
-
-                filterContext.Result = new RedirectToRouteResult(
-                    new RouteValueDictionary(new
-                    {
-                        controller = "Login",
-                        action = "Index",
-                        returnUrl = returnUrl
-                    }));
-
+                filterContext.Result = new RedirectResult(loginUrl);
                 return;
             }
 
             base.OnActionExecuting(filterContext);
+        }
+
+        private string ResolveReturnUrl(HttpRequestBase request)
+        {
+            string returnUrl = null;
+
+            if (request != null
+                && String.Equals(
+                    request.HttpMethod,
+                    "GET",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                returnUrl = request.RawUrl;
+            }
+            else if (request != null && request.UrlReferrer != null)
+            {
+                // POST chỉ quay lại trang nguồn GET.
+                // Không bao giờ redirect browser bằng GET vào /Cart/AddItem.
+                returnUrl = request.UrlReferrer.PathAndQuery;
+            }
+
+            if (String.IsNullOrWhiteSpace(returnUrl)
+                || !Url.IsLocalUrl(returnUrl))
+            {
+                returnUrl = Url.Action("Index", "Home");
+            }
+
+            return returnUrl;
         }
     }
 }

@@ -162,7 +162,7 @@ namespace BBEcom.Controllers
                 account.Id, account.Email);
 
             AuthCookieService.WriteResetCookie(
-                Response, token, Request.IsSecureConnection);
+                Response, token, IsSecureRequest());
 
             return RedirectToAction("ResetPassword");
         }
@@ -211,7 +211,7 @@ namespace BBEcom.Controllers
             }
 
             AuthCookieService.ClearResetCookie(
-                Response, Request.IsSecureConnection);
+                Response, IsSecureRequest());
 
             TempData["PasswordResetSuccess"] =
                 "Đặt lại mật khẩu thành công.";
@@ -229,7 +229,7 @@ namespace BBEcom.Controllers
                 "GiftToi.GoogleState", state)
             {
                 HttpOnly = true,
-                Secure = Request.IsSecureConnection,
+                Secure = IsSecureRequest(),
                 SameSite = SameSiteMode.Lax,
                 Path = "/",
                 Expires = DateTime.UtcNow.AddMinutes(10)
@@ -242,15 +242,14 @@ namespace BBEcom.Controllers
                     "GiftToi.ReturnUrl", returnUrl)
                 {
                     HttpOnly = true,
-                    Secure = Request.IsSecureConnection,
+                    Secure = IsSecureRequest(),
                     SameSite = SameSiteMode.Lax,
                     Path = "/",
                     Expires = DateTime.UtcNow.AddMinutes(10)
                 });
             }
 
-            var redirectUri = Url.Action(
-                "GoogleCallback", "Login", null, Request.Url.Scheme);
+            var redirectUri = BuildGoogleRedirectUri();
 
             return Redirect(
                 new GoogleOAuthService().BuildAuthorizationUrl(
@@ -282,8 +281,7 @@ namespace BBEcom.Controllers
 
             try
             {
-                var redirectUri = Url.Action(
-                    "GoogleCallback", "Login", null, Request.Url.Scheme);
+                var redirectUri = BuildGoogleRedirectUri();
 
                 var googleUser = await new GoogleOAuthService()
                     .ExchangeAsync(code, redirectUri);
@@ -332,12 +330,104 @@ namespace BBEcom.Controllers
         public ActionResult Logout()
         {
             AuthCookieService.ClearAccessCookie(
-                Response, Request.IsSecureConnection);
+                Response, IsSecureRequest());
 
             ClearAntiForgeryCookies();
             ClearTemporaryOAuthCookies();
 
             return RedirectToAction("Index");
+        }
+
+        private bool IsSecureRequest()
+        {
+            var forwardedProto =
+                Request.Headers["X-Forwarded-Proto"];
+
+            if (!String.IsNullOrWhiteSpace(forwardedProto))
+            {
+                var value = forwardedProto
+                    .Split(',')[0]
+                    .Trim();
+
+                if (String.Equals(
+                    value,
+                    "https",
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+
+                if (String.Equals(
+                    value,
+                    "http",
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    return false;
+                }
+            }
+
+            return Request.IsSecureConnection;
+        }
+
+        private string BuildGoogleRedirectUri()
+        {
+            var forwardedHost =
+                Request.Headers["X-Forwarded-Host"];
+
+            var host =
+                !String.IsNullOrWhiteSpace(forwardedHost)
+                    ? forwardedHost
+                        .Split(',')[0]
+                        .Trim()
+                    : Request.Url.Authority;
+
+            var configured =
+                ConfigurationManager.AppSettings[
+                    "GoogleRedirectUri"
+                ];
+
+            // Localhost có thể dùng URI cố định trong Web.config.
+            // Khi đi qua Cloudflare Tunnel, ưu tiên host hiện tại
+            // để tránh callback quay về localhost hoặc tunnel cũ.
+            var isLocalHost =
+                host.StartsWith(
+                    "localhost",
+                    StringComparison.OrdinalIgnoreCase)
+                || host.StartsWith(
+                    "127.0.0.1",
+                    StringComparison.OrdinalIgnoreCase);
+
+            Uri configuredUri;
+
+            if (isLocalHost
+                && !String.IsNullOrWhiteSpace(configured)
+                && Uri.TryCreate(
+                    configured,
+                    UriKind.Absolute,
+                    out configuredUri))
+            {
+                return configuredUri.ToString();
+            }
+
+            var scheme =
+                IsSecureRequest()
+                    ? "https"
+                    : "http";
+
+            if (host.EndsWith(
+                ".trycloudflare.com",
+                StringComparison.OrdinalIgnoreCase))
+            {
+                scheme = "https";
+            }
+
+            return scheme
+                + "://"
+                + host
+                + Url.Action(
+                    "GoogleCallback",
+                    "Login"
+                );
         }
 
         private string NormalizeReturnUrl(string returnUrl)
@@ -403,7 +493,7 @@ namespace BBEcom.Controllers
             Response.Cookies.Add(new HttpCookie(name, "")
             {
                 HttpOnly = true,
-                Secure = Request.IsSecureConnection,
+                Secure = IsSecureRequest(),
                 SameSite = SameSiteMode.Lax,
                 Path = "/",
                 Expires = DateTime.UtcNow.AddYears(-1)
@@ -427,7 +517,7 @@ namespace BBEcom.Controllers
                 Response,
                 token,
                 rememberMe,
-                Request.IsSecureConnection
+                IsSecureRequest()
             );
         }
         private bool TryReadResetToken(

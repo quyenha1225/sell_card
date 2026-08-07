@@ -1,8 +1,23 @@
-
+# Visual Studio / build output
+.vs/
 bin/
 obj/
-.vs/
+[Bb]uild/
+[Dd]ebug/
+[Rr]elease/
+*.user
+*.suo
+
+# Local / temporary patch files
 *.bak
+*.backup
 *.backup*
+*.tmp
+*.zip
 GiftToi_FINAL_PATCH/
-Web.config
+GiftToi_HARDENING_PATCH/
+
+# Local secrets/config copies
+Web.config.local
+Web.local.config
+*.secrets.config

@@ -1,62 +1,158 @@
 ﻿@using PagedList
 @using PagedList.Mvc
 @model IPagedList<Models.EF.Product>
+
 @{
     ViewBag.Title = "Quản lý sản phẩm";
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
     var pageSize = ViewBag.PageSize == null ? 10 : Convert.ToInt32(ViewBag.PageSize);
 }
+
 <div class="card">
     <div class="card-body p-4">
         <div class="d-flex justify-content-between mb-4">
             <h5>Danh sách sản phẩm</h5>
-            <a href="/Admin/Product/Create" class="btn btn-primary">Thêm sản phẩm</a>
+            <a href="/Admin/Product/Create" class="btn btn-primary">
+                Thêm sản phẩm
+            </a>
         </div>
 
-        @using (Html.BeginForm("Index", "Product", FormMethod.Get, new { @class = "row g-2 mb-4" }))
+        @using (Html.BeginForm(
+            "Index",
+            "Product",
+            FormMethod.Get,
+            new { @class = "row g-2 mb-4" }))
         {
             <div class="col-md-9">
-                <input name="txtSearch" value="@ViewBag.Search"
-                       class="form-control" placeholder="Tên hoặc alias..." />
+                <input name="txtSearch"
+                       value="@ViewBag.Search"
+                       class="form-control"
+                       placeholder="Tên hoặc alias..." />
             </div>
+
             <div class="col-md-2">
                 <select name="pageSize" class="form-select">
                     @foreach (var size in new[] { 10, 20, 50, 100 })
                     {
-                        <option value="@size" @(pageSize == size ? "selected" : "")>@size dòng</option>
+                        <option value="@size"
+                                @(pageSize == size ? "selected" : "")>
+                            @size dòng
+                        </option>
                     }
                 </select>
             </div>
-            <div class="col-md-1"><button class="btn btn-primary w-100">Tìm</button></div>
+
+            <div class="col-md-1">
+                <button class="btn btn-primary w-100">
+                    Tìm
+                </button>
+            </div>
         }
 
         <div class="table-responsive">
             <table class="table align-middle">
                 <thead>
                     <tr>
-                        <th>ID</th><th>Sản phẩm</th><th>Danh mục</th>
-                        <th>Ảnh</th><th>Giá bán</th><th>Trạng thái</th><th>Thao tác</th>
+                        <th>ID</th>
+                        <th>Sản phẩm</th>
+                        <th>Danh mục</th>
+                        <th>Ảnh</th>
+                        <th>Giá nhập</th>
+                        <th>Giá bán</th>
+                        <th>Lợi nhuận</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
                     </tr>
                 </thead>
+
                 <tbody>
                     @foreach (var item in Model)
                     {
-                        var price = BBEcom.Common.CommonHelper.GetSellingPrice(item);
-                        var image = BBEcom.Common.CommonHelper.ResolveProductImage(item.Alias, item.Images);
+                        var sellingPrice =
+                            BBEcom.Common.CommonHelper.GetSellingPrice(item);
+
+                        var image =
+                            BBEcom.Common.CommonHelper.ResolveProductImage(
+                                item.Alias,
+                                item.Images
+                            );
+
+                        var profit = sellingPrice - item.CostPrice;
+
+                        var margin =
+                            item.CostPrice > 0
+                                ? Math.Round(
+                                    profit * 100.0 / item.CostPrice,
+                                    2
+                                )
+                                : 0;
+
                         <tr>
                             <td>@item.Id</td>
                             <td>@item.Name</td>
-                            <td>@(item.Category == null ? "-" : item.Category.Name)</td>
-                            <td><img src="@image" alt="@item.Name"
-                                     style="width:68px;height:68px;object-fit:contain;border-radius:10px;background:#f5fbff" /></td>
-                            <td>@BBEcom.Common.CommonHelper.ConvertMoney(price)đ</td>
-                            <td>@(item.Status.GetValueOrDefault() ? "Hiển thị" : "Ẩn")</td>
                             <td>
-                                <a href="/Admin/Product/Edit/@item.Id" class="btn btn-sm btn-primary">Sửa</a>
-                                @using (Html.BeginForm("Delete", "Product", FormMethod.Post, new { style = "display:inline" }))
+                                @(item.Category == null
+                                    ? "-"
+                                    : item.Category.Name)
+                            </td>
+
+                            <td>
+                                <img src="@image"
+                                     alt="@item.Name"
+                                     onerror="this.onerror=null;this.src='/Content/Client/img/error.png';"
+                                     style="width:68px;height:68px;object-fit:contain;border-radius:10px;background:#f5fbff" />
+                            </td>
+
+                            <td>
+                                @BBEcom.Common.CommonHelper.ConvertMoney(item.CostPrice)đ
+                            </td>
+
+                            <td>
+                                @BBEcom.Common.CommonHelper.ConvertMoney(sellingPrice)đ
+
+                                @if (item.PriceSale.HasValue &&
+                                     item.PriceSale.Value > 0 &&
+                                     item.PriceSale.Value < item.Price)
+                                {
+                                    <div class="text-muted small">
+                                        Niêm yết:
+                                        @BBEcom.Common.CommonHelper.ConvertMoney(item.Price)đ
+                                    </div>
+                                }
+                            </td>
+
+                            <td>
+                                <span class="@(profit > 0 ? "text-success" : "text-danger") fw-semibold">
+                                    @BBEcom.Common.CommonHelper.ConvertMoney(profit)đ
+                                </span>
+                                <div class="text-muted small">
+                                    @margin%
+                                </div>
+                            </td>
+
+                            <td>
+                                @(item.Status.GetValueOrDefault()
+                                    ? "Hiển thị"
+                                    : "Ẩn")
+                            </td>
+
+                            <td>
+                                <a href="/Admin/Product/Edit/@item.Id"
+                                   class="btn btn-sm btn-primary">
+                                    Sửa
+                                </a>
+
+                                @using (Html.BeginForm(
+                                    "Delete",
+                                    "Product",
+                                    FormMethod.Post,
+                                    new { style = "display:inline" }))
                                 {
                                     @Html.AntiForgeryToken()
-                                    <input type="hidden" name="id" value="@item.Id" />
+                                    <input type="hidden"
+                                           name="id"
+                                           value="@item.Id" />
+
                                     <button class="btn btn-sm btn-danger"
                                             onclick="return confirm('Bạn có chắc muốn xóa?');">
                                         Xóa
@@ -69,12 +165,17 @@
             </table>
         </div>
 
-        @Html.PagedListPager(Model, page => Url.Action("Index", new
-        {
-            page = page,
-            pageSize = pageSize,
-            txtSearch = ViewBag.Search
-        }))
+        @Html.PagedListPager(
+            Model,
+            page => Url.Action(
+                "Index",
+                new
+                {
+                    page = page,
+                    pageSize = pageSize,
+                    txtSearch = ViewBag.Search
+                }
+            )
+        )
     </div>
 </div>
-

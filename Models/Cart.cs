@@ -1,8 +1,5 @@
 ﻿using Models.EF;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 
 namespace BBEcom.Models
 {
@@ -11,10 +8,5 @@ namespace BBEcom.Models
     {
         public Product product { get; set; }
         public int Quantity { get; set; }
-
-        public static implicit operator Cart(List<Cart> v)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

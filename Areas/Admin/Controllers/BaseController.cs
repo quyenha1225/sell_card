@@ -20,8 +20,11 @@ namespace BBEcom.Areas.Admin.Controllers
                         returnUrl =
                             filterContext.HttpContext.Request.RawUrl
                     }));
+
+                return;
             }
-            else if (!CurrentUser.IsAdmin)
+
+            if (!CurrentUser.IsAdmin)
             {
                 filterContext.Result = new RedirectToRouteResult(
                     new RouteValueDictionary(new
@@ -30,6 +33,8 @@ namespace BBEcom.Areas.Admin.Controllers
                         action = "Index",
                         area = ""
                     }));
+
+                return;
             }
 
             base.OnActionExecuting(filterContext);

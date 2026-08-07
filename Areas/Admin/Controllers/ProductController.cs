@@ -33,15 +33,17 @@ namespace BBEcom.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Create(ProductAdminViewModel model)
         {
+            NormalizeModel(model);
             SetViewBag(model.CategoryId);
             if (!ModelState.IsValid) return View(model);
 
             var entity = new Product
             {
-                Name = model.Name.Trim(),
+                Name = model.Name,
                 Alias = CommonHelper.ChuyenCoDauThanhKhongDau(model.Name),
                 CategoryId = model.CategoryId,
-                Images = model.Images.Trim(),
+                Images = model.Images,
+                CostPrice = model.CostPrice,
                 Price = model.Price,
                 PriceSale = model.PriceSale.GetValueOrDefault() > 0
                     ? model.PriceSale : null,
@@ -76,6 +78,7 @@ namespace BBEcom.Areas.Admin.Controllers
                 Name = product.Name,
                 CategoryId = product.CategoryId,
                 Images = product.Images,
+                CostPrice = product.CostPrice,
                 Price = product.Price,
                 PriceSale = product.PriceSale,
                 Detail = product.Detail,
@@ -87,16 +90,18 @@ namespace BBEcom.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Edit(ProductAdminViewModel model)
         {
+            NormalizeModel(model);
             SetViewBag(model.CategoryId);
             if (!ModelState.IsValid) return View(model);
 
             var entity = new Product
             {
                 Id = model.Id,
-                Name = model.Name.Trim(),
+                Name = model.Name,
                 Alias = CommonHelper.ChuyenCoDauThanhKhongDau(model.Name),
                 CategoryId = model.CategoryId,
-                Images = model.Images.Trim(),
+                Images = model.Images,
+                CostPrice = model.CostPrice,
                 Price = model.Price,
                 PriceSale = model.PriceSale.GetValueOrDefault() > 0
                     ? model.PriceSale : null,
@@ -127,6 +132,33 @@ namespace BBEcom.Areas.Admin.Controllers
                 result ? "warning" : "error");
 
             return RedirectToAction("Index");
+        }
+
+        private void NormalizeModel(ProductAdminViewModel model)
+        {
+            if (model == null)
+            {
+                return;
+            }
+
+            model.Name = (model.Name ?? String.Empty).Trim();
+            model.Images = (model.Images ?? String.Empty).Trim();
+
+            if (String.IsNullOrWhiteSpace(model.Name))
+            {
+                ModelState.AddModelError(
+                    "Name",
+                    "Vui lòng nhập tên sản phẩm."
+                );
+            }
+
+            if (String.IsNullOrWhiteSpace(model.Images))
+            {
+                ModelState.AddModelError(
+                    "Images",
+                    "Vui lòng nhập đường dẫn ảnh."
+                );
+            }
         }
 
         private void SetViewBag(int? selectedId = null)
