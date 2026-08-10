@@ -52,12 +52,19 @@ namespace Models.DAO
         {
             if (product == null)
             {
-                throw new ArgumentNullException(nameof(product));
+                return -1;
             }
 
-            _context.Products.Add(product);
-            _context.SaveChanges();
-            return product.Id;
+            try
+            {
+                _context.Products.Add(product);
+                _context.SaveChanges();
+                return product.Id;
+            }
+            catch (Exception)
+            {
+                return -1;
+            }
         }
 
         public bool UpdateProduct(Product newProduct)

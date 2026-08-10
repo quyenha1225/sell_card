@@ -1,72 +1,8 @@
-﻿USE [BBEcom];
-GO
-
-SET NOCOUNT ON;
-SET XACT_ABORT ON;
-GO
-
-/* ================================================================
-   1. MIGRATION GIÁ NHẬP / GIÁ VỐN
-   ================================================================ */
-
-IF COL_LENGTH('dbo.Product', 'CostPrice') IS NULL
+﻿IF DB_ID(N'BBEcom') IS NULL
 BEGIN
-    ALTER TABLE dbo.Product
-    ADD CostPrice INT NOT NULL
-        CONSTRAINT DF_Product_CostPrice DEFAULT (0);
+    EXEC(N'CREATE DATABASE [BBEcom] COLLATE Vietnamese_CI_AS;');
 END;
 GO
-
-/* ================================================================
-   2. AUTH / OTP MIGRATION
-   ================================================================ */
-
-IF OBJECT_ID(N'dbo.PasswordResetOtp', N'U') IS NULL
-BEGIN
-    CREATE TABLE dbo.PasswordResetOtp
-    (
-        Id BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
-        AccountId INT NOT NULL,
-        CodeHash NVARCHAR(128) NOT NULL,
-        ExpiresAtUtc DATETIME2 NOT NULL,
-        FailedAttempts INT NOT NULL DEFAULT 0,
-        UsedAtUtc DATETIME2 NULL,
-        CreatedAtUtc DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
-        CONSTRAINT FK_PasswordResetOtp_Account
-            FOREIGN KEY (AccountId) REFERENCES dbo.Account(Id)
-            ON DELETE CASCADE
-    );
-
-    CREATE INDEX IX_PasswordResetOtp_Account_Active
-        ON dbo.PasswordResetOtp(AccountId, UsedAtUtc, ExpiresAtUtc);
-END;
-GO
-
-SELECT Email, COUNT(*) AS DuplicateCount
-FROM dbo.Account
-WHERE Email IS NOT NULL AND LTRIM(RTRIM(Email)) <> ''
-GROUP BY Email
-HAVING COUNT(*) > 1;
-GO
-
-/* ================================================================
-   3. RESET + SEED DỮ LIỆU DEMO
-   ================================================================ */
-
-/*
-    BBEcom sample data
-    Chạy trong SQL Server Management Studio trên database BBEcom.
-
-    Tài khoản mẫu:
-      Admin: admin / Admin@123
-      User : user  / User@123
-
-    Ảnh danh mục thương hiệu mới:
-      Sao chép 6 ảnh trong gói BBEcom_Category_Images.zip vào:
-      /Content/Client/img/categories/
-      /Content/Client/img/products/
-      /Content/Client/img/blog/
-*/
 
 USE [BBEcom];
 GO
@@ -74,31 +10,589 @@ GO
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
 
-BEGIN TRY
-    BEGIN TRANSACTION;
+DECLARE @RESET_DEMO_DATA BIT = 0;
+DECLARE @SEED_DEMO_IF_EMPTY BIT = 1;
+DECLARE @SYNC_CANONICAL_NEWS BIT = 1;
 
-    /* Xóa dữ liệu mẫu cũ theo đúng thứ tự khóa ngoại */
-    DELETE FROM [dbo].[OrderDetail];
-    DELETE FROM [dbo].[Order];
-    DELETE FROM [dbo].[Giftcard];
-    DELETE FROM [dbo].[Product];
-    DELETE FROM [dbo].[Category];
-    DELETE FROM [dbo].[News];
-    DELETE FROM [dbo].[Faq];
-    DELETE FROM [dbo].[SystemConfig];
-    DELETE FROM [dbo].[Account];
+/* ==================================================================
+   0. BOOTSTRAP SCHEMA - TẠO DB/BẢNG NẾU CHƯA CÓ
+   ================================================================== */
 
-    DBCC CHECKIDENT ('dbo.OrderDetail', RESEED, 0);
-    DBCC CHECKIDENT ('dbo.[Order]', RESEED, 0);
-    DBCC CHECKIDENT ('dbo.Giftcard', RESEED, 0);
-    DBCC CHECKIDENT ('dbo.Product', RESEED, 0);
-    DBCC CHECKIDENT ('dbo.Category', RESEED, 0);
-    DBCC CHECKIDENT ('dbo.News', RESEED, 0);
-    DBCC CHECKIDENT ('dbo.Faq', RESEED, 0);
-    DBCC CHECKIDENT ('dbo.SystemConfig', RESEED, 0);
-    DBCC CHECKIDENT ('dbo.Account', RESEED, 0);
+IF OBJECT_ID(N'dbo.Account', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.Account
+    (
+        Id INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_Account PRIMARY KEY,
+        UserName VARCHAR(50) NOT NULL,
+        Password VARCHAR(100) NOT NULL,
+        Name NVARCHAR(100) NULL,
+        Email NVARCHAR(100) NULL,
+        IsAdmin BIT NOT NULL,
+        Status BIT NOT NULL
+    );
+END;
 
-    /* 1. Tài khoản */
+IF OBJECT_ID(N'dbo.Category', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.Category
+    (
+        Id INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_Category PRIMARY KEY,
+        Name NVARCHAR(50) NULL,
+        Image NVARCHAR(250) NULL,
+        Alias NVARCHAR(50) NULL,
+        CreatedDate DATETIME NULL,
+        Status BIT NULL
+    );
+END;
+
+IF OBJECT_ID(N'dbo.Product', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.Product
+    (
+        Id INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_Product PRIMARY KEY,
+        Name NVARCHAR(100) NULL,
+        Alias NVARCHAR(100) NULL,
+        CategoryId INT NULL,
+        Images NVARCHAR(500) NULL,
+        CreatedDate DATETIME NULL,
+        PriceSale INT NULL,
+        Price INT NOT NULL,
+        CostPrice INT NOT NULL,
+        Detail NVARCHAR(MAX) NULL,
+        Status BIT NULL,
+
+        CONSTRAINT FK_Product_Category
+            FOREIGN KEY (CategoryId) REFERENCES dbo.Category(Id)
+    );
+END;
+
+IF OBJECT_ID(N'dbo.[Order]', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.[Order]
+    (
+        Id INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_Order PRIMARY KEY,
+        OrderCode NVARCHAR(50) NOT NULL,
+        CustomerID INT NOT NULL,
+        TotalAmount INT NOT NULL,
+        Status BIT NOT NULL,
+        CreatedDate DATE NOT NULL
+    );
+END;
+
+IF OBJECT_ID(N'dbo.Giftcard', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.Giftcard
+    (
+        Id INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_Giftcard PRIMARY KEY,
+        ProductId INT NULL,
+        Code NVARCHAR(50) NULL,
+
+        CONSTRAINT FK_Giftcard_Product
+            FOREIGN KEY (ProductId) REFERENCES dbo.Product(Id)
+    );
+END;
+
+IF OBJECT_ID(N'dbo.OrderDetail', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.OrderDetail
+    (
+        Id INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_OrderDetail PRIMARY KEY,
+        OrderID INT NOT NULL,
+        ProductID INT NOT NULL,
+        Price INT NOT NULL,
+        Quantity INT NOT NULL,
+        Code NVARCHAR(50) NOT NULL,
+
+        CONSTRAINT FK_OrderDetail_Order
+            FOREIGN KEY (OrderID) REFERENCES dbo.[Order](Id),
+
+        CONSTRAINT FK_OrderDetail_Product
+            FOREIGN KEY (ProductID) REFERENCES dbo.Product(Id)
+    );
+END;
+
+IF OBJECT_ID(N'dbo.Faq', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.Faq
+    (
+        Id INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_Faq PRIMARY KEY,
+        Question NVARCHAR(250) NULL,
+        Answer NVARCHAR(MAX) NULL
+    );
+END;
+
+IF OBJECT_ID(N'dbo.News', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.News
+    (
+        Id INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_News PRIMARY KEY,
+        Title NVARCHAR(100) NULL,
+        Description NVARCHAR(MAX) NULL,
+        Alias NVARCHAR(100) NULL,
+        Image NVARCHAR(100) NULL,
+        CreateDate DATETIME NULL
+    );
+END;
+
+IF OBJECT_ID(N'dbo.SystemConfig', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.SystemConfig
+    (
+        Id INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_SystemConfig PRIMARY KEY,
+        Name NVARCHAR(50) NULL,
+        Value NVARCHAR(50) NULL
+    );
+END;
+
+IF OBJECT_ID(N'dbo.sysdiagrams', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.sysdiagrams
+    (
+        diagram_id INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_sysdiagrams PRIMARY KEY,
+        name NVARCHAR(128) NOT NULL,
+        principal_id INT NOT NULL,
+        version INT NULL,
+        definition VARBINARY(MAX) NULL
+    );
+END;
+
+/* Index FK cơ bản theo InitialCreate EF6 */
+IF NOT EXISTS
+(
+    SELECT 1 FROM sys.indexes
+    WHERE name = N'IX_Product_CategoryId'
+      AND object_id = OBJECT_ID(N'dbo.Product')
+)
+    CREATE INDEX IX_Product_CategoryId ON dbo.Product(CategoryId);
+
+IF NOT EXISTS
+(
+    SELECT 1 FROM sys.indexes
+    WHERE name = N'IX_Giftcard_ProductId_Base'
+      AND object_id = OBJECT_ID(N'dbo.Giftcard')
+)
+    CREATE INDEX IX_Giftcard_ProductId_Base ON dbo.Giftcard(ProductId);
+
+IF NOT EXISTS
+(
+    SELECT 1 FROM sys.indexes
+    WHERE name = N'IX_OrderDetail_OrderID'
+      AND object_id = OBJECT_ID(N'dbo.OrderDetail')
+)
+    CREATE INDEX IX_OrderDetail_OrderID ON dbo.OrderDetail(OrderID);
+
+IF NOT EXISTS
+(
+    SELECT 1 FROM sys.indexes
+    WHERE name = N'IX_OrderDetail_ProductID'
+      AND object_id = OBJECT_ID(N'dbo.OrderDetail')
+)
+    CREATE INDEX IX_OrderDetail_ProductID ON dbo.OrderDetail(ProductID);
+
+/* ==================================================================
+   0.1. UNICODE HARDENING - CHỐNG LỖI FONT / MẤT DẤU TIẾNG VIỆT
+   ================================================================== */
+
+/* Các cột hiển thị nội dung cho người dùng luôn là Unicode. */
+IF COL_LENGTH('dbo.Account', 'Name') IS NOT NULL
+    ALTER TABLE dbo.Account ALTER COLUMN Name NVARCHAR(100) NULL;
+
+IF COL_LENGTH('dbo.Account', 'Email') IS NOT NULL
+    ALTER TABLE dbo.Account ALTER COLUMN Email NVARCHAR(100) NULL;
+
+IF COL_LENGTH('dbo.Category', 'Name') IS NOT NULL
+    ALTER TABLE dbo.Category ALTER COLUMN Name NVARCHAR(50) NULL;
+
+IF COL_LENGTH('dbo.Category', 'Image') IS NOT NULL
+    ALTER TABLE dbo.Category ALTER COLUMN Image NVARCHAR(250) NULL;
+
+IF COL_LENGTH('dbo.Category', 'Alias') IS NOT NULL
+    ALTER TABLE dbo.Category ALTER COLUMN Alias NVARCHAR(50) NULL;
+
+IF COL_LENGTH('dbo.Product', 'Name') IS NOT NULL
+    ALTER TABLE dbo.Product ALTER COLUMN Name NVARCHAR(100) NULL;
+
+IF COL_LENGTH('dbo.Product', 'Alias') IS NOT NULL
+    ALTER TABLE dbo.Product ALTER COLUMN Alias NVARCHAR(100) NULL;
+
+IF COL_LENGTH('dbo.Product', 'Images') IS NOT NULL
+    ALTER TABLE dbo.Product ALTER COLUMN Images NVARCHAR(500) NULL;
+
+IF COL_LENGTH('dbo.Product', 'Detail') IS NOT NULL
+    ALTER TABLE dbo.Product ALTER COLUMN Detail NVARCHAR(MAX) NULL;
+
+IF COL_LENGTH('dbo.Faq', 'Question') IS NOT NULL
+    ALTER TABLE dbo.Faq ALTER COLUMN Question NVARCHAR(250) NULL;
+
+IF COL_LENGTH('dbo.Faq', 'Answer') IS NOT NULL
+    ALTER TABLE dbo.Faq ALTER COLUMN Answer NVARCHAR(MAX) NULL;
+
+IF COL_LENGTH('dbo.News', 'Title') IS NOT NULL
+    ALTER TABLE dbo.News ALTER COLUMN Title NVARCHAR(100) NULL;
+
+IF COL_LENGTH('dbo.News', 'Description') IS NOT NULL
+    ALTER TABLE dbo.News ALTER COLUMN Description NVARCHAR(MAX) NULL;
+
+IF COL_LENGTH('dbo.News', 'Alias') IS NOT NULL
+    ALTER TABLE dbo.News ALTER COLUMN Alias NVARCHAR(100) NULL;
+
+IF COL_LENGTH('dbo.News', 'Image') IS NOT NULL
+    ALTER TABLE dbo.News ALTER COLUMN Image NVARCHAR(100) NULL;
+
+IF COL_LENGTH('dbo.SystemConfig', 'Name') IS NOT NULL
+    ALTER TABLE dbo.SystemConfig ALTER COLUMN Name NVARCHAR(50) NULL;
+
+IF COL_LENGTH('dbo.SystemConfig', 'Value') IS NOT NULL
+    ALTER TABLE dbo.SystemConfig ALTER COLUMN Value NVARCHAR(50) NULL;
+
+PRINT N'Unicode schema OK: các cột nội dung chính đã dùng NVARCHAR.';
+
+/* ==================================================================
+   1. AUTH / OTP - IDEMPOTENT
+   ================================================================== */
+IF OBJECT_ID(N'dbo.PasswordResetOtp', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.PasswordResetOtp
+    (
+        Id BIGINT IDENTITY(1,1) NOT NULL
+            CONSTRAINT PK_PasswordResetOtp PRIMARY KEY,
+        AccountId INT NOT NULL,
+        CodeHash NVARCHAR(128) NOT NULL,
+        ExpiresAtUtc DATETIME2 NOT NULL,
+        FailedAttempts INT NOT NULL
+            CONSTRAINT DF_PasswordResetOtp_FailedAttempts DEFAULT (0),
+        UsedAtUtc DATETIME2 NULL,
+        CreatedAtUtc DATETIME2 NOT NULL
+            CONSTRAINT DF_PasswordResetOtp_CreatedAtUtc DEFAULT SYSUTCDATETIME(),
+
+        CONSTRAINT FK_PasswordResetOtp_Account
+            FOREIGN KEY (AccountId)
+            REFERENCES dbo.Account(Id)
+            ON DELETE CASCADE
+    );
+END;
+
+IF NOT EXISTS
+(
+    SELECT 1
+    FROM sys.indexes
+    WHERE name = N'IX_PasswordResetOtp_Account_Active'
+      AND object_id = OBJECT_ID(N'dbo.PasswordResetOtp')
+)
+BEGIN
+    CREATE INDEX IX_PasswordResetOtp_Account_Active
+        ON dbo.PasswordResetOtp(AccountId, UsedAtUtc, ExpiresAtUtc);
+END;
+
+
+/* ==================================================================
+   2. PRODUCT COST PRICE + CHUẨN HÓA LOGIC GIÁ
+   ================================================================== */
+IF COL_LENGTH('dbo.Product', 'CostPrice') IS NULL
+BEGIN
+    /* Default 0 chỉ dùng tạm để migrate các dòng cũ. */
+    ALTER TABLE dbo.Product
+    ADD CostPrice INT NOT NULL
+        CONSTRAINT DF_Product_CostPrice DEFAULT (0);
+END;
+
+/* Chuẩn hóa sale cũ rõ ràng sai trước khi tính giá vốn. */
+UPDATE dbo.Product
+SET PriceSale = NULL
+WHERE PriceSale IS NOT NULL
+  AND
+  (
+      PriceSale <= 0
+      OR PriceSale >= Price
+  );
+
+/* Không tự bịa giá bán nếu dữ liệu lõi đã sai. */
+IF EXISTS
+(
+    SELECT 1
+    FROM dbo.Product
+    WHERE Price IS NULL OR Price <= 1
+)
+BEGIN
+    RAISERROR(N'Có Product.Price <= 1. Hãy sửa giá bán trước khi chạy hardening.', 16, 1);
+    RETURN;
+END;
+
+/* Backfill giá vốn cho dữ liệu cũ:
+   khoảng 80% giá thực tế đang bán. */
+UPDATE dbo.Product
+SET CostPrice =
+    CASE
+        WHEN PriceSale IS NOT NULL
+             AND PriceSale > 0
+             AND PriceSale < Price
+            THEN
+                CASE
+                    WHEN CAST(PriceSale * 0.80 AS INT) < 1 THEN 1
+                    ELSE CAST(PriceSale * 0.80 AS INT)
+                END
+        ELSE
+            CASE
+                WHEN CAST(Price * 0.80 AS INT) < 1 THEN 1
+                ELSE CAST(Price * 0.80 AS INT)
+            END
+    END
+WHERE CostPrice IS NULL
+   OR CostPrice <= 0
+   OR CostPrice >=
+      CASE
+          WHEN PriceSale IS NOT NULL
+               AND PriceSale > 0
+               AND PriceSale < Price
+              THEN PriceSale
+          ELSE Price
+      END;
+
+/* Nếu promotion sau backfill vẫn không tạo lợi nhuận thì bỏ promotion. */
+UPDATE dbo.Product
+SET PriceSale = NULL
+WHERE PriceSale IS NOT NULL
+  AND
+  (
+      PriceSale <= CostPrice
+      OR PriceSale >= Price
+  );
+
+/* Chuẩn hóa nullability nếu DB cũ từng có CostPrice nullable. */
+IF COL_LENGTH('dbo.Product', 'CostPrice') IS NOT NULL
+BEGIN
+    ALTER TABLE dbo.Product ALTER COLUMN CostPrice INT NOT NULL;
+END;
+
+/* Bỏ default tạm của CostPrice để mọi insert mới buộc phải truyền giá vốn. */
+DECLARE @CostPriceDefault SYSNAME;
+
+SELECT @CostPriceDefault = dc.name
+FROM sys.default_constraints dc
+INNER JOIN sys.columns c
+    ON c.default_object_id = dc.object_id
+WHERE dc.parent_object_id = OBJECT_ID(N'dbo.Product')
+  AND c.name = N'CostPrice';
+
+IF @CostPriceDefault IS NOT NULL
+BEGIN
+    DECLARE @DropCostPriceDefaultSql NVARCHAR(1000);
+
+    SET @DropCostPriceDefaultSql =
+        N'ALTER TABLE dbo.Product DROP CONSTRAINT '
+        + QUOTENAME(@CostPriceDefault)
+        + N';';
+
+    EXEC sys.sp_executesql @DropCostPriceDefaultSql;
+END;
+
+/* Recreate check constraints theo một định nghĩa duy nhất. */
+IF EXISTS
+(
+    SELECT 1
+    FROM sys.check_constraints
+    WHERE name = N'CK_Product_CostPrice_Positive'
+      AND parent_object_id = OBJECT_ID(N'dbo.Product')
+)
+    ALTER TABLE dbo.Product
+    DROP CONSTRAINT CK_Product_CostPrice_Positive;
+
+ALTER TABLE dbo.Product WITH CHECK
+ADD CONSTRAINT CK_Product_CostPrice_Positive
+CHECK (CostPrice > 0);
+
+
+IF EXISTS
+(
+    SELECT 1
+    FROM sys.check_constraints
+    WHERE name = N'CK_Product_Price_Above_Cost'
+      AND parent_object_id = OBJECT_ID(N'dbo.Product')
+)
+    ALTER TABLE dbo.Product
+    DROP CONSTRAINT CK_Product_Price_Above_Cost;
+
+ALTER TABLE dbo.Product WITH CHECK
+ADD CONSTRAINT CK_Product_Price_Above_Cost
+CHECK (Price > CostPrice);
+
+
+IF EXISTS
+(
+    SELECT 1
+    FROM sys.check_constraints
+    WHERE name = N'CK_Product_PriceSale_Range'
+      AND parent_object_id = OBJECT_ID(N'dbo.Product')
+)
+    ALTER TABLE dbo.Product
+    DROP CONSTRAINT CK_Product_PriceSale_Range;
+
+ALTER TABLE dbo.Product WITH CHECK
+ADD CONSTRAINT CK_Product_PriceSale_Range
+CHECK
+(
+    PriceSale IS NULL
+    OR
+    (
+        PriceSale > CostPrice
+        AND PriceSale < Price
+    )
+);
+
+
+/* ==================================================================
+   3. INDEX HARDENING
+   ================================================================== */
+IF NOT EXISTS
+(
+    SELECT 1
+    FROM sys.indexes
+    WHERE name = N'IX_Giftcard_ProductId'
+      AND object_id = OBJECT_ID(N'dbo.Giftcard')
+)
+BEGIN
+    CREATE INDEX IX_Giftcard_ProductId
+        ON dbo.Giftcard(ProductId, Id);
+END;
+
+IF NOT EXISTS
+(
+    SELECT 1
+    FROM sys.indexes
+    WHERE name = N'IX_Order_Customer_CreatedDate'
+      AND object_id = OBJECT_ID(N'dbo.[Order]')
+)
+BEGIN
+    CREATE INDEX IX_Order_Customer_CreatedDate
+        ON dbo.[Order](CustomerID, CreatedDate DESC);
+END;
+
+IF NOT EXISTS
+(
+    SELECT 1
+    FROM sys.indexes
+    WHERE name = N'IX_Product_CategoryId_Status'
+      AND object_id = OBJECT_ID(N'dbo.Product')
+)
+BEGIN
+    CREATE INDEX IX_Product_CategoryId_Status
+        ON dbo.Product(CategoryId, Status);
+END;
+
+/* OrderCode nên duy nhất vì SePay/polling tìm đơn bằng mã đơn. */
+IF NOT EXISTS
+(
+    SELECT 1
+    FROM dbo.[Order]
+    WHERE OrderCode IS NOT NULL
+      AND LTRIM(RTRIM(OrderCode)) <> ''
+    GROUP BY OrderCode
+    HAVING COUNT(*) > 1
+)
+AND NOT EXISTS
+(
+    SELECT 1
+    FROM sys.indexes
+    WHERE name = N'UX_Order_OrderCode'
+      AND object_id = OBJECT_ID(N'dbo.[Order]')
+)
+BEGIN
+    CREATE UNIQUE INDEX UX_Order_OrderCode
+        ON dbo.[Order](OrderCode)
+        WHERE OrderCode IS NOT NULL AND OrderCode <> N'';
+END
+ELSE IF EXISTS
+(
+    SELECT 1
+    FROM dbo.[Order]
+    WHERE OrderCode IS NOT NULL
+      AND LTRIM(RTRIM(OrderCode)) <> ''
+    GROUP BY OrderCode
+    HAVING COUNT(*) > 1
+)
+BEGIN
+    PRINT N'WARNING: OrderCode đang bị trùng; chưa tạo UX_Order_OrderCode.';
+END;
+
+/* GiftCode đã cấp phải không bị trùng nhau. */
+IF NOT EXISTS
+(
+    SELECT 1
+    FROM dbo.Giftcard
+    WHERE Code IS NOT NULL
+      AND LTRIM(RTRIM(Code)) <> ''
+    GROUP BY Code
+    HAVING COUNT(*) > 1
+)
+AND NOT EXISTS
+(
+    SELECT 1
+    FROM sys.indexes
+    WHERE name = N'UX_Giftcard_Code'
+      AND object_id = OBJECT_ID(N'dbo.Giftcard')
+)
+BEGIN
+    CREATE UNIQUE INDEX UX_Giftcard_Code
+        ON dbo.Giftcard(Code)
+        WHERE Code IS NOT NULL AND Code <> N'';
+END
+ELSE IF EXISTS
+(
+    SELECT 1
+    FROM dbo.Giftcard
+    WHERE Code IS NOT NULL
+      AND LTRIM(RTRIM(Code)) <> ''
+    GROUP BY Code
+    HAVING COUNT(*) > 1
+)
+BEGIN
+    PRINT N'WARNING: Giftcard.Code đang bị trùng; chưa tạo UX_Giftcard_Code.';
+END;
+
+
+/* ==================================================================
+   4. OPTIONAL RESET + SEED DEMO
+   Mặc định @RESET_DEMO_DATA = 0 => KHÔNG xóa dữ liệu.
+   ================================================================== */
+IF @RESET_DEMO_DATA = 1
+   OR
+   (
+       @SEED_DEMO_IF_EMPTY = 1
+       AND NOT EXISTS (SELECT 1 FROM dbo.Account)
+       AND NOT EXISTS (SELECT 1 FROM dbo.Category)
+       AND NOT EXISTS (SELECT 1 FROM dbo.Product)
+       AND NOT EXISTS (SELECT 1 FROM dbo.Giftcard)
+       AND NOT EXISTS (SELECT 1 FROM dbo.[Order])
+       AND NOT EXISTS (SELECT 1 FROM dbo.OrderDetail)
+   )
+BEGIN
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        IF OBJECT_ID(N'dbo.PasswordResetOtp', N'U') IS NOT NULL
+            DELETE FROM dbo.PasswordResetOtp;
+
+        DELETE FROM dbo.OrderDetail;
+        DELETE FROM dbo.[Order];
+        DELETE FROM dbo.Giftcard;
+        DELETE FROM dbo.Product;
+        DELETE FROM dbo.Category;
+        DELETE FROM dbo.News;
+        DELETE FROM dbo.Faq;
+        DELETE FROM dbo.SystemConfig;
+        DELETE FROM dbo.Account;
+
+        DBCC CHECKIDENT ('dbo.OrderDetail', RESEED, 0) WITH NO_INFOMSGS;
+        DBCC CHECKIDENT ('dbo.[Order]', RESEED, 0) WITH NO_INFOMSGS;
+        DBCC CHECKIDENT ('dbo.Giftcard', RESEED, 0) WITH NO_INFOMSGS;
+        DBCC CHECKIDENT ('dbo.Product', RESEED, 0) WITH NO_INFOMSGS;
+        DBCC CHECKIDENT ('dbo.Category', RESEED, 0) WITH NO_INFOMSGS;
+        DBCC CHECKIDENT ('dbo.News', RESEED, 0) WITH NO_INFOMSGS;
+        DBCC CHECKIDENT ('dbo.Faq', RESEED, 0) WITH NO_INFOMSGS;
+        DBCC CHECKIDENT ('dbo.SystemConfig', RESEED, 0) WITH NO_INFOMSGS;
+        DBCC CHECKIDENT ('dbo.Account', RESEED, 0) WITH NO_INFOMSGS;
+
+        /* 1. Tài khoản */
     SET IDENTITY_INSERT [dbo].[Account] ON;
 
     INSERT INTO [dbo].[Account]
@@ -144,101 +638,101 @@ BEGIN TRY
 
     SET IDENTITY_INSERT [dbo].[Category] OFF;
 
-    /* 3. Sản phẩm */
+        /* 3. Sản phẩm */
     SET IDENTITY_INSERT [dbo].[Product] ON;
 
     INSERT INTO [dbo].[Product]
         ([Id], [Name], [Alias], [CategoryId], [Images], [CreatedDate],
-         [PriceSale], [Price], [Detail], [Status])
+         [PriceSale], [Price], [CostPrice], [Detail], [Status])
     VALUES
         (1, N'Steam Wallet 100.000đ', 'steam-wallet-100k', 1,
          '/Content/Client/img/products/products1.jpg',
-         DATEADD(HOUR, -1, GETDATE()), 95000, 100000,
+         DATEADD(HOUR, -1, GETDATE()), 95000, 100000, 76000,
          N'<h3>Steam Wallet 100.000đ</h3><p>Mã nạp dùng cho tài khoản Steam Việt Nam. Code được gửi tự động sau khi thanh toán thành công.</p><ul><li>Nhận mã ngay</li><li>Không giới hạn thời gian sử dụng</li><li>Hỗ trợ 24/7</li></ul>', 1),
 
         (2, N'Steam Wallet 200.000đ', 'steam-wallet-200k', 1,
          '/Content/Client/img/products/products2.jpg',
-         DATEADD(HOUR, -2, GETDATE()), 189000, 200000,
+         DATEADD(HOUR, -2, GETDATE()), 189000, 200000, 151200,
          N'<h3>Steam Wallet 200.000đ</h3><p>Nạp tiền vào ví Steam nhanh chóng để mua game, DLC và vật phẩm.</p>', 1),
 
         (3, N'Steam Wallet 500.000đ', 'steam-wallet-500k', 1,
          '/Content/Client/img/products/products3.jpg',
-         DATEADD(HOUR, -3, GETDATE()), 469000, 500000,
+         DATEADD(HOUR, -3, GETDATE()), 469000, 500000, 375200,
          N'<h3>Steam Wallet 500.000đ</h3><p>Phiên bản mệnh giá cao, phù hợp mua các game AAA và gói mở rộng.</p>', 1),
 
         (4, N'PlayStation Store 10 USD', 'playstation-store-10-usd', 2,
          '/Content/Client/img/products/products4.jpg',
-         DATEADD(HOUR, -4, GETDATE()), 245000, 259000,
+         DATEADD(HOUR, -4, GETDATE()), 245000, 259000, 196000,
          N'<h3>PlayStation Store 10 USD</h3><p>Mã dành cho tài khoản PlayStation khu vực US. Kiểm tra đúng vùng tài khoản trước khi nạp.</p>', 1),
 
         (5, N'PlayStation Plus Essential 1 tháng', 'ps-plus-essential-1-thang', 2,
          '/Content/Client/img/products/products5.jpg',
-         DATEADD(HOUR, -5, GETDATE()), 229000, 249000,
+         DATEADD(HOUR, -5, GETDATE()), 229000, 249000, 183200,
          N'<h3>PlayStation Plus Essential</h3><p>Chơi multiplayer trực tuyến và nhận game miễn phí hàng tháng.</p>', 1),
 
         (6, N'PlayStation Plus Extra 3 tháng', 'ps-plus-extra-3-thang', 2,
          '/Content/Client/img/products/products6.jpg',
-         DATEADD(HOUR, -6, GETDATE()), 799000, 849000,
+         DATEADD(HOUR, -6, GETDATE()), 799000, 849000, 639200,
          N'<h3>PlayStation Plus Extra</h3><p>Truy cập thư viện hàng trăm trò chơi PlayStation trong 3 tháng.</p>', 1),
 
         (7, N'Xbox Gift Card 10 USD', 'xbox-gift-card-10-usd', 3,
          '/Content/Client/img/products/products7.jpg',
-         DATEADD(HOUR, -7, GETDATE()), 239000, 255000,
+         DATEADD(HOUR, -7, GETDATE()), 239000, 255000, 191200,
          N'<h3>Xbox Gift Card 10 USD</h3><p>Mua game, nội dung bổ sung và ứng dụng trên Microsoft Store.</p>', 1),
 
         (8, N'Xbox Game Pass Ultimate 1 tháng', 'xbox-game-pass-ultimate-1-thang', 3,
          '/Content/Client/img/products/products8.jpg',
-         DATEADD(HOUR, -8, GETDATE()), 289000, 319000,
+         DATEADD(HOUR, -8, GETDATE()), 289000, 319000, 231200,
          N'<h3>Xbox Game Pass Ultimate</h3><p>Bao gồm Game Pass, EA Play và multiplayer trực tuyến.</p>', 1),
 
         (9, N'Xbox Game Pass PC 3 tháng', 'xbox-game-pass-pc-3-thang', 3,
          '/Content/Client/img/products/products9.jpg',
-         DATEADD(HOUR, -9, GETDATE()), 399000, 449000,
+         DATEADD(HOUR, -9, GETDATE()), 399000, 449000, 319200,
          N'<h3>Xbox Game Pass PC</h3><p>Khám phá thư viện game PC phong phú trong 3 tháng.</p>', 1),
 
         (10, N'Google Play 100.000đ', 'google-play-100k', 4,
          '/Content/Client/img/products/products10.jpg',
-         DATEADD(HOUR, -10, GETDATE()), 97000, 100000,
+         DATEADD(HOUR, -10, GETDATE()), 97000, 100000, 77600,
          N'<h3>Google Play 100.000đ</h3><p>Dùng mua ứng dụng, game, phim và vật phẩm trên Google Play.</p>', 1),
 
         (11, N'Google Play 200.000đ', 'google-play-200k', 4,
          '/Content/Client/img/products/products11.jpg',
-         DATEADD(HOUR, -11, GETDATE()), 193000, 200000,
+         DATEADD(HOUR, -11, GETDATE()), 193000, 200000, 154400,
          N'<h3>Google Play 200.000đ</h3><p>Mã nạp Google Play gửi tự động qua hệ thống.</p>', 1),
 
         (12, N'Apple Gift Card 10 USD', 'apple-gift-card-10-usd', 5,
          '/Content/Client/img/products/products12.jpg',
-         DATEADD(HOUR, -12, GETDATE()), 249000, 269000,
+         DATEADD(HOUR, -12, GETDATE()), 249000, 269000, 199200,
          N'<h3>Apple Gift Card 10 USD</h3><p>Dùng cho App Store, Apple Music, iCloud và các dịch vụ Apple tại khu vực US.</p>', 1),
 
         (13, N'Apple Music 3 tháng', 'apple-music-3-thang', 5,
          '/Content/Client/img/products/products13.jpg',
-         DATEADD(HOUR, -13, GETDATE()), 199000, 229000,
+         DATEADD(HOUR, -13, GETDATE()), 199000, 229000, 159200,
          N'<h3>Apple Music 3 tháng</h3><p>Nghe nhạc không quảng cáo với chất lượng cao và tải về ngoại tuyến.</p>', 1),
 
         (14, N'Spotify Premium 3 tháng', 'spotify-premium-3-thang', 6,
          '/Content/Client/img/products/products14.jpg',
-         DATEADD(HOUR, -14, GETDATE()), 159000, 189000,
+         DATEADD(HOUR, -14, GETDATE()), 159000, 189000, 127200,
          N'<h3>Spotify Premium 3 tháng</h3><p>Nghe nhạc không quảng cáo, bỏ qua không giới hạn và nghe offline.</p>', 1),
 
         (15, N'YouTube Premium 3 tháng', 'youtube-premium-3-thang', 6,
          '/Content/Client/img/products/products15.jpg',
-         DATEADD(HOUR, -15, GETDATE()), 179000, 209000,
+         DATEADD(HOUR, -15, GETDATE()), 179000, 209000, 143200,
          N'<h3>YouTube Premium 3 tháng</h3><p>Xem video không quảng cáo, phát nền và sử dụng YouTube Music Premium.</p>', 1),
 
         (16, N'Netflix Premium 1 tháng', 'netflix-premium-1-thang', 6,
          '/Content/Client/img/products/products16.jpg',
-         DATEADD(HOUR, -16, GETDATE()), 219000, 249000,
+         DATEADD(HOUR, -16, GETDATE()), 219000, 249000, 175200,
          N'<h3>Netflix Premium 1 tháng</h3><p>Gói xem phim chất lượng cao. Thông tin sử dụng được gửi sau khi thanh toán.</p>', 1),
 
         (17, N'Discord Nitro 1 tháng', 'discord-nitro-1-thang', 6,
          '/Content/Client/img/products/products17.jpg',
-         DATEADD(HOUR, -17, GETDATE()), 179000, 199000,
+         DATEADD(HOUR, -17, GETDATE()), 179000, 199000, 143200,
          N'<h3>Discord Nitro 1 tháng</h3><p>Nâng cấp trải nghiệm Discord với emoji tùy chỉnh, upload dung lượng lớn và phát video HD.</p>', 1);
 
     SET IDENTITY_INSERT [dbo].[Product] OFF;
 
-    /* 4. Kho mã game: 8 code cho mỗi sản phẩm */
+        /* 4. Kho mã game: 8 code cho mỗi sản phẩm */
     DECLARE @ProductId INT = 1;
     DECLARE @CodeNo INT;
 
@@ -268,72 +762,28 @@ BEGIN TRY
         SET @ProductId += 1;
     END;
 
-    /* 5. Tin tức */
-    SET IDENTITY_INSERT [dbo].[News] ON;
-
-    INSERT INTO [dbo].[News]
-        ([Id], [Title], [Description], [Alias], [Image], [CreateDate])
-    VALUES
-        (1, N'Hướng dẫn mua mã game tự động',
-         N'<p>Chọn sản phẩm, thêm vào giỏ hàng, nhập thông tin thanh toán và nhận code ngay sau khi giao dịch thành công.</p>',
-         'huong-dan-mua-ma-game-tu-dong',
-         '/Content/Client/img/blog/blog1.jpg',
-         DATEADD(DAY, -2, GETDATE())),
-
-        (2, N'Cách nạp Steam Wallet an toàn',
-         N'<p>Kiểm tra đúng khu vực tài khoản và không chia sẻ mã đã mua cho người khác.</p>',
-         'cach-nap-steam-wallet-an-toan',
-         '/Content/Client/img/blog/blog2.jpg',
-         DATEADD(DAY, -4, GETDATE())),
-
-        (3, N'5 lợi ích của Xbox Game Pass',
-         N'<p>Game Pass giúp người chơi trải nghiệm hàng trăm tựa game với chi phí hợp lý.</p>',
-         'loi-ich-xbox-game-pass',
-         '/Content/Client/img/blog/blog3.jpg',
-         DATEADD(DAY, -6, GETDATE())),
-
-        (4, N'PlayStation Plus có gì đáng chú ý?',
-         N'<p>So sánh các gói Essential, Extra và Premium để chọn đúng nhu cầu.</p>',
-         'playstation-plus-co-gi',
-         '/Content/Client/img/blog/blog4.jpg',
-         DATEADD(DAY, -8, GETDATE())),
-
-        (5, N'Mẹo bảo mật tài khoản giải trí số',
-         N'<p>Bật xác thực hai bước và sử dụng mật khẩu riêng cho từng nền tảng.</p>',
-         'meo-bao-mat-tai-khoan',
-         '/Content/Client/img/blog/blog5.jpg',
-         DATEADD(DAY, -10, GETDATE())),
-
-        (6, N'Thanh toán VNPay trên BBEcom',
-         N'<p>Khách hàng có thể thanh toán qua môi trường VNPay Sandbox để kiểm thử quy trình đặt hàng.</p>',
-         'thanh-toan-vnpay-bbecom',
-         '/Content/Client/img/blog/blog6.jpg',
-         DATEADD(DAY, -12, GETDATE()));
-
-    SET IDENTITY_INSERT [dbo].[News] OFF;
-
-    /* 6. Câu hỏi thường gặp */
+        /* 6. Câu hỏi thường gặp */
     SET IDENTITY_INSERT [dbo].[Faq] ON;
 
     INSERT INTO [dbo].[Faq] ([Id], [Question], [Answer])
     VALUES
-        (1, 'Sau khi thanh toán bao lâu tôi nhận được code?',
-         '<p>Hệ thống gửi code tự động ngay khi đơn hàng được xác nhận thanh toán thành công.</p>'),
+        (1, N'Sau khi thanh toán bao lâu tôi nhận được code?',
+         N'<p>Hệ thống gửi code tự động ngay khi đơn hàng được xác nhận thanh toán thành công.</p>'),
 
-        (2, 'Tôi nhập code nhưng không sử dụng được thì sao?',
-         '<p>Hãy chụp màn hình lỗi và liên hệ hỗ trợ. Không công khai code trên mạng xã hội.</p>'),
+        (2, N'Tôi nhập code nhưng không sử dụng được thì sao?',
+         N'<p>Hãy chụp màn hình lỗi và liên hệ hỗ trợ. Không công khai code trên mạng xã hội.</p>'),
 
-        (3, 'Sản phẩm có giới hạn khu vực không?',
-         '<p>Một số sản phẩm chỉ dùng cho tài khoản US hoặc Việt Nam. Vui lòng đọc kỹ mô tả trước khi mua.</p>'),
+        (3, N'Sản phẩm có giới hạn khu vực không?',
+         N'<p>Một số sản phẩm chỉ dùng cho tài khoản US hoặc Việt Nam. Vui lòng đọc kỹ mô tả trước khi mua.</p>'),
 
-        (4, 'BBEcom có hoàn tiền không?',
-         '<p>Code kỹ thuật số đã hiển thị hoặc gửi cho khách thường không thể hoàn lại, trừ khi code lỗi do hệ thống.</p>'),
+        (4, N'GiftToi có hoàn tiền không?',
+         N'<p>Code kỹ thuật số đã hiển thị hoặc gửi cho khách thường không thể hoàn lại, trừ khi code lỗi do hệ thống.</p>'),
 
-        (5, 'Tôi có thể thanh toán bằng VNPay không?',
-         '<p>Có. Dự án hỗ trợ VNPay Sandbox để mô phỏng thanh toán trực tuyến.</p>'),
+        (5, N'Tôi có thể thanh toán bằng SePay không?',
+         N'<p>Có. GiftToi sử dụng SePay để xác nhận giao dịch và cập nhật trạng thái đơn hàng.</p>'),
 
-        (6, 'Làm sao kiểm tra lịch sử đơn hàng?',
-         '<p>Đăng nhập tài khoản, mở trang hồ sơ và chọn mục lịch sử mua hàng.</p>');
+        (6, N'Làm sao kiểm tra lịch sử đơn hàng?',
+         N'<p>Đăng nhập tài khoản, mở trang hồ sơ và chọn mục lịch sử mua hàng.</p>');
 
     SET IDENTITY_INSERT [dbo].[Faq] OFF;
 
@@ -342,7 +792,7 @@ BEGIN TRY
 
     INSERT INTO [dbo].[SystemConfig] ([Id], [Name], [Value])
     VALUES
-        (1, 'SiteName', 'BBEcom'),
+        (1, 'SiteName', 'GiftToi'),
         (2, 'SupportEmail', 'support@bbecom.vn'),
         (3, 'SupportPhone', '0901234567'),
         (4, 'Currency', 'VND'),
@@ -356,7 +806,7 @@ BEGIN TRY
     INSERT INTO [dbo].[Order]
         ([Id], [OrderCode], [CustomerID], [TotalAmount], [Status], [CreatedDate])
     VALUES
-        (1, 'BBE-DEMO-001', 2, 284000, 1, CAST(DATEADD(DAY, -3, GETDATE()) AS DATE)),
+        (1, 'BBE-DEMO-001', 2, 351000, 1, CAST(DATEADD(DAY, -3, GETDATE()) AS DATE)),
         (2, 'BBE-DEMO-002', 2, 478000, 1, CAST(DATEADD(DAY, -2, GETDATE()) AS DATE)),
         (3, 'BBE-DEMO-003', 2, 179000, 0, CAST(DATEADD(DAY, -1, GETDATE()) AS DATE));
 
@@ -369,7 +819,7 @@ BEGIN TRY
     VALUES
         (1, 1, 1, 95000, 1, 'DEMO-STEAM-100K-001'),
         (2, 1, 10, 97000, 1, 'DEMO-GPLAY-100K-001'),
-        (3, 1, 14, 92000, 1, 'DEMO-SPOTIFY-001'),
+        (3, 1, 14, 159000, 1, 'DEMO-SPOTIFY-001'),
 
         (4, 2, 2, 189000, 1, 'DEMO-STEAM-200K-001'),
         (5, 2, 8, 289000, 1, 'DEMO-GAMEPASS-001'),
@@ -378,103 +828,95 @@ BEGIN TRY
 
     SET IDENTITY_INSERT [dbo].[OrderDetail] OFF;
 
-    COMMIT TRANSACTION;
-END TRY
-BEGIN CATCH
-    IF @@TRANCOUNT > 0
-        ROLLBACK TRANSACTION;
+        COMMIT TRANSACTION;
 
-    THROW;
-END CATCH;
-GO
+        PRINT N'Đã reset và seed lại dữ liệu demo GiftToi.';
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
 
-/* Kiểm tra số lượng dữ liệu */
-SELECT 'Account' AS TableName, COUNT(*) AS TotalRows FROM [dbo].[Account]
-UNION ALL SELECT 'Category', COUNT(*) FROM [dbo].[Category]
-UNION ALL SELECT 'Product', COUNT(*) FROM [dbo].[Product]
-UNION ALL SELECT 'Giftcard', COUNT(*) FROM [dbo].[Giftcard]
-UNION ALL SELECT 'News', COUNT(*) FROM [dbo].[News]
-UNION ALL SELECT 'Faq', COUNT(*) FROM [dbo].[Faq]
-UNION ALL SELECT 'SystemConfig', COUNT(*) FROM [dbo].[SystemConfig]
-UNION ALL SELECT 'Order', COUNT(*) FROM [dbo].[Order]
-UNION ALL SELECT 'OrderDetail', COUNT(*) FROM [dbo].[OrderDetail];
-GO
+        DECLARE @SeedErrorMessage NVARCHAR(4000);
+        DECLARE @SeedErrorSeverity INT;
+        DECLARE @SeedErrorState INT;
 
-/* ================================================================
-   4. GÁN GIÁ NHẬP CHO DỮ LIỆU DEMO
-      Giá nhập demo = 80% giá thực tế đang bán.
-      Sau này Admin nên nhập CostPrice thật cho từng sản phẩm.
-   ================================================================ */
+        SELECT
+            @SeedErrorMessage = ERROR_MESSAGE(),
+            @SeedErrorSeverity = ERROR_SEVERITY(),
+            @SeedErrorState = ERROR_STATE();
 
-UPDATE dbo.Product
-SET CostPrice =
-    CASE
-        WHEN PriceSale IS NOT NULL AND PriceSale > 0
-            THEN CAST(PriceSale * 0.80 AS INT)
-        WHEN Price > 0
-            THEN CAST(Price * 0.80 AS INT)
-        ELSE 0
-    END
-WHERE CostPrice <= 0
-   OR CostPrice >=
-      CASE
-          WHEN PriceSale IS NOT NULL AND PriceSale > 0
-              THEN PriceSale
-          ELSE Price
-      END;
-GO
+        RAISERROR(
+            @SeedErrorMessage,
+            @SeedErrorSeverity,
+            @SeedErrorState
+        );
 
-/* Kiểm tra logic giá */
-SELECT
-    Id,
-    Name,
-    CostPrice AS GiaNhap,
-    Price AS GiaBanNiemYet,
-    PriceSale AS GiaKhuyenMai,
-    CASE
-        WHEN PriceSale IS NOT NULL AND PriceSale > 0
-            THEN PriceSale - CostPrice
-        ELSE Price - CostPrice
-    END AS LoiNhuanDuKien,
-    CASE
-        WHEN CostPrice > 0 THEN
-            CAST(
-                (
-                    (
-                        CASE
-                            WHEN PriceSale IS NOT NULL AND PriceSale > 0
-                                THEN PriceSale
-                            ELSE Price
-                        END
-                    ) - CostPrice
-                ) * 100.0 / CostPrice
-                AS DECIMAL(10,2)
-            )
-        ELSE 0
-    END AS TySuatLoiNhuanPhanTram
-FROM dbo.Product
-ORDER BY Id;
-GO
+        RETURN;
+    END CATCH;
+END
+ELSE
+BEGIN
+    PRINT N'Giữ nguyên dữ liệu hiện tại; không reset/seed demo vì DB không rỗng.';
+END;
 
-/* ================================================================
-   5. NỘI DUNG + ẢNH TIN TỨC CUỐI CÙNG
-   ================================================================ */
 
-/*
-    GiftToi - Vá nội dung và ảnh tin tức
-    Chạy trên đúng database BBEcom.
-    Script có thể chạy lại nhiều lần: bài đã có sẽ được cập nhật,
-    bài chưa có sẽ được thêm mới.
-*/
 
-USE [BBEcom];
-GO
+/* ==================================================================
+   4.1. CANONICAL FAQ - REPAIR/UPSERT UNICODE
+   ================================================================== */
+DECLARE @FaqCanonical TABLE
+(
+    Id INT NOT NULL PRIMARY KEY,
+    Question NVARCHAR(250) NOT NULL,
+    Answer NVARCHAR(MAX) NOT NULL
+);
 
-SET NOCOUNT ON;
-SET XACT_ABORT ON;
-GO
+INSERT INTO @FaqCanonical (Id, Question, Answer)
+VALUES
+(1, N'Sau khi thanh toán bao lâu tôi nhận được code?',
+ N'<p>Hệ thống gửi code tự động ngay khi đơn hàng được xác nhận thanh toán thành công.</p>'),
+(2, N'Tôi nhập code nhưng không sử dụng được thì sao?',
+ N'<p>Hãy chụp màn hình lỗi và liên hệ hỗ trợ. Không công khai code trên mạng xã hội.</p>'),
+(3, N'Sản phẩm có giới hạn khu vực không?',
+ N'<p>Một số sản phẩm chỉ dùng cho tài khoản US hoặc Việt Nam. Vui lòng đọc kỹ mô tả trước khi mua.</p>'),
+(4, N'GiftToi có hoàn tiền không?',
+ N'<p>Code kỹ thuật số đã hiển thị hoặc gửi cho khách thường không thể hoàn lại, trừ khi code lỗi do hệ thống.</p>'),
+(5, N'Tôi có thể thanh toán bằng SePay không?',
+ N'<p>Có. GiftToi sử dụng SePay để xác nhận giao dịch và cập nhật trạng thái đơn hàng.</p>'),
+(6, N'Làm sao kiểm tra lịch sử đơn hàng?',
+ N'<p>Đăng nhập tài khoản, mở trang hồ sơ và chọn mục lịch sử mua hàng.</p>');
 
-DECLARE @News TABLE
+UPDATE f
+SET
+    f.Question = c.Question,
+    f.Answer = c.Answer
+FROM dbo.Faq AS f
+INNER JOIN @FaqCanonical AS c ON c.Id = f.Id;
+
+SET IDENTITY_INSERT dbo.Faq ON;
+
+INSERT INTO dbo.Faq (Id, Question, Answer)
+SELECT c.Id, c.Question, c.Answer
+FROM @FaqCanonical AS c
+WHERE NOT EXISTS
+(
+    SELECT 1
+    FROM dbo.Faq AS f
+    WHERE f.Id = c.Id
+);
+
+SET IDENTITY_INSERT dbo.Faq OFF;
+
+PRINT N'FAQ Unicode OK: đã cập nhật/thêm 6 câu hỏi chuẩn.';
+
+
+/* ==================================================================
+   5. CANONICAL NEWS
+   Chỉ còn một bộ tin chuẩn; không seed 6 tin cũ rồi patch lần hai.
+   ================================================================== */
+IF @SYNC_CANONICAL_NEWS = 1
+BEGIN
+    DECLARE @News TABLE
 (
     Title       NVARCHAR(100) NOT NULL,
     Description NVARCHAR(MAX) NOT NULL,
@@ -581,44 +1023,68 @@ VALUES
     DATEADD(DAY, -8, GETDATE())
 );
 
-/* Chuẩn hóa alias cũ trước khi MERGE để không tạo bài trùng. */
-UPDATE [dbo].[News]
-SET Alias = N'huong-dan-mua-gift-card'
-WHERE Alias = N'huong-dan-mua-ma-game-tu-dong';
+    /* Map alias cũ để không tạo bài trùng. */
+    UPDATE dbo.News
+    SET Alias = N'huong-dan-mua-gift-card'
+    WHERE Alias = N'huong-dan-mua-ma-game-tu-dong';
 
-UPDATE [dbo].[News]
-SET Alias = N'thanh-toan-tren-gifttoi'
-WHERE Alias = N'thanh-toan-vnpay-bbecom';
+    UPDATE dbo.News
+    SET Alias = N'thanh-toan-tren-gifttoi'
+    WHERE Alias = N'thanh-toan-vnpay-bbecom';
 
-MERGE [dbo].[News] AS Target
-USING @News AS Source
-    ON Target.Alias = Source.Alias
-WHEN MATCHED THEN
-    UPDATE SET
-        Target.Title = Source.Title,
-        Target.Description = Source.Description,
-        Target.Image = Source.Image,
-        Target.CreateDate = Source.CreateDate
-WHEN NOT MATCHED BY TARGET THEN
-    INSERT (Title, Description, Alias, Image, CreateDate)
-    VALUES
+    /* UPDATE trước, INSERT những alias chưa tồn tại.
+       Tránh MERGE để script dễ đọc và ít edge-case hơn. */
+    UPDATE target
+    SET
+        target.Title = source.Title,
+        target.Description = source.Description,
+        target.Image = source.Image,
+        target.CreateDate = source.CreateDate
+    FROM dbo.News AS target
+    INNER JOIN @News AS source
+        ON source.Alias = target.Alias;
+
+    INSERT INTO dbo.News
+        (Title, Description, Alias, Image, CreateDate)
+    SELECT
+        source.Title,
+        source.Description,
+        source.Alias,
+        source.Image,
+        source.CreateDate
+    FROM @News AS source
+    WHERE NOT EXISTS
     (
-        Source.Title,
-        Source.Description,
-        Source.Alias,
-        Source.Image,
-        Source.CreateDate
+        SELECT 1
+        FROM dbo.News AS target
+        WHERE target.Alias = source.Alias
     );
 
-SELECT Id, Title, Alias, Image, CreateDate
-FROM [dbo].[News]
-ORDER BY CreateDate DESC, Id DESC;
-GO
+    PRINT N'Đã đồng bộ bộ tin tức chuẩn GiftToi.';
+END;
 
-/* ================================================================
-   6. KIỂM TRA CUỐI
-   ================================================================ */
 
+/* ==================================================================
+   6. ACCOUNT DATA QUALITY
+   Không tự xóa tài khoản trùng. Chỉ cảnh báo để tránh phá dữ liệu.
+   ================================================================== */
+IF EXISTS
+(
+    SELECT 1
+    FROM dbo.Account
+    WHERE Email IS NOT NULL
+      AND LTRIM(RTRIM(Email)) <> ''
+    GROUP BY LOWER(LTRIM(RTRIM(Email)))
+    HAVING COUNT(*) > 1
+)
+BEGIN
+    PRINT N'WARNING: Có email Account bị trùng. Google Login có thể chọn sai account.';
+END;
+
+
+/* ==================================================================
+   7. FINAL HEALTH CHECK
+   ================================================================== */
 SELECT
     'Account' AS TableName, COUNT(*) AS TotalRows FROM dbo.Account
 UNION ALL
@@ -636,8 +1102,102 @@ SELECT 'SystemConfig', COUNT(*) FROM dbo.SystemConfig
 UNION ALL
 SELECT 'Order', COUNT(*) FROM dbo.[Order]
 UNION ALL
-SELECT 'OrderDetail', COUNT(*) FROM dbo.OrderDetail;
-GO
+SELECT 'OrderDetail', COUNT(*) FROM dbo.OrderDetail
+UNION ALL
+SELECT 'PasswordResetOtp', COUNT(*) FROM dbo.PasswordResetOtp;
+
+
+SELECT
+    Id,
+    Name,
+    CostPrice AS GiaNhap,
+    Price AS GiaBanNiemYet,
+    PriceSale AS GiaKhuyenMai,
+    CASE
+        WHEN PriceSale IS NOT NULL
+             AND PriceSale > 0
+             AND PriceSale < Price
+            THEN PriceSale
+        ELSE Price
+    END AS GiaBanThucTe,
+    CASE
+        WHEN PriceSale IS NOT NULL
+             AND PriceSale > 0
+             AND PriceSale < Price
+            THEN PriceSale - CostPrice
+        ELSE Price - CostPrice
+    END AS LoiNhuanDuKien,
+    CAST
+    (
+        (
+            (
+                CASE
+                    WHEN PriceSale IS NOT NULL
+                         AND PriceSale > 0
+                         AND PriceSale < Price
+                        THEN PriceSale
+                    ELSE Price
+                END
+            ) - CostPrice
+        ) * 100.0 / NULLIF(CostPrice, 0)
+        AS DECIMAL(10,2)
+    ) AS TySuatLoiNhuanPhanTram
+FROM dbo.Product
+ORDER BY Id;
+
+
+/* Chỉ SELECT ra các lỗi còn lại.
+   Kết quả lý tưởng: 0 dòng. */
+SELECT
+    Id,
+    Name,
+    CostPrice,
+    Price,
+    PriceSale,
+    N'INVALID_PRICE_LOGIC' AS Problem
+FROM dbo.Product
+WHERE CostPrice <= 0
+   OR Price <= CostPrice
+   OR
+   (
+       PriceSale IS NOT NULL
+       AND
+       (
+           PriceSale <= CostPrice
+           OR PriceSale >= Price
+       )
+   );
+
+
+SELECT
+    OrderCode,
+    COUNT(*) AS DuplicateCount
+FROM dbo.[Order]
+WHERE OrderCode IS NOT NULL
+  AND LTRIM(RTRIM(OrderCode)) <> ''
+GROUP BY OrderCode
+HAVING COUNT(*) > 1;
+
+
+SELECT
+    Code,
+    COUNT(*) AS DuplicateCount
+FROM dbo.Giftcard
+WHERE Code IS NOT NULL
+  AND LTRIM(RTRIM(Code)) <> ''
+GROUP BY Code
+HAVING COUNT(*) > 1;
+
+
+SELECT
+    Email,
+    COUNT(*) AS DuplicateCount
+FROM dbo.Account
+WHERE Email IS NOT NULL
+  AND LTRIM(RTRIM(Email)) <> ''
+GROUP BY Email
+HAVING COUNT(*) > 1;
+
 
 SELECT
     Id,
@@ -648,7 +1208,7 @@ SELECT
     Status
 FROM dbo.Account
 ORDER BY Id;
-GO
+
 
 SELECT
     Id,
@@ -658,4 +1218,37 @@ SELECT
     CreateDate
 FROM dbo.News
 ORDER BY CreateDate DESC, Id DESC;
-GO
+
+
+PRINT N'==============================================================';
+PRINT N'GiftToi DATABASE FINAL CLEAN hoàn tất.';
+PRINT N'Kiểm tra các result-set cuối: INVALID_PRICE / duplicate phải = 0 dòng.';
+PRINT N'==============================================================';
+
+
+/* ==================================================================
+   7. UNICODE / FONT HEALTH CHECK
+   ================================================================== */
+SELECT
+    N'FAQ Unicode sample' AS CheckName,
+    Id,
+    Question
+FROM dbo.Faq
+WHERE Id BETWEEN 1 AND 6
+ORDER BY Id;
+
+SELECT TOP (10)
+    N'Product Unicode sample' AS CheckName,
+    Id,
+    Name
+FROM dbo.Product
+ORDER BY Id;
+
+SELECT TOP (10)
+    N'News Unicode sample' AS CheckName,
+    Id,
+    Title
+FROM dbo.News
+ORDER BY Id;
+
+PRINT N'HOÀN TẤT GiftToi database. Nếu các SELECT trên hiển thị đúng dấu tiếng Việt thì dữ liệu DB đã Unicode đúng.';

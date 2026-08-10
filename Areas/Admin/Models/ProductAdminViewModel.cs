@@ -16,14 +16,17 @@ namespace BBEcom.Areas.Admin.Models
         [Required(ErrorMessage = "Vui lòng chọn danh mục.")]
         public int? CategoryId { get; set; }
 
-        [Required(ErrorMessage = "Vui lòng chọn đường dẫn ảnh.")]
+        [Required(ErrorMessage = "Vui lòng nhập đường dẫn ảnh.")]
         [StringLength(500)]
         public string Images { get; set; }
 
-        [Range(1000, Int32.MaxValue)]
+        [Range(1, Int32.MaxValue, ErrorMessage = "Giá nhập phải lớn hơn 0.")]
+        public int CostPrice { get; set; }
+
+        [Range(1, Int32.MaxValue, ErrorMessage = "Giá bán phải lớn hơn 0.")]
         public int Price { get; set; }
 
-        [Range(0, Int32.MaxValue)]
+        [Range(0, Int32.MaxValue, ErrorMessage = "Giá khuyến mãi không hợp lệ.")]
         public int? PriceSale { get; set; }
 
         [AllowHtml]
@@ -34,13 +37,28 @@ namespace BBEcom.Areas.Admin.Models
         public IEnumerable<ValidationResult> Validate(
             ValidationContext validationContext)
         {
-            if (PriceSale.HasValue
-                && PriceSale.Value > 0
-                && PriceSale.Value >= Price)
+            if (Price <= CostPrice)
             {
                 yield return new ValidationResult(
-                    "Giá bán phải nhỏ hơn giá gốc.",
-                    new[] { "PriceSale" });
+                    "Giá bán phải lớn hơn giá nhập.",
+                    new[] { "Price" });
+            }
+
+            if (PriceSale.HasValue && PriceSale.Value > 0)
+            {
+                if (PriceSale.Value >= Price)
+                {
+                    yield return new ValidationResult(
+                        "Giá khuyến mãi phải nhỏ hơn giá bán.",
+                        new[] { "PriceSale" });
+                }
+
+                if (PriceSale.Value <= CostPrice)
+                {
+                    yield return new ValidationResult(
+                        "Giá khuyến mãi phải lớn hơn giá nhập.",
+                        new[] { "PriceSale" });
+                }
             }
         }
     }
