@@ -2,11 +2,7 @@
 
 <div class="mb-3">
     <label class="form-label">Tên sản phẩm</label>
-    @Html.TextBoxFor(x => x.Name, new
-    {
-        @class = "form-control",
-        autocomplete = "off"
-    })
+    @Html.TextBoxFor(x => x.Name, new { @class = "form-control" })
     @Html.ValidationMessageFor(x => x.Name, "", new { @class = "text-danger" })
 </div>
 
@@ -22,63 +18,42 @@
 
 <div class="mb-3">
     <label class="form-label">Đường dẫn ảnh</label>
-    @Html.TextBoxFor(x => x.Images, new
-    {
-        @class = "form-control",
-        id = "txtImages",
-        placeholder = "/Content/Client/img/products/ten-san-pham.jpg",
-        autocomplete = "off"
-    })
-    <div class="form-text">
-        Dùng đường dẫn ảnh trong project. Không phụ thuộc CKFinder để tránh lỗi DLL trên máy khác.
+    <div class="input-group">
+        @Html.TextBoxFor(x => x.Images, new
+        {
+            @class = "form-control",
+            id = "txtImages"
+        })
+        <button type="button" id="btnSelectImage"
+                class="btn btn-outline-primary">
+            Chọn ảnh
+        </button>
     </div>
     @Html.ValidationMessageFor(x => x.Images, "", new { @class = "text-danger" })
 </div>
 
 <div class="row">
-    <div class="col-lg-4 col-md-6 mb-3">
-        <label class="form-label">Giá nhập / giá vốn</label>
-        @Html.TextBoxFor(x => x.CostPrice, new
-        {
-            @class = "form-control",
-            type = "number",
-            min = "1",
-            step = "1000",
-            inputmode = "numeric"
-        })
-        @Html.ValidationMessageFor(x => x.CostPrice, "", new { @class = "text-danger" })
-    </div>
-
-    <div class="col-lg-4 col-md-6 mb-3">
-        <label class="form-label">Giá bán niêm yết</label>
+    <div class="col-md-6 mb-3">
+        <label class="form-label">Giá gốc</label>
         @Html.TextBoxFor(x => x.Price, new
         {
             @class = "form-control",
             type = "number",
-            min = "1",
-            step = "1000",
-            inputmode = "numeric"
+            min = "1000"
         })
         @Html.ValidationMessageFor(x => x.Price, "", new { @class = "text-danger" })
     </div>
 
-    <div class="col-lg-4 col-md-6 mb-3">
-        <label class="form-label">Giá khuyến mãi</label>
+    <div class="col-md-6 mb-3">
+        <label class="form-label">Giá bán</label>
         @Html.TextBoxFor(x => x.PriceSale, new
         {
             @class = "form-control",
             type = "number",
-            min = "0",
-            step = "1000",
-            inputmode = "numeric",
-            placeholder = "0 = không khuyến mãi"
+            min = "0"
         })
         @Html.ValidationMessageFor(x => x.PriceSale, "", new { @class = "text-danger" })
     </div>
-</div>
-
-<div class="alert alert-info py-2 mb-3" id="profitPreview">
-    Nhập giá để xem lợi nhuận dự kiến.
 </div>
 
 <div class="mb-3">
@@ -101,62 +76,3 @@
         Hiển thị sản phẩm
     </label>
 </div>
-
-<script>
-(function () {
-    'use strict';
-
-    function numberOf(id) {
-        var element = document.getElementById(id);
-        if (!element) return 0;
-
-        var value = parseInt(element.value, 10);
-        return Number.isFinite(value) ? Math.max(0, value) : 0;
-    }
-
-    function money(value) {
-        return Number(value || 0).toLocaleString('vi-VN') + 'đ';
-    }
-
-    function refreshProfit() {
-        var cost = numberOf('CostPrice');
-        var price = numberOf('Price');
-        var sale = numberOf('PriceSale');
-        var effective = sale > 0 ? sale : price;
-        var box = document.getElementById('profitPreview');
-
-        if (!box) return;
-
-        if (cost <= 0 || effective <= 0) {
-            box.className = 'alert alert-info py-2 mb-3';
-            box.textContent = 'Nhập giá để xem lợi nhuận dự kiến.';
-            return;
-        }
-
-        var profit = effective - cost;
-        var margin = Math.round((profit * 10000) / cost) / 100;
-
-        if (profit <= 0) {
-            box.className = 'alert alert-danger py-2 mb-3';
-            box.textContent =
-                'Cảnh báo: giá bán thực tế không tạo lợi nhuận (' +
-                money(profit) + ').';
-            return;
-        }
-
-        box.className = 'alert alert-success py-2 mb-3';
-        box.textContent =
-            'Lợi nhuận dự kiến: ' + money(profit) +
-            ' · Tỷ suất trên giá vốn: ' + margin.toLocaleString('vi-VN') + '%';
-    }
-
-    ['CostPrice', 'Price', 'PriceSale'].forEach(function (id) {
-        var element = document.getElementById(id);
-        if (!element) return;
-        element.addEventListener('input', refreshProfit);
-        element.addEventListener('change', refreshProfit);
-    });
-
-    refreshProfit();
-}());
-</script>

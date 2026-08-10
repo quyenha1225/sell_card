@@ -19,13 +19,23 @@ namespace BBEcom.Common.Auth
                 || String.IsNullOrWhiteSpace(plainPassword))
                 return false;
 
-            try
+            // Legacy accounts của project cũ dùng MD5 32 ký tự.
+            // Mọi hash khác được xác minh bằng Crypto.VerifyHashedPassword.
+            // Không phụ thuộc prefix vì format hash có thể khác giữa các phiên bản.
+            if (!IsLegacyHash(storedHash))
             {
-                if (storedHash.StartsWith("AQAAAA")
-                    || storedHash.StartsWith("AAEAA"))
-                    return Crypto.VerifyHashedPassword(storedHash, plainPassword);
+                try
+                {
+                    return Crypto.VerifyHashedPassword(
+                        storedHash,
+                        plainPassword
+                    );
+                }
+                catch
+                {
+                    return false;
+                }
             }
-            catch { }
 
             return String.Equals(
                 storedHash,
