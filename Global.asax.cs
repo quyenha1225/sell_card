@@ -14,13 +14,14 @@ namespace BBEcom
     {
         protected void Application_Start()
         {
-            // Database đã tồn tại và được cập nhật bằng SQL.
-            // Không cho Entity Framework kiểm tra hoặc tự tạo lại database.
+            // Tự tạo/cập nhật database local khi chạy lần đầu.
+            // Điều này tránh lỗi kết nối và lỗi model cũ của BBEcom.
             System.Data.Entity.Database.SetInitializer<
                 global::Models.EF.KeyDbContext
             >(
-                new System.Data.Entity.NullDatabaseInitializer<
-                    global::Models.EF.KeyDbContext
+                new System.Data.Entity.MigrateDatabaseToLatestVersion<
+                    global::Models.EF.KeyDbContext,
+                    global::BBEcom.Migrations.Configuration
                 >()
             );
 

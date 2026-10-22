@@ -8,7 +8,8 @@
     {
         public Configuration()
         {
-            AutomaticMigrationsEnabled = false;
+            // Cho phép cập nhật schema local khi model thay đổi (ví dụ CostPrice).
+            AutomaticMigrationsEnabled = true;
             ContextKey = "Models.EF.KeyDbContext";
         }
 
