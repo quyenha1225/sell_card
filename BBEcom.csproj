@@ -611,9 +611,7 @@
     <Content Include="Content\Admin\ckeditor\skins\moono-lisa\images\spinner.gif" />
     <Content Include="Content\Admin\ckeditor\styles.js" />
     <Content Include="Content\Admin\ckeditor\vendor\promise.js" />
-    <Content Include="Content\Admin\ckfinder\bin\Debug\CKFinder_FileEditor.pdb" />
-    <Content Include="Content\Admin\ckfinder\bin\Debug\CKFinder_ImageResize.pdb" />
-    <Content Include="Content\Admin\ckfinder\bin\Debug\CKFinder_Watermark.pdb" />
+    
     <Content Include="Content\Admin\ckfinder\bin\Release\CKFinder_FileEditor.dll" />
     <Content Include="Content\Admin\ckfinder\bin\Release\CKFinder_ImageResize.dll" />
     <Content Include="Content\Admin\ckfinder\bin\Release\CKFinder_Watermark.dll" />
