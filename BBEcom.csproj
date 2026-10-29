@@ -1864,7 +1864,6 @@
     <Content Include="Content\Client\img\banner\banner3-1.png" />
     <Content Include="Content\Client\img\banner\banner_shop\banner-4.jpg" />
     <Content Include="Content\Client\img\banner\banner_shop\banner-5.jpg" />
-    <Content Include="Content\Client\img\categories\apple-itunes.jpg" />
     <Content Include="Content\Client\img\categories\digital-entertainment.jpg" />
     <Content Include="Content\Client\img\categories\google-play.jpg" />
     <Content Include="Content\Client\img\categories\playstation.jpg" />
