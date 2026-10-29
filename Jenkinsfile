@@ -14,7 +14,7 @@ pipeline {
         // GITHUB
         REPO_URL = 'https://github.com/quyenha1225/sell_card.git'
         BUILD_BRANCH = 'quyen/admin'
-
+        NUGET_PACKAGES = 'C:\\JenkinsNuGetCache'
         // ASP.NET MVC 5 - .NET FRAMEWORK
         SOLUTION = 'BBEcom.sln'
         PROJECT = 'BBEcom.csproj'
@@ -137,24 +137,41 @@ pipeline {
         // ========================================
         // STAGE 3 - RESTORE
         // ========================================
-        stage('Restore') {
-            steps {
-                echo '===== RESTORE NUGET PACKAGES ====='
+        
+stage('Restore') {
+    steps {
+        echo '===== RESTORE NUGET PACKAGES ====='
 
-                bat '''
-                @echo off
+        bat '''
+        @echo off
 
-                "%NUGET%" restore "%SOLUTION%" -NonInteractive -MSBuildPath "%MSBUILD_DIR%"
+        if not exist "%NUGET_PACKAGES%" (
+            mkdir "%NUGET_PACKAGES%"
+        )
 
-                if errorlevel 1 (
-                    echo ERROR: NUGET RESTORE FAILED
-                    exit /b 1
-                )
+        echo Restoring legacy ASP.NET MVC packages...
 
-                echo RESTORE SUCCESS
-                '''
-            }
-        }
+        "%NUGET%" restore "%SOLUTION%" -NonInteractive -MSBuildPath "%MSBUILD_DIR%"
+
+        if errorlevel 1 (
+            echo ERROR: SOLUTION RESTORE FAILED
+            exit /b 1
+        )
+
+        echo Restoring MSTest project packages...
+
+        dotnet restore "BBEcom.Tests\\BBEcom.Tests.csproj" --packages "%NUGET_PACKAGES%" --force --no-http-cache
+
+        if errorlevel 1 (
+            echo ERROR: TEST PACKAGE RESTORE FAILED
+            exit /b 1
+        )
+
+        echo RESTORE SUCCESS
+        '''
+    }
+}
+
 
         // ========================================
         // STAGE 4 - BUILD
