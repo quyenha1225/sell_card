@@ -1,7 +1,10 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\BBEcom.Tests",
+    "\\Views",
+    "\\Views\\Shared"
   ],
-  "SelectedNode": "\\BBEcom.sln",
+  "SelectedNode": "\\Views\\Shared\\ListProduct.cshtml",
   "PreviewInSolutionExplorer": false
 }

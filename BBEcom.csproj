@@ -941,7 +941,6 @@
     <Content Include="Content\Admin\css\admin-layout-fixes.css" />
     <Content Include="Content\Admin\css\admin-login-modern.css" />
     <Content Include="Content\Admin\css\styles.min.css" />
-    <Content Include="Content\Admin\images\categories\apple-itunes.jpg" />
     <Content Include="Content\Admin\images\categories\digital-entertainment.jpg" />
     <Content Include="Content\Admin\images\categories\google-play.jpg" />
     <Content Include="Content\Admin\images\categories\playstation.jpg" />
