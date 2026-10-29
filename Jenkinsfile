@@ -368,8 +368,9 @@ stage('Restore') {
 
                         if ($copyCode -ge 8) {
                             throw "Robocopy failed with code $copyCode"
-                        }
 
+                        }
+                        $global:LASTEXITCODE = 0
                         if (-not (Test-Path -LiteralPath (Join-Path $target 'Web.config'))) {
                             throw 'Web.config missing from IIS folder'
                         }
