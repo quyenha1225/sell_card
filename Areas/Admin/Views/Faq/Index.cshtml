@@ -17,7 +17,7 @@
                         <h5 class="card-title fw-semibold mb-4">Danh sách FAQ</h5>
                     </div>
                     <div class="col-md-6 text-end">
-                        <a href="/Admin/Faq/Create" class="btn btn-primary">Thêm FAQ</a>
+                        <a href="@Url.Content("~/Admin/Faq/Create")" class="btn btn-primary">Thêm FAQ</a>
                     </div>
                 </div>
                 <div class="table-responsive">
@@ -54,7 +54,7 @@
                                             <p class="mb-0 fw-normal">@Html.Raw(item.Answer)</p>
                                         </td>
                                         <td class="border-bottom-0">
-                                            <a href="/Admin/Faq/Edit/@item.Id" class="fw-semibold mb-0 fs-4 btn btn-primary m-1">Sửa</a>
+                                            <a href="@Url.Content("~/Admin/Faq/Edit/" + item.Id)" class="fw-semibold mb-0 fs-4 btn btn-primary m-1">Sửa</a>
                                             @Ajax.ActionLink("Xoá", "Delete", new { @id = item.Id }, new AjaxOptions
                                             {
                                             Confirm = "Bạn có chắc muốn xoá",

@@ -9,7 +9,7 @@
 <div class="card"><div class="card-body p-4">
     <div class="d-flex justify-content-between mb-4">
         <h5>Danh sách người dùng</h5>
-        <a href="/Admin/User/Create" class="btn btn-success">Thêm người dùng</a>
+        <a href="@Url.Content("~/Admin/User/Create")" class="btn btn-success">Thêm người dùng</a>
     </div>
 
     @using (Html.BeginForm("Index", "User", FormMethod.Get, new { @class = "row g-2 mb-4" }))
@@ -44,7 +44,7 @@
                         <td>@(item.IsAdmin ? "Admin" : "Khách hàng")</td>
                         <td>@(item.Status ? "Hoạt động" : "Khóa")</td>
                         <td>
-                            <a href="/Admin/User/Edit/@item.Id" class="btn btn-sm btn-primary">Sửa</a>
+                            <a href="@Url.Content("~/Admin/User/Edit/" + item.Id)" class="btn btn-sm btn-primary">Sửa</a>
                             @using (Html.BeginForm("Delete", "User", FormMethod.Post, new { style = "display:inline" }))
                             {
                                 @Html.AntiForgeryToken()

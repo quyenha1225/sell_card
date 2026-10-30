@@ -30,7 +30,7 @@
                             order.TotalAmount
                           ) + "đ",
                     "ti ti-receipt",
-                    "/Admin",
+                    Url.Content("~/Admin"),
                     (DateTime?)order.CreatedDate
                 ));
             }
@@ -57,7 +57,7 @@
                     "Sắp hết GiftCode",
                     product.Name + " còn " + product.Stock + " code",
                     "ti ti-key",
-                    "/Admin/Gift",
+                    Url.Content("~/Admin/Gift"),
                     (DateTime?)DateTime.Now
                 ));
             }
@@ -76,7 +76,7 @@
                     "Tin tức mới",
                     news.Title ?? "Bài viết mới",
                     "ti ti-news",
-                    "/Admin/News/Edit/" + news.Id,
+                    Url.Content("~/Admin/News/Edit/") + news.Id,
                     news.CreateDate
                 ));
             }
@@ -95,7 +95,7 @@
                     "Sản phẩm mới",
                     product.Name ?? "Sản phẩm mới",
                     "ti ti-package",
-                    "/Admin/Product/Edit/" + product.Id,
+                    Url.Content("~/Admin/Product/Edit/") + product.Id,
                     product.CreatedDate
                 ));
             }
@@ -184,7 +184,7 @@
         </div>
 
         <div class="admin-notification-footer">
-            <a href="/Admin">Mở bảng điều khiển</a>
+            <a href="@Url.Content("~/Admin")">Mở bảng điều khiển</a>
         </div>
     </div>
 </li>

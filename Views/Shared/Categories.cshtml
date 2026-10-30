@@ -2,9 +2,9 @@
 @foreach (var item in Model)
 {
     <div class="single-categories-box">
-        <a href="/danh-muc/@(item.Alias)-@(item.Id)" class="d-block">
-            <img src="@item.Image" alt="@item.Name-image">
-            <h3><a href="/danh-muc/@(item.Alias)-@(item.Id)">@item.Name</a></h3>
+        <a href="@Url.Content("~/danh-muc/" + item.Alias + "-" + item.Id)" class="d-block">
+            <img src="@(Url.Content(Convert.ToString(item.Image).StartsWith("/Content/", StringComparison.OrdinalIgnoreCase) ? "~" + Convert.ToString(item.Image) : Convert.ToString(item.Image)))" alt="@item.Name-image">
+            <h3><a href="@Url.Content("~/danh-muc/" + item.Alias + "-" + item.Id)">@item.Name</a></h3>
         </a>
     </div>
 }

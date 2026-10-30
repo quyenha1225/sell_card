@@ -5,7 +5,7 @@
     var paid = ViewBag.TrangThai == true;
     var amount = ViewBag.SoTien == null ? 0 : Convert.ToInt32(ViewBag.SoTien);
 }
-<link rel="stylesheet" href="/Content/Client/css/checkout-history.css?v=20260725-2" />
+<link rel="stylesheet" href="@Url.Content("~/Content/Client/css/checkout-history.css?v=20260725-2")" />
 
 <main class="flow-page payment-result-page">
     <div class="container">
@@ -21,8 +21,8 @@
             <div id="paidAmount" class="result-amount" style="@(paid && amount > 0 ? "" : "display:none")"><span>Số tiền</span><strong>@BBEcom.Common.CommonHelper.ConvertMoney(amount)đ</strong></div>
             <div id="waitingHint" class="waiting-hint" style="@(paid ? "display:none" : "")"><i class="bx bx-info-circle"></i> Vui lòng giữ trang này mở, hệ thống đang nhận xác nhận từ SePay.</div>
             <div class="result-actions">
-                <a class="result-primary" href="/lich-su-mua-hang"><i class="bx bx-history"></i>Xem lịch sử giao dịch</a>
-                <a class="result-secondary" href="/"><i class="bx bx-store"></i>Tiếp tục mua sắm</a>
+                <a class="result-primary" href="@Url.Content("~/lich-su-mua-hang")"><i class="bx bx-history"></i>Xem lịch sử giao dịch</a>
+                <a class="result-secondary" href="@Url.Content("~/")"><i class="bx bx-store"></i>Tiếp tục mua sắm</a>
             </div>
         </section>
     </div>

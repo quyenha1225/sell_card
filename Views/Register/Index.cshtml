@@ -3,7 +3,7 @@
     ViewBag.Title = "Đăng ký";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-<link rel="stylesheet" href="/Content/Client/css/auth-part2.css?v=20260801-1" />
+<link rel="stylesheet" href="@Url.Content("~/Content/Client/css/auth-part2.css?v=20260801-1")" />
 
 <div class="profile-authentication-area ptb-100">
     <div class="container">
@@ -71,7 +71,7 @@
                     }
 
                     <p class="auth-bottom-link">
-                        Đã có tài khoản? <a href="/dang-nhap">Đăng nhập</a>
+                        Đã có tài khoản? <a href="@Url.Content("~/dang-nhap")">Đăng nhập</a>
                     </p>
                 </div>
             </div>

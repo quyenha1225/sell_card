@@ -31,15 +31,15 @@
             </span>
         }
 
-        <a href="/san-pham/@Model.Alias-@Model.Id"
+        <a href="@Url.Content("~/san-pham/" + Model.Alias + "-" + Model.Id)"
            class="product-image-link">
 
-            <img src="@imageUrl"
+            <img src="@(Url.Content(Convert.ToString(imageUrl).StartsWith("/Content/", StringComparison.OrdinalIgnoreCase) ? "~" + Convert.ToString(imageUrl) : Convert.ToString(imageUrl)))"
                  alt="@Model.Name"
                  loading="lazy"
                  onerror="
                     this.onerror=null;
-                    this.src='/Content/Client/img/error.png';
+                    this.src='@Url.Content("~/Content/Client/img/error.png")';
                  " />
         </a>
     </div>
@@ -54,7 +54,7 @@
         </div>
 
         <h3>
-            <a href="/san-pham/@Model.Alias-@Model.Id">
+            <a href="@Url.Content("~/san-pham/" + Model.Alias + "-" + Model.Id)">
                 @Model.Name
             </a>
         </h3>
@@ -80,7 +80,7 @@
 
         <div class="product-card-cta">
             <a class="detail-card-btn"
-               href="/san-pham/@Model.Alias-@Model.Id">
+               href="@Url.Content("~/san-pham/" + Model.Alias + "-" + Model.Id)">
 
                 <i class="bx bx-show"></i>
                 <span>Xem chi tiết</span>

@@ -12,27 +12,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="GiftToi - website mua gift card và mã sản phẩm số.">
 
-    <link rel="stylesheet" href="/Content/Client/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/Content/Client/css/owl.carousel.min.css">
-    <link rel="stylesheet" href="/Content/Client/css/owl.theme.default.min.css">
-    <link rel="stylesheet" href="/Content/Client/css/magnific-popup.min.css">
-    <link rel="stylesheet" href="/Content/Client/css/animate.min.css">
-    <link rel="stylesheet" href="/Content/Client/css/rangeSlider.min.css">
-    <link rel="stylesheet" href="/Content/Client/css/odometer.min.css">
-    <link rel="stylesheet" href="/Content/Client/css/boxicons.min.css">
-    <link rel="stylesheet" href="/Content/Client/css/slick.min.css">
-    <link rel="stylesheet" href="/Content/Client/css/countrySelect.min.css">
-    <link rel="stylesheet" href="/Content/Client/css/meanmenu.min.css">
-    <link rel="stylesheet" href="/Content/Client/css/style.css">
-    <link rel="stylesheet" href="/Content/Client/css/responsive.css">
-    <link rel="stylesheet" href="/Content/Client/css/site-modern.css?v=20260730-1">
+    <link rel="stylesheet" href="@Url.Content("~/Content/Client/css/bootstrap.min.css")">
+    <link rel="stylesheet" href="@Url.Content("~/Content/Client/css/owl.carousel.min.css")">
+    <link rel="stylesheet" href="@Url.Content("~/Content/Client/css/owl.theme.default.min.css")">
+    <link rel="stylesheet" href="@Url.Content("~/Content/Client/css/magnific-popup.min.css")">
+    <link rel="stylesheet" href="@Url.Content("~/Content/Client/css/animate.min.css")">
+    <link rel="stylesheet" href="@Url.Content("~/Content/Client/css/rangeSlider.min.css")">
+    <link rel="stylesheet" href="@Url.Content("~/Content/Client/css/odometer.min.css")">
+    <link rel="stylesheet" href="@Url.Content("~/Content/Client/css/boxicons.min.css")">
+    <link rel="stylesheet" href="@Url.Content("~/Content/Client/css/slick.min.css")">
+    <link rel="stylesheet" href="@Url.Content("~/Content/Client/css/countrySelect.min.css")">
+    <link rel="stylesheet" href="@Url.Content("~/Content/Client/css/meanmenu.min.css")">
+    <link rel="stylesheet" href="@Url.Content("~/Content/Client/css/style.css")">
+    <link rel="stylesheet" href="@Url.Content("~/Content/Client/css/responsive.css")">
+    <link rel="stylesheet" href="@Url.Content("~/Content/Client/css/site-modern.css?v=20260730-1")">
 
     <title>@ViewBag.Title | GiftToi - Gift Card Shop</title>
 
-    <link rel="apple-touch-icon" sizes="180x180" href="/Content/Client/img/favicon_io/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/Content/Client/img/favicon_io/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/Content/Client/img/favicon_io/favicon-16x16.png">
-    <link rel="manifest" href="/Content/Client/img/favicon_io/site.webmanifest">
+    <link rel="apple-touch-icon" sizes="180x180" href="@Url.Content("~/Content/Client/img/favicon_io/apple-touch-icon.png")">
+    <link rel="icon" type="image/png" sizes="32x32" href="@Url.Content("~/Content/Client/img/favicon_io/favicon-32x32.png")">
+    <link rel="icon" type="image/png" sizes="16x16" href="@Url.Content("~/Content/Client/img/favicon_io/favicon-16x16.png")">
+    <link rel="manifest" href="@Url.Content("~/Content/Client/img/favicon_io/site.webmanifest")">
+    <script>
+        window.appUrl = function (path) {
+            var root = '@Url.Content("~/")';
+            if (!path || path.charAt(0) !== '/' || path.indexOf('//') === 0) return path;
+            if (root !== '/' && path.indexOf(root) === 0) return path;
+            return root + path.substring(1);
+        };
+    </script>
 </head>
 <body>
     <div class="top-header-area">
@@ -75,7 +83,7 @@
                 <div class="patoi-responsive-menu">
                     <div class="logo">
                         <a href="@Url.Action("Index", "Home")">
-                            <img src="/Content/Client/img/logo.png" alt="GiftToi">
+                            <img src="@Url.Content("~/Content/Client/img/logo.png")" alt="GiftToi">
                         </a>
                     </div>
                 </div>
@@ -86,7 +94,7 @@
             <div class="container-fluid">
                 <nav class="navbar navbar-expand-md navbar-light">
                     <a class="navbar-brand" href="@Url.Action("Index", "Home")">
-                        <img src="/Content/Client/img/logo.png" alt="GiftToi">
+                        <img src="@Url.Content("~/Content/Client/img/logo.png")" alt="GiftToi">
                     </a>
 
                     <div class="collapse navbar-collapse mean-menu">
@@ -96,7 +104,7 @@
                             @if (currentUser != null)
                             {
                                 <li class="nav-item">
-                                    <a href="/lich-su-mua-hang" class="nav-link">
+                                    <a href="@Url.Content("~/lich-su-mua-hang")" class="nav-link">
                                         <i class="bx bx-history"></i> Lịch sử giao dịch
                                     </a>
                                 </li>
@@ -111,7 +119,7 @@
                                     @if (currentUser != null)
                                     {
                                         <li>
-                                            <a href="/trang-ca-nhan" title="Trang cá nhân">
+                                            <a href="@Url.Content("~/trang-ca-nhan")" title="Trang cá nhân">
                                                 <i class="bx bx-user-circle"></i>
                                             </a>
                                         </li>
@@ -119,7 +127,7 @@
                                         if (currentUser.IsAdmin)
                                         {
                                             <li>
-                                                <a href="/Admin" title="Trang quản trị">
+                                                <a href="@Url.Content("~/Admin")" title="Trang quản trị">
                                                     <i class="bx bx-check-shield"></i>
                                                 </a>
                                             </li>
@@ -128,14 +136,14 @@
                                     else
                                     {
                                         <li>
-                                            <a href="/dang-nhap" title="Đăng nhập">
+                                            <a href="@Url.Content("~/dang-nhap")" title="Đăng nhập">
                                                 <i class="bx bx-log-in"></i>
                                             </a>
                                         </li>
                                     }
 
                                     <li>
-                                        <a href="/gio-hang" class="position-relative" title="Giỏ hàng">
+                                        <a href="@Url.Content("~/gio-hang")" class="position-relative" title="Giỏ hàng">
                                             <i class="bx bx-cart"></i>
                                             <span class="cart-count @(layoutCartCount > 0 ? "has-items" : "")">
                                                 @layoutCartCount
@@ -169,12 +177,12 @@
                                 @if (currentUser != null)
                                 {
                                     <li>
-                                        <a href="/lich-su-mua-hang" title="Lịch sử giao dịch">
+                                        <a href="@Url.Content("~/lich-su-mua-hang")" title="Lịch sử giao dịch">
                                             <i class="bx bx-history"></i>
                                         </a>
                                     </li>
                                     <li>
-                                        <a href="/trang-ca-nhan" title="Trang cá nhân">
+                                        <a href="@Url.Content("~/trang-ca-nhan")" title="Trang cá nhân">
                                             <i class="bx bx-user-circle"></i>
                                         </a>
                                     </li>
@@ -182,14 +190,14 @@
                                 else
                                 {
                                     <li>
-                                        <a href="/dang-nhap" title="Đăng nhập">
+                                        <a href="@Url.Content("~/dang-nhap")" title="Đăng nhập">
                                             <i class="bx bx-log-in"></i>
                                         </a>
                                     </li>
                                 }
 
                                 <li>
-                                    <a href="/gio-hang" class="position-relative" title="Giỏ hàng">
+                                    <a href="@Url.Content("~/gio-hang")" class="position-relative" title="Giỏ hàng">
                                         <i class="bx bx-cart"></i>
                                         <span class="cart-count @(layoutCartCount > 0 ? "has-items" : "")">
                                             @layoutCartCount
@@ -225,8 +233,8 @@
                     <div class="single-footer-widget">
                         <h3>THÔNG TIN</h3>
                         <ul class="custom-links">
-                            <li><a href="/gioi-thieu-ve-chung-toi">Giới thiệu về GiftToi</a></li>
-                            <li><a href="/tin-tuc">Tin tức và hướng dẫn</a></li>
+                            <li><a href="@Url.Content("~/gioi-thieu-ve-chung-toi")">Giới thiệu về GiftToi</a></li>
+                            <li><a href="@Url.Content("~/tin-tuc")">Tin tức và hướng dẫn</a></li>
                             <li><a href="@Url.Action("Search", "Product")">Tất cả sản phẩm</a></li>
                         </ul>
                     </div>
@@ -260,23 +268,23 @@
 
     <div class="go-top"><i class="bx bx-upvote"></i></div>
 
-    <script src="/Content/Client/js/jquery.min.js"></script>
-    <script src="/Scripts/jquery.unobtrusive-ajax.js"></script>
-    <script src="/Content/Client/js/bootstrap.bundle.min.js"></script>
-    <script src="/Content/Client/js/magnific-popup.min.js"></script>
-    <script src="/Content/Client/js/meanmenu.min.js"></script>
-    <script src="/Content/Client/js/appear.min.js"></script>
-    <script src="/Content/Client/js/countrySelect.min.js"></script>
-    <script src="/Content/Client/js/odometer.min.js"></script>
-    <script src="/Content/Client/js/loopcounter.js"></script>
-    <script src="/Content/Client/js/owl.carousel.min.js"></script>
-    <script src="/Content/Client/js/rangeSlider.min.js"></script>
-    <script src="/Content/Client/js/slick.min.js"></script>
-    <script src="/Content/Client/js/form-validator.min.js"></script>
-    <script src="/Content/Client/js/contact-form-script.js"></script>
-    <script src="/Content/Client/js/ajaxchimp.min.js"></script>
-    <script src="/Content/Client/js/main.js"></script>
-    <script src="/Content/Client/js/site-modern.js?v=20260807-hardening1"></script>
+    <script src="@Url.Content("~/Content/Client/js/jquery.min.js")"></script>
+    <script src="@Url.Content("~/Scripts/jquery.unobtrusive-ajax.js")"></script>
+    <script src="@Url.Content("~/Content/Client/js/bootstrap.bundle.min.js")"></script>
+    <script src="@Url.Content("~/Content/Client/js/magnific-popup.min.js")"></script>
+    <script src="@Url.Content("~/Content/Client/js/meanmenu.min.js")"></script>
+    <script src="@Url.Content("~/Content/Client/js/appear.min.js")"></script>
+    <script src="@Url.Content("~/Content/Client/js/countrySelect.min.js")"></script>
+    <script src="@Url.Content("~/Content/Client/js/odometer.min.js")"></script>
+    <script src="@Url.Content("~/Content/Client/js/loopcounter.js")"></script>
+    <script src="@Url.Content("~/Content/Client/js/owl.carousel.min.js")"></script>
+    <script src="@Url.Content("~/Content/Client/js/rangeSlider.min.js")"></script>
+    <script src="@Url.Content("~/Content/Client/js/slick.min.js")"></script>
+    <script src="@Url.Content("~/Content/Client/js/form-validator.min.js")"></script>
+    <script src="@Url.Content("~/Content/Client/js/contact-form-script.js")"></script>
+    <script src="@Url.Content("~/Content/Client/js/ajaxchimp.min.js")"></script>
+    <script src="@Url.Content("~/Content/Client/js/main.js")"></script>
+    <script src="@Url.Content("~/Content/Client/js/site-modern.js?v=20261030-pathfix3")"></script>
 
     <script>
         window.Toastify = window.Toastify || function (options) {

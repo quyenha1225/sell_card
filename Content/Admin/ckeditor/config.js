@@ -10,12 +10,18 @@ CKEDITOR.editorConfig = function( config ) {
     config.syntaxhighlight_lang = 'csharp';
     config.syntaxhighlight_hideControls = true;
     config.language = 'vi';
-    config.filebrowserBrowseUrl = '/Content/Admin/ckfinder/ckfinder.html';
-    config.filebrowser = ImageBrowseUrl = '/Content/Admin/ckfinder/ckfinder.html?Type=Images';
-    config.filebrowserFlashBrowseUrl = 'Content/Admin/ckfinder/ckfinder.html?Type=Flash';
-    config.filebrowserUploadUrl = '/Content/Admin/ckfinder/core/connector/aspx/connector.aspx?command=QuickUpload&type=Files';
-    config.filebrowserImageUploadUrl = '/Data/Upload/';
-    config.filebrowserFlashUploadUrl = '/Content/Admin/ckfinder/core/connector/aspx/connector.aspx?command-QuickUpload&type=Flash';
+    var finderBase = window.appUrl
+        ? window.appUrl('/Content/Admin/ckfinder/')
+        : CKEDITOR.basePath.replace(/ckeditor\/$/, 'ckfinder/');
+    var connector = finderBase + 'core/connector/aspx/connector.aspx';
+    config.filebrowserBrowseUrl = finderBase + 'ckfinder.html';
+    config.filebrowserImageBrowseUrl = finderBase + 'ckfinder.html?Type=Images';
+    config.filebrowserFlashBrowseUrl = finderBase + 'ckfinder.html?Type=Flash';
+    config.filebrowserUploadUrl = connector + '?command=QuickUpload&type=Files';
+    config.filebrowserImageUploadUrl = connector + '?command=QuickUpload&type=Images';
+    config.filebrowserFlashUploadUrl = connector + '?command=QuickUpload&type=Flash';
 
-    CKFinder.setupCKEditor(null, '/Content/Admin/ckfinder');
+    if (window.CKFinder && typeof window.CKFinder.setupCKEditor === 'function') {
+        window.CKFinder.setupCKEditor(null, finderBase);
+    }
 };

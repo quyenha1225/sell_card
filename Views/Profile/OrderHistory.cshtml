@@ -5,14 +5,14 @@
     var orders = (Model ?? Enumerable.Empty<Models.EF.Order>()).ToList();
     var completed = orders.Count(x => x.Status);
 }
-<link rel="stylesheet" href="/Content/Client/css/checkout-history.css?v=20260725-2" />
+<link rel="stylesheet" href="@Url.Content("~/Content/Client/css/checkout-history.css?v=20260725-2")" />
 
 <main class="flow-page history-page">
     <div class="container">
-        <nav class="flow-breadcrumb"><a href="/">Trang chủ</a><i class="bx bx-chevron-right"></i><span>Lịch sử mua hàng</span></nav>
+        <nav class="flow-breadcrumb"><a href="@Url.Content("~/")">Trang chủ</a><i class="bx bx-chevron-right"></i><span>Lịch sử mua hàng</span></nav>
         <header class="flow-heading">
             <div><span class="flow-eyebrow">TÀI KHOẢN CỦA TÔI</span><h1>Lịch sử mua hàng</h1><p>Theo dõi trạng thái và lấy code đã mua tại một nơi.</p></div>
-            <a class="continue-shopping" href="/"><i class="bx bx-store"></i>Tiếp tục mua sắm</a>
+            <a class="continue-shopping" href="@Url.Content("~/")"><i class="bx bx-store"></i>Tiếp tục mua sắm</a>
         </header>
         <section class="history-stats"><div><i class="bx bx-receipt"></i><span><strong>@orders.Count</strong>Tổng đơn hàng</span></div><div><i class="bx bx-check-circle"></i><span><strong>@completed</strong>Đã hoàn tất</span></div><div><i class="bx bx-key"></i><span><strong>@orders.Where(x => x.Status).Sum(x => x.OrderDetail.Count)</strong>Code đã mua</span></div></section>
 
@@ -34,7 +34,7 @@
                                 var productImage =
                                     detail.Product == null
                                         ? BBEcom.Common.CommonHelper.VersionedImage(
-                                            "/Content/Client/img/favicon.png"
+                                            Url.Content("~/Content/Client/img/favicon.png")
                                           )
                                         : BBEcom.Common.CommonHelper.ResolveProductImage(
                                             detail.Product.Alias,
@@ -42,10 +42,10 @@
                                           );
 
                                 <div class="history-product">
-                                    <img src="@productImage"
+                                    <img src="@(Url.Content(Convert.ToString(productImage).StartsWith("/Content/", StringComparison.OrdinalIgnoreCase) ? "~" + Convert.ToString(productImage) : Convert.ToString(productImage)))"
                                          alt="@productName"
                                          loading="lazy"
-                                         onerror="this.onerror=null;this.src='/Content/Client/img/error.png';" />
+                                         onerror="this.onerror=null;this.src='@Url.Content("~/Content/Client/img/error.png")';" />
                                     <div><strong>@(detail.Product == null ? "Sản phẩm" : detail.Product.Name)</strong><span>@BBEcom.Common.CommonHelper.ConvertMoney(detail.Price)đ</span></div>
                                     @if (order.Status && !String.Equals(detail.Code, "PENDING", StringComparison.OrdinalIgnoreCase))
                                     {<button type="button" class="code-copy" data-code="@detail.Code" title="Sao chép code"><span>@detail.Code</span><i class="bx bx-copy"></i></button>}
@@ -61,7 +61,7 @@
         }
         else
         {
-            <section class="flow-card empty-state"><i class="bx bx-receipt"></i><h2>Bạn chưa có đơn hàng nào</h2><p>Đơn hàng và code sản phẩm sẽ xuất hiện tại đây.</p><a href="/">Mua sản phẩm đầu tiên</a></section>
+            <section class="flow-card empty-state"><i class="bx bx-receipt"></i><h2>Bạn chưa có đơn hàng nào</h2><p>Đơn hàng và code sản phẩm sẽ xuất hiện tại đây.</p><a href="@Url.Content("~/")">Mua sản phẩm đầu tiên</a></section>
         }
     </div>
 </main>

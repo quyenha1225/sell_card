@@ -10,6 +10,14 @@
     <link href="~/Content/PagedList.css" rel="stylesheet" />
     <link href="~/Content/Admin/css/admin-modern.css?v=20260801-2" rel="stylesheet" />
     <link href="~/Content/Admin/css/admin-layout-fixes.css" rel="stylesheet" />
+    <script>
+        window.appUrl = function (path) {
+            var root = '@Url.Content("~/")';
+            if (!path || path.charAt(0) !== '/' || path.indexOf('//') === 0) return path;
+            if (root !== '/' && path.indexOf(root) === 0) return path;
+            return root + path.substring(1);
+        };
+    </script>
 </head>
 
 <body>
@@ -22,7 +30,7 @@
             <!-- Sidebar scroll-->
             <div>
                 <div class="brand-logo d-flex align-items-center justify-content-between">
-                    <a href="/Admin" class="text-nowrap logo-img">
+                    <a href="@Url.Content("~/Admin")" class="text-nowrap logo-img">
                         <img src="~/Content/Admin/img/logos/dark-logo.svg" width="180" alt="" />
                     </a>
                     <div class="close-btn d-xl-none d-block sidebartoggler cursor-pointer" id="sidebarCollapse">
@@ -37,7 +45,7 @@
                             <span class="hide-menu">Chung</span>
                         </li>
                         <li class="sidebar-item">
-                            <a class="sidebar-link" href="/Admin" aria-expanded="false">
+                            <a class="sidebar-link" href="@Url.Content("~/Admin")" aria-expanded="false">
                                 <span>
                                     <i class="ti ti-layout-dashboard"></i>
                                 </span>
@@ -49,7 +57,7 @@
                             <span class="hide-menu">SẢN PHẨM</span>
                         </li>
                         <li class="sidebar-item">
-                            <a class="sidebar-link" href="/Admin/Category" aria-expanded="false">
+                            <a class="sidebar-link" href="@Url.Content("~/Admin/Category")" aria-expanded="false">
                                 <span>
                                     <i class="ti ti-category"></i>
                                 </span>
@@ -58,7 +66,7 @@
 
                         </li>
                         <li class="sidebar-item">
-                            <a class="sidebar-link" href="/Admin/Product" aria-expanded="false">
+                            <a class="sidebar-link" href="@Url.Content("~/Admin/Product")" aria-expanded="false">
                                 <span>
                                     <i class="ti ti-brand-producthunt"></i>
                                 </span>
@@ -66,7 +74,7 @@
                             </a>
                         </li>
                         <li class="sidebar-item">
-                            <a class="sidebar-link" href="/Admin/Gift" aria-expanded="false">
+                            <a class="sidebar-link" href="@Url.Content("~/Admin/Gift")" aria-expanded="false">
                                 <span>
                                     <i class="ti ti-database"></i>
                                 </span>
@@ -79,7 +87,7 @@
                             <span class="hide-menu">NGƯỜI DÙNG</span>
                         </li>
                         <li class="sidebar-item">
-                            <a class="sidebar-link" href="/Admin/User" aria-expanded="false">
+                            <a class="sidebar-link" href="@Url.Content("~/Admin/User")" aria-expanded="false">
                                 <span>
                                     <i class="ti ti-user"></i>
                                 </span>
@@ -92,7 +100,7 @@
                             <span class="hide-menu">FAQ</span>
                         </li>
                         <li class="sidebar-item">
-                            <a class="sidebar-link" href="/Admin/Faq" aria-expanded="false">
+                            <a class="sidebar-link" href="@Url.Content("~/Admin/Faq")" aria-expanded="false">
                                 <span>
                                     <i class="ti ti-help"></i>
                                 </span>
@@ -105,7 +113,7 @@
                             <span class="hide-menu">Tin tức</span>
                         </li>
                         <li class="sidebar-item">
-                            <a class="sidebar-link" href="/Admin/News" aria-expanded="false">
+                            <a class="sidebar-link" href="@Url.Content("~/Admin/News")" aria-expanded="false">
                                 <span>
                                     <i class="ti ti-news"></i>
                                 </span>
@@ -118,7 +126,7 @@
                             <span class="hide-menu">HỆ THỐNG</span>
                         </li>
                         <li class="sidebar-item">
-                            <a class="sidebar-link" href="/Admin/Settings" aria-expanded="false">
+                            <a class="sidebar-link" href="@Url.Content("~/Admin/Settings")" aria-expanded="false">
                                 <span>
                                     <i class="ti ti-settings"></i>
                                 </span>
@@ -131,7 +139,7 @@
                         <div class="d-flex">
                             <div class="unlimited-access-title me-3">
                                 <h6 class="fw-semibold fs-4 mb-6 text-dark w-85">Trang khách hàng</h6>
-                                <a href="/" class="btn btn-primary fs-2 fw-semibold lh-sm">QUAY LẠI</a>
+                                <a href="@Url.Content("~/")" class="btn btn-primary fs-2 fw-semibold lh-sm">QUAY LẠI</a>
                             </div>
            
                         </div>
@@ -179,7 +187,7 @@
                                             <i class="ti ti-list-check fs-6"></i>
                                             <p class="mb-0 fs-3">My Task</p>
                                         </a>
-                                        <a href="/Admin/Login/Logout" class="btn btn-outline-primary mx-3 mt-2 d-block">Đăng xuất</a>
+                                        <a href="@Url.Content("~/Admin/Login/Logout")" class="btn btn-outline-primary mx-3 mt-2 d-block">Đăng xuất</a>
                                     </div>
                                 </div>
                             </li>

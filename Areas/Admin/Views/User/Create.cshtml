@@ -11,6 +11,6 @@
         @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
         @Html.Partial("_UserForm", Model)
         <button class="btn btn-primary">THÊM MỚI</button>
-        <a href="/Admin/User" class="btn btn-outline-secondary">Quay lại</a>
+        <a href="@Url.Content("~/Admin/User")" class="btn btn-outline-secondary">Quay lại</a>
     }
 </div></div>

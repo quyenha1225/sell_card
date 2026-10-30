@@ -19,13 +19,13 @@
         <div class="col-lg-4 col-md-6 news-column">
             <article class="single-blog-post clean-news-card">
                 <div class="image">
-                    <a href="/tin-tuc/@item.Alias-@item.Id"
+                    <a href="@Url.Content("~/tin-tuc/" + item.Alias + "-" + item.Id)"
                        class="d-block">
 
-                        <img src="@image"
+                        <img src="@(Url.Content(Convert.ToString(image).StartsWith("/Content/", StringComparison.OrdinalIgnoreCase) ? "~" + Convert.ToString(image) : Convert.ToString(image)))"
                              alt="@item.Title"
                              loading="lazy"
-                             onerror="this.onerror=null;this.src='/Content/Client/img/error.png';" />
+                             onerror="this.onerror=null;this.src='@Url.Content("~/Content/Client/img/error.png")';" />
                     </a>
                 </div>
 
@@ -38,7 +38,7 @@
                     <span class="category">TIN TỨC</span>
 
                     <h3>
-                        <a href="/tin-tuc/@item.Alias-@item.Id">
+                        <a href="@Url.Content("~/tin-tuc/" + item.Alias + "-" + item.Id)">
                             @item.Title
                         </a>
                     </h3>

@@ -79,7 +79,7 @@
             '<i class="bx bx-loader-alt bx-spin"></i>' +
             '<span>Đang thêm</span>';
 
-        fetch('/Cart/AddItem', {
+        fetch(window.appUrl('/Cart/AddItem'), {
             method: 'POST',
             headers: {
                 'Content-Type':
@@ -115,8 +115,8 @@
 
                     window.location.href =
                         result && result.loginUrl
-                            ? result.loginUrl
-                            : '/dang-nhap?returnUrl=' +
+                            ? window.appUrl(result.loginUrl)
+                            : window.appUrl('/dang-nhap?returnUrl=') +
                               encodeURIComponent(returnUrl);
 
                     return null;

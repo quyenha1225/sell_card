@@ -14,7 +14,7 @@
         <p>Theo dõi nhanh cửa hàng và quản lý dữ liệu tại một nơi.</p>
     </div>
 
-    <a href="/Admin/Product/Create">
+    <a href="@Url.Content("~/Admin/Product/Create")">
         <i class="ti ti-plus"></i>
         Thêm sản phẩm
     </a>
@@ -66,7 +66,7 @@
                 <h2>Sản phẩm mới</h2>
             </div>
 
-            <a href="/Admin/Product">
+            <a href="@Url.Content("~/Admin/Product")">
                 Xem tất cả
                 <i class="ti ti-arrow-right"></i>
             </a>
@@ -101,10 +101,10 @@
                             <tr>
                                 <td>
                                     <div class="admin-product-cell">
-                                        <img src="@image"
+                                        <img src="@(Url.Content(Convert.ToString(image).StartsWith("/Content/", StringComparison.OrdinalIgnoreCase) ? "~" + Convert.ToString(image) : Convert.ToString(image)))"
                                              alt="@item.Name"
                                              loading="lazy"
-                                             onerror="this.onerror=null;this.src='/Content/Client/img/error.png';" />
+                                             onerror="this.onerror=null;this.src='@Url.Content("~/Content/Client/img/error.png")';" />
                                         <strong>@item.Name</strong>
                                     </div>
                                 </td>
@@ -127,7 +127,7 @@
 
                                 <td>
                                     <a class="admin-row-action"
-                                       href="/Admin/Product/Edit/@item.Id">
+                                       href="@Url.Content("~/Admin/Product/Edit/" + item.Id)">
                                         <i class="ti ti-edit"></i>
                                     </a>
                                 </td>

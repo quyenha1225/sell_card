@@ -3,22 +3,22 @@
 
     var fallbackImage =
         BBEcom.Common.CommonHelper.VersionedImage(
-            "/Content/Client/img/error.png"
+            Url.Content("~/Content/Client/img/error.png")
         );
 
     var banner1 =
         BBEcom.Common.CommonHelper.VersionedImage(
-            "/Content/Client/img/banner/banner1.png"
+            Url.Content("~/Content/Client/img/banner/banner1.png")
         );
 
     var banner2 =
         BBEcom.Common.CommonHelper.VersionedImage(
-            "/Content/Client/img/banner/banner2.png"
+            Url.Content("~/Content/Client/img/banner/banner2.png")
         );
 
     var banner3 =
         BBEcom.Common.CommonHelper.VersionedImage(
-            "/Content/Client/img/banner/banner3.png"
+            Url.Content("~/Content/Client/img/banner/banner3.png")
         );
 }
 
@@ -57,21 +57,21 @@
             <div class="col-lg-6 col-md-12">
                 <div class="main-banner-image">
 
-                    <img src="@banner1"
+                    <img src="@(Url.Content(Convert.ToString(banner1).StartsWith("/Content/", StringComparison.OrdinalIgnoreCase) ? "~" + Convert.ToString(banner1) : Convert.ToString(banner1)))"
                          alt="Gift card chính hãng"
                          class="banner-image banner-image-main"
                          loading="eager"
                          decoding="async"
                          onerror="this.onerror=null;this.src='@fallbackImage';" />
 
-                    <img src="@banner2"
+                    <img src="@(Url.Content(Convert.ToString(banner2).StartsWith("/Content/", StringComparison.OrdinalIgnoreCase) ? "~" + Convert.ToString(banner2) : Convert.ToString(banner2)))"
                          alt="Gift card giao mã nhanh"
                          class="banner-image banner-image-secondary"
                          loading="eager"
                          decoding="async"
                          onerror="this.onerror=null;this.style.display='none';" />
 
-                    <img src="@banner3"
+                    <img src="@(Url.Content(Convert.ToString(banner3).StartsWith("/Content/", StringComparison.OrdinalIgnoreCase) ? "~" + Convert.ToString(banner3) : Convert.ToString(banner3)))"
                          alt="Thanh toán gift card bằng QR"
                          class="banner-image banner-image-decoration"
                          loading="eager"

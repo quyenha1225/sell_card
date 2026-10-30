@@ -17,15 +17,15 @@
         );
 }
 
-<link rel="stylesheet" href="/Content/Client/css/news-modern.css?v=20260801-2" />
+<link rel="stylesheet" href="@Url.Content("~/Content/Client/css/news-modern.css?v=20260801-2")" />
 
 <main class="news-page">
     <header class="news-detail-hero">
         <div class="container">
             <nav>
-                <a href="/">Trang chủ</a>
+                <a href="@Url.Content("~/")">Trang chủ</a>
                 <i class="bx bx-chevron-right"></i>
-                <a href="/tin-tuc">Tin tức</a>
+                <a href="@Url.Content("~/tin-tuc")">Tin tức</a>
             </nav>
 
             <span class="news-kicker">GIFTTOI JOURNAL</span>
@@ -46,10 +46,10 @@
     <div class="container article-layout">
         <article class="article-card">
             <img class="article-cover"
-                 src="@coverImage"
+                 src="@(Url.Content(Convert.ToString(coverImage).StartsWith("/Content/", StringComparison.OrdinalIgnoreCase) ? "~" + Convert.ToString(coverImage) : Convert.ToString(coverImage)))"
                  alt="@Model.Title"
                  loading="eager"
-                 onerror="this.onerror=null;this.src='/Content/Client/img/error.png';" />
+                 onerror="this.onerror=null;this.src='@Url.Content("~/Content/Client/img/error.png")';" />
 
             <div class="article-body">
                 @if (!String.IsNullOrWhiteSpace(Model.Description))
@@ -68,7 +68,7 @@
                     Tin tức · Hướng dẫn · Gift Card
                 </span>
 
-                <a href="/tin-tuc">
+                <a href="@Url.Content("~/tin-tuc")">
                     <i class="bx bx-left-arrow-alt"></i>
                     Xem tất cả bài viết
                 </a>
@@ -90,11 +90,11 @@
                         );
 
                     <a class="related-item"
-                       href="/tin-tuc/@item.Alias-@item.Id">
-                        <img src="@image"
+                       href="@Url.Content("~/tin-tuc/" + item.Alias + "-" + item.Id)">
+                        <img src="@(Url.Content(Convert.ToString(image).StartsWith("/Content/", StringComparison.OrdinalIgnoreCase) ? "~" + Convert.ToString(image) : Convert.ToString(image)))"
                              alt="@item.Title"
                              loading="lazy"
-                             onerror="this.onerror=null;this.src='/Content/Client/img/error.png';" />
+                             onerror="this.onerror=null;this.src='@Url.Content("~/Content/Client/img/error.png")';" />
 
                         <span>
                             <strong>@item.Title</strong>

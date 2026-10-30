@@ -52,8 +52,8 @@
 
         window.location.href =
             result && result.loginUrl
-                ? result.loginUrl
-                : '/dang-nhap?returnUrl=' +
+                ? window.appUrl(result.loginUrl)
+                : window.appUrl('/dang-nhap?returnUrl=') +
                   encodeURIComponent(returnUrl);
 
         return true;
@@ -128,7 +128,7 @@
         requestInProgress = true;
 
         $.ajax({
-            url: '/Cart/Update',
+            url: window.appUrl('/Cart/Update'),
             type: 'POST',
             dataType: 'json',
             data: {
@@ -234,7 +234,7 @@
             var id = $(this).data('id');
 
             $.ajax({
-                url: '/Cart/Delete',
+                url: window.appUrl('/Cart/Delete'),
                 type: 'POST',
                 dataType: 'json',
                 data: {
@@ -268,7 +268,7 @@
         }
 
         $.ajax({
-            url: '/Cart/DeleteAllCart',
+            url: window.appUrl('/Cart/DeleteAllCart'),
             type: 'POST',
             dataType: 'json',
             data: {

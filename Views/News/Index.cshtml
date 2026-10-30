@@ -9,7 +9,7 @@
     var first = news.FirstOrDefault();
 }
 
-<link rel="stylesheet" href="/Content/Client/css/news-modern.css?v=20260801-2" />
+<link rel="stylesheet" href="@Url.Content("~/Content/Client/css/news-modern.css?v=20260801-2")" />
 
 <main class="news-page">
     <header class="news-index-hero">
@@ -35,18 +35,18 @@
                     );
 
                 <article class="featured-news">
-                    <a href="/tin-tuc/@first.Alias-@first.Id">
-                        <img src="@firstImage"
+                    <a href="@Url.Content("~/tin-tuc/" + first.Alias + "-" + first.Id)">
+                        <img src="@(Url.Content(Convert.ToString(firstImage).StartsWith("/Content/", StringComparison.OrdinalIgnoreCase) ? "~" + Convert.ToString(firstImage) : Convert.ToString(firstImage)))"
                              alt="@first.Title"
                              loading="eager"
-                             onerror="this.onerror=null;this.src='/Content/Client/img/error.png';" />
+                             onerror="this.onerror=null;this.src='@Url.Content("~/Content/Client/img/error.png")';" />
                     </a>
 
                     <div>
                         <span class="news-label">BÀI VIẾT NỔI BẬT</span>
 
                         <h2>
-                            <a href="/tin-tuc/@first.Alias-@first.Id">
+                            <a href="@Url.Content("~/tin-tuc/" + first.Alias + "-" + first.Id)">
                                 @first.Title
                             </a>
                         </h2>
@@ -59,7 +59,7 @@
                         </p>
 
                         <a class="read-more"
-                           href="/tin-tuc/@first.Alias-@first.Id">
+                           href="@Url.Content("~/tin-tuc/" + first.Alias + "-" + first.Id)">
                             Đọc bài viết
                             <i class="bx bx-right-arrow-alt"></i>
                         </a>
@@ -88,11 +88,11 @@
 
                         <article class="news-card">
                             <a class="news-card-image"
-                               href="/tin-tuc/@item.Alias-@item.Id">
-                                <img src="@image"
+                               href="@Url.Content("~/tin-tuc/" + item.Alias + "-" + item.Id)">
+                                <img src="@(Url.Content(Convert.ToString(image).StartsWith("/Content/", StringComparison.OrdinalIgnoreCase) ? "~" + Convert.ToString(image) : Convert.ToString(image)))"
                                      alt="@item.Title"
                                      loading="lazy"
-                                     onerror="this.onerror=null;this.src='/Content/Client/img/error.png';" />
+                                     onerror="this.onerror=null;this.src='@Url.Content("~/Content/Client/img/error.png")';" />
                             </a>
 
                             <div class="news-card-body">
@@ -103,12 +103,12 @@
                                 </span>
 
                                 <h3>
-                                    <a href="/tin-tuc/@item.Alias-@item.Id">
+                                    <a href="@Url.Content("~/tin-tuc/" + item.Alias + "-" + item.Id)">
                                         @item.Title
                                     </a>
                                 </h3>
 
-                                <a href="/tin-tuc/@item.Alias-@item.Id">
+                                <a href="@Url.Content("~/tin-tuc/" + item.Alias + "-" + item.Id)">
                                     Xem chi tiết
                                     <i class="bx bx-right-arrow-alt"></i>
                                 </a>

@@ -17,10 +17,10 @@
 }
 
 <link rel="stylesheet"
-      href="/Content/Client/css/storefront-part1.css?v=20260801-1" />
+      href="@Url.Content("~/Content/Client/css/storefront-part1.css?v=20260801-1")" />
 
 @section jsFooter {
-    <script src="/Content/Client/js/CartController.js?v=20260807-hardening1"></script>
+    <script src="@Url.Content("~/Content/Client/js/CartController.js?v=20261030-pathfix3")"></script>
 }
 
 <div class="page-title-area">
@@ -28,7 +28,7 @@
         <div class="page-title-content">
             <h1>Giỏ hàng</h1>
             <ul>
-                <li><a href="/">Trang chủ</a></li>
+                <li><a href="@Url.Content("~/")">Trang chủ</a></li>
                 <li>Giỏ hàng</li>
             </ul>
         </div>
@@ -79,10 +79,10 @@
 
                                 <tr data-product-id="@item.product.Id">
                                     <td class="product-thumbnail">
-                                        <a href="/san-pham/@item.product.Alias-@item.product.Id">
-                                            <img src="@image"
+                                        <a href="@Url.Content("~/san-pham/" + item.product.Alias + "-" + item.product.Id)">
+                                            <img src="@(Url.Content(Convert.ToString(image).StartsWith("/Content/", StringComparison.OrdinalIgnoreCase) ? "~" + Convert.ToString(image) : Convert.ToString(image)))"
                                                  alt="@item.product.Name"
-                                                 onerror="this.onerror=null;this.src='/Content/Client/img/error.png';" />
+                                                 onerror="this.onerror=null;this.src='@Url.Content("~/Content/Client/img/error.png")';" />
                                             <h3>@item.product.Name</h3>
                                         </a>
                                     </td>
@@ -152,7 +152,7 @@
                             </li>
                         </ul>
 
-                        <a href="/thanh-toan"
+                        <a href="@Url.Content("~/thanh-toan")"
                            class="default-btn">
                             <span>Thanh toán ngay</span>
                         </a>

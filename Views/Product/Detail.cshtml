@@ -39,20 +39,20 @@
 }
 
 <link rel="stylesheet"
-      href="/Content/Client/css/product-detail.css?v=20260725-2" />
+      href="@Url.Content("~/Content/Client/css/product-detail.css?v=20260725-2")" />
 <link rel="stylesheet"
-      href="/Content/Client/css/storefront-part1.css?v=20260801-1" />
+      href="@Url.Content("~/Content/Client/css/storefront-part1.css?v=20260801-1")" />
 
 <main class="product-detail-page">
     <section class="product-breadcrumb">
         <div class="container">
             <nav aria-label="Đường dẫn">
-                <a href="/">Trang chủ</a>
+                <a href="@Url.Content("~/")">Trang chủ</a>
                 <i class="bx bx-chevron-right"></i>
 
                 @if (Model.Category != null)
                 {
-                    <a href="/danh-muc/@Model.Category.Alias-@Model.Category.Id">
+                    <a href="@Url.Content("~/danh-muc/" + Model.Category.Alias + "-" + Model.Category.Id)">
                         @Model.Category.Name
                     </a>
                     <i class="bx bx-chevron-right"></i>
@@ -83,10 +83,10 @@
                     }
 
                     <div class="image-frame">
-                        <img src="@imageUrl"
+                        <img src="@(Url.Content(Convert.ToString(imageUrl).StartsWith("/Content/", StringComparison.OrdinalIgnoreCase) ? "~" + Convert.ToString(imageUrl) : Convert.ToString(imageUrl)))"
                              alt="@Model.Name"
                              id="productImage"
-                             onerror="this.onerror=null;this.src='/Content/Client/img/error.png';" />
+                             onerror="this.onerror=null;this.src='@Url.Content("~/Content/Client/img/error.png")';" />
                     </div>
                 </div>
 
@@ -270,5 +270,5 @@
 </main>
 
 @section jsFooter {
-    <script src="/Content/Client/js/product-detail.js?v=20260725-2"></script>
+    <script src="@Url.Content("~/Content/Client/js/product-detail.js?v=20260725-2")"></script>
 }

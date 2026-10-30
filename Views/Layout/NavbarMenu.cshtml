@@ -29,7 +29,7 @@
             foreach (var item in listCate)
             {
                 <li class="nav-item">
-                    <a href="/danh-muc/@item.Alias-@item.Id" class="nav-link">
+                    <a href="@Url.Content("~/danh-muc/" + item.Alias + "-" + item.Id)" class="nav-link">
                         @item.Name
                     </a>
                 </li>
@@ -54,7 +54,7 @@
             foreach (var item in listPro)
             {
                 <li class="nav-item">
-                    <a href="/san-pham/@item.Alias-@item.Id" class="nav-link">
+                    <a href="@Url.Content("~/san-pham/" + item.Alias + "-" + item.Id)" class="nav-link">
                         @item.Name
                     </a>
                 </li>
@@ -76,9 +76,9 @@
 </li>
 
 <li class="nav-item">
-    <a href="/tin-tuc" class="nav-link">Tin tức</a>
+    <a href="@Url.Content("~/tin-tuc")" class="nav-link">Tin tức</a>
 </li>
 
 <li class="nav-item">
-    <a href="/gioi-thieu-ve-chung-toi" class="nav-link">Giới thiệu</a>
+    <a href="@Url.Content("~/gioi-thieu-ve-chung-toi")" class="nav-link">Giới thiệu</a>
 </li>

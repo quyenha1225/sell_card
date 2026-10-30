@@ -17,16 +17,16 @@
 }
 
 <link rel="stylesheet"
-      href="/Content/Client/css/checkout-history.css?v=20260725-2" />
+      href="@Url.Content("~/Content/Client/css/checkout-history.css?v=20260725-2")" />
 <link rel="stylesheet"
-      href="/Content/Client/css/storefront-part1.css?v=20260801-1" />
+      href="@Url.Content("~/Content/Client/css/storefront-part1.css?v=20260801-1")" />
 
 <main class="flow-page checkout-page">
     <div class="container">
         <nav class="flow-breadcrumb">
-            <a href="/">Trang chủ</a>
+            <a href="@Url.Content("~/")">Trang chủ</a>
             <i class="bx bx-chevron-right"></i>
-            <a href="/gio-hang">Giỏ hàng</a>
+            <a href="@Url.Content("~/gio-hang")">Giỏ hàng</a>
             <i class="bx bx-chevron-right"></i>
             <span>Thanh toán</span>
         </nav>
@@ -67,7 +67,7 @@
                                 sản phẩm trong đơn
                             </p>
                         </div>
-                        <a href="/gio-hang">Chỉnh sửa</a>
+                        <a href="@Url.Content("~/gio-hang")">Chỉnh sửa</a>
                     </div>
 
                     <div class="checkout-list">
@@ -85,10 +85,10 @@
                                 );
 
                             <article class="checkout-item">
-                                <img src="@image"
+                                <img src="@(Url.Content(Convert.ToString(image).StartsWith("/Content/", StringComparison.OrdinalIgnoreCase) ? "~" + Convert.ToString(image) : Convert.ToString(image)))"
                                      alt="@item.product.Name"
                                      loading="lazy"
-                                     onerror="this.onerror=null;this.src='/Content/Client/img/error.png';" />
+                                     onerror="this.onerror=null;this.src='@Url.Content("~/Content/Client/img/error.png")';" />
 
                                 <div class="checkout-item-info">
                                     <h3>@item.product.Name</h3>
@@ -184,7 +184,7 @@
             <section class="flow-card empty-state">
                 <i class="bx bx-cart"></i>
                 <h2>Chưa có sản phẩm để thanh toán</h2>
-                <a href="/">Khám phá sản phẩm</a>
+                <a href="@Url.Content("~/")">Khám phá sản phẩm</a>
             </section>
         }
     </div>

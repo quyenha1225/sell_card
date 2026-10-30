@@ -13,7 +13,7 @@
             Quét mã QR bằng ứng dụng ngân hàng để thanh toán.
         </p>
 
-        <img src="@Model.QrUrl"
+        <img src="@(Url.Content(Convert.ToString(Model.QrUrl).StartsWith("/Content/", StringComparison.OrdinalIgnoreCase) ? "~" + Convert.ToString(Model.QrUrl) : Convert.ToString(Model.QrUrl)))"
              alt="QR thanh toán đơn @Model.OrderCode"
              class="payment-qr" />
 

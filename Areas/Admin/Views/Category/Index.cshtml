@@ -16,7 +16,7 @@
                         <h5 class="card-title fw-semibold mb-4">Danh sách danh mục</h5>
                     </div>
                     <div class="col-md-6 text-end">
-                        <a href="/Admin/Category/Create" class="btn btn-primary">Thêm danh mục</a>
+                        <a href="@Url.Content("~/Admin/Category/Create")" class="btn btn-primary">Thêm danh mục</a>
                     </div>
                 </div>
 
@@ -65,7 +65,7 @@
                                     var image =
                                         BBEcom.Common.CommonHelper.VersionedImage(
                                             item.Image,
-                                            "/Content/Client/img/error.png"
+                                            Url.Content("~/Content/Client/img/error.png")
                                         );
 
                                     <tr id="row_@item.Id">
@@ -76,10 +76,10 @@
                                             <h6 class="fw-semibold mb-1">@item.Name</h6>
                                         </td>
                                         <td class="border-bottom-0">
-                                            <img src="@image"
+                                            <img src="@(Url.Content(Convert.ToString(image).StartsWith("/Content/", StringComparison.OrdinalIgnoreCase) ? "~" + Convert.ToString(image) : Convert.ToString(image)))"
                                                  alt="Ảnh @item.Name"
                                                  loading="lazy"
-                                                 onerror="this.onerror=null;this.src='/Content/Client/img/error.png';" />
+                                                 onerror="this.onerror=null;this.src='@Url.Content("~/Content/Client/img/error.png")';" />
                                         </td>
                                         <td class="border-bottom-0">
                                             <p class="mb-0 fw-normal">@item.CreatedDate.ToString()</p>
@@ -98,7 +98,7 @@
                                             </div>
                                         </td>
                                         <td class="border-bottom-0">
-                                            <a href="/Admin/Category/Edit/@item.Id" class="fw-semibold mb-0 fs-4 btn btn-primary m-1">Sửa</a>
+                                            <a href="@Url.Content("~/Admin/Category/Edit/" + item.Id)" class="fw-semibold mb-0 fs-4 btn btn-primary m-1">Sửa</a>
                                             @Ajax.ActionLink("Xoá", "Delete", new { @id = item.Id }, new AjaxOptions
                                             {
                                             Confirm = "Bạn có chắc muốn xoá",

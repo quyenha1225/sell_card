@@ -13,7 +13,7 @@
             @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
             @Html.Partial("_ProductForm", Model)
             <button class="btn btn-primary">CẬP NHẬT</button>
-            <a href="/Admin/Product" class="btn btn-outline-secondary">Quay lại</a>
+            <a href="@Url.Content("~/Admin/Product")" class="btn btn-outline-secondary">Quay lại</a>
         }
     </div>
 </div>

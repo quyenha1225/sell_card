@@ -10,7 +10,7 @@
     <div class="card-body p-4">
         <div class="d-flex justify-content-between mb-4">
             <h5>Danh sách sản phẩm</h5>
-            <a href="/Admin/Product/Create" class="btn btn-primary">Thêm sản phẩm</a>
+            <a href="@Url.Content("~/Admin/Product/Create")" class="btn btn-primary">Thêm sản phẩm</a>
         </div>
 
         @using (Html.BeginForm("Index", "Product", FormMethod.Get, new { @class = "row g-2 mb-4" }))
@@ -47,12 +47,12 @@
                             <td>@item.Id</td>
                             <td>@item.Name</td>
                             <td>@(item.Category == null ? "-" : item.Category.Name)</td>
-                            <td><img src="@image" alt="@item.Name"
+                            <td><img src="@(Url.Content(Convert.ToString(image).StartsWith("/Content/", StringComparison.OrdinalIgnoreCase) ? "~" + Convert.ToString(image) : Convert.ToString(image)))" alt="@item.Name"
                                      style="width:68px;height:68px;object-fit:contain;border-radius:10px;background:#f5fbff" /></td>
                             <td>@BBEcom.Common.CommonHelper.ConvertMoney(price)đ</td>
                             <td>@(item.Status.GetValueOrDefault() ? "Hiển thị" : "Ẩn")</td>
                             <td>
-                                <a href="/Admin/Product/Edit/@item.Id" class="btn btn-sm btn-primary">Sửa</a>
+                                <a href="@Url.Content("~/Admin/Product/Edit/" + item.Id)" class="btn btn-sm btn-primary">Sửa</a>
                                 @using (Html.BeginForm("Delete", "Product", FormMethod.Post, new { style = "display:inline" }))
                                 {
                                     @Html.AntiForgeryToken()
