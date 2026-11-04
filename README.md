@@ -366,3 +366,47 @@ Web.config             Database, authentication, SePay và IIS config
 ## License
 
 Xem [LICENSE.txt](LICENSE.txt).
+
+
+## CI/CD Jenkins → IIS (một source dùng cho cả IIS Express và IIS)
+
+**Không gỡ IIS, không xóa database `BBEcom`, không sửa code trực tiếp trong `C:\inetpub\wwwroot\BBEcom`.**
+
+- **Source:** `C:\Users\Admin\Documents\GitHub\sell_card` (đẩy lên GitHub).
+- **Publish trung gian:** `C:\JenkinsDeploy\BBEcom` (Jenkins tạo mỗi lần build).
+- **Website IIS:** `C:\inetpub\wwwroot\BBEcom` (chỉ Jenkins triển khai).
+- **Backup tự động:** `C:\JenkinsBackups\BBEcom\<BUILD_NUMBER>` (chứa cả Web.config và dữ liệu riêng, bảo vệ quyền truy cập).
+
+### Trình tự thiết lập một lần
+
+1. Đảm bảo `Default Web Site` có IIS Application `/BBEcom`, app pool .NET CLR v4.0, Integrated; SQL Server `SQLEXPRESS` đã chạy. Không tạo hoặc reset database khi Deploy.
+2. Sao lưu **Web.config trên IIS** và xác nhận nó dùng `Server=.\SQLEXPRESS;Database=BBEcom;Integrated Security=True` và các credentials riêng. File cấu hình này được Jenkins **giữ nguyên**, không tự chép đè.
+3. Cấu hình HTTPS cho IIS nếu muốn đăng nhập bằng cookie `Secure` / `requireSSL=true`. URL HTTP localhost chỉ phục vụ kiểm tra giao diện ban đầu.
+4. Chép `LoginController.cs` đã sửa vào source, giữ các tài nguyên dùng `Url.Content("~/...")` hoặc `Url.Action(...)`, build thử IIS Express. **Không đưa mật khẩu, API key hoặc `Web.config` thật vào GitHub.**
+5. Thay `Jenkinsfile` trong source bằng bản mới rồi commit các file code. Trên GitHub, bảo vệ nhánh `quyen/admin` bằng Pull Request + review trước merge.
+6. Trong Jenkins job `BanPhanMemBanQuyen-CICD`, dùng *Pipeline script from SCM*, nhánh `*/quyen/admin`, đường dẫn `Jenkinsfile`; cấu hình GitHub webhook trigger. GitHub không thể gọi URL `localhost:8080`, cần endpoint HTTPS công khai được bảo vệ (ví dụ tunnel phù hợp).
+7. Khi PR được duyệt và merge: GitHub kích hoạt CI; sau Build/Test/Publish, Jenkins chờ tài khoản `quyenha2512` nhấn **Approve & Deploy** rồi sao lưu website, Deploy và Verify.
+8. Sau Deploy, kiểm tra `http://localhost/BBEcom/Home/Index`, trang chi tiết, giỏ hàng và database. Khi đã có HTTPS, thử đăng nhập Google thực tế.
+
+### Redirect URI Google OAuth
+
+Đăng ký **Authorized redirect URIs** (không phải *Authorized JavaScript origins*) trong đúng OAuth Client `GiftToi Web`:
+
+- IIS Express: `https://localhost:44315/Login/GoogleCallback`
+- IIS HTTP local: `http://localhost/BBEcom/Login/GoogleCallback`
+- Nếu cấu hình IIS HTTPS: `https://localhost/BBEcom/Login/GoogleCallback` (đúng port/binding thực tế)
+
+`BuildGoogleRedirectUri()` trong controller sẽ sinh callback theo request và virtual path khi chạy localhost; không dùng `GoogleRedirectUri` cố định nữa. Cả request authorize và token exchange sử dụng cùng hàm. Khi test reverse proxy/tunnel thực tế cần cấu hình hostname + proxy tin cậy, không tùy tiện mở tin cậy mọi header forwarded từ Internet.
+
+### Bảo vệ cấu hình và dữ liệu
+
+- File `LOCAL_ONLY_DO_NOT_COMMIT/Web.config` (nếu bạn nhận kèm bản vá) chứa cấu hình **riêng do bạn cung cấp**. Chỉ copy vào máy phát triển nếu cần, không commit. Bản Web.config của IIS vẫn giữ nguyên trong quá trình Deploy.
+- **Không chạy `git add .` mù quáng.** Chỉ `git add Jenkinsfile Controllers/LoginController.cs README.md` và các file source đã chủ động kiểm tra; dùng `git status --staged` trước khi commit.
+- File `Web.config.EXAMPLE_NOT_FOR_RUNTIME` đã ẩn secret và **không dùng để chạy thực tế**.
+- Nếu các khóa JWT/SMTP/Google/SePay đã bị commit/chia sẻ, phải thay mới và loại khỏi lịch sử/nguồn public theo quy trình bảo mật.
+- Jenkins `/E` chỉ copy cập nhật, **không xóa file cũ**; để dọn sạch tệp stale phải lên kế hoạch đồng bộ chọn lọc và sao lưu, không chạy `/MIR` khi chưa tách dữ liệu người dùng.
+- Việc dùng cùng database giữa IIS Express và IIS trên máy học tập giúp dữ liệu đồng nhất, nhưng trong sản xuất nên tách database test và production.
+
+### Hoàn tác nếu bản mới gặp lỗi
+
+Vào backup `C:\JenkinsBackups\BBEcom\<BUILD_NUMBER>` tương ứng, cho website tạm offline rồi phục hồi bản sao lưu, **không xóa SQL**. Chỉ người quản trị máy/IIS được thao tác. Nếu dữ liệu đã thay đổi sau thời điểm backup, kiểm tra kỹ trước khi khôi phục các thư mục người dùng.

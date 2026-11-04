@@ -231,7 +231,7 @@ namespace BBEcom.Controllers
                 HttpOnly = true,
                 Secure = IsSecureRequest(),
                 SameSite = SameSiteMode.Lax,
-                Path = "/",
+                Path = Url.Content("~/"),
                 Expires = DateTime.UtcNow.AddMinutes(10)
             });
 
@@ -244,7 +244,7 @@ namespace BBEcom.Controllers
                     HttpOnly = true,
                     Secure = IsSecureRequest(),
                     SameSite = SameSiteMode.Lax,
-                    Path = "/",
+                    Path = Url.Content("~/"),
                     Expires = DateTime.UtcNow.AddMinutes(10)
                 });
             }
@@ -381,32 +381,21 @@ namespace BBEcom.Controllers
                         .Trim()
                     : Request.Url.Authority;
 
-            var configured =
-                ConfigurationManager.AppSettings[
-                    "GoogleRedirectUri"
-                ];
-
-            // Localhost có thể dùng URI cố định trong Web.config.
-            // Khi đi qua Cloudflare Tunnel, ưu tiên host hiện tại
-            // để tránh callback quay về localhost hoặc tunnel cũ.
+            // IIS Express: https://localhost:44315/Login/GoogleCallback
+            // IIS (/BBEcom): http(s)://localhost/BBEcom/Login/GoogleCallback
+            // Use the actual request's host, port and application virtual path.
+            // Do not override localhost with a hard-coded Web.config redirect.
             var isLocalHost =
-                host.StartsWith(
-                    "localhost",
-                    StringComparison.OrdinalIgnoreCase)
-                || host.StartsWith(
-                    "127.0.0.1",
-                    StringComparison.OrdinalIgnoreCase);
+                Request.Url.IsLoopback;
 
-            Uri configuredUri;
-
-            if (isLocalHost
-                && !String.IsNullOrWhiteSpace(configured)
-                && Uri.TryCreate(
-                    configured,
-                    UriKind.Absolute,
-                    out configuredUri))
+            if (isLocalHost)
             {
-                return configuredUri.ToString();
+                return Url.Action(
+                    "GoogleCallback",
+                    "Login",
+                    null,
+                    Request.Url.Scheme
+                );
             }
 
             var scheme =
@@ -448,6 +437,15 @@ namespace BBEcom.Controllers
                 path = path.Substring(0, hashIndex);
 
             path = path.TrimEnd('/').ToLowerInvariant();
+
+            // On IIS the app lives under /BBEcom. Strip the application
+            // path before checking for unsafe POST-only destinations.
+            var appPath = Url.Content("~/").TrimEnd('/').ToLowerInvariant();
+            if (!String.IsNullOrEmpty(appPath)
+                && path.StartsWith(appPath + "/", StringComparison.Ordinal))
+            {
+                path = path.Substring(appPath.Length);
+            }
 
             // Không redirect browser bằng GET vào các action chỉ nhận POST.
             // Đây chính là nguyên nhân của lỗi 404 /Cart/AddItem sau Google OAuth.
@@ -495,7 +493,7 @@ namespace BBEcom.Controllers
                 HttpOnly = true,
                 Secure = IsSecureRequest(),
                 SameSite = SameSiteMode.Lax,
-                Path = "/",
+                Path = Url.Content("~/"),
                 Expires = DateTime.UtcNow.AddYears(-1)
             });
         }

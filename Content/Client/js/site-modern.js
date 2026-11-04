@@ -1,4 +1,4 @@
-﻿(function () {
+(function () {
     'use strict';
 
     function getAntiForgeryToken() {
@@ -79,7 +79,7 @@
             '<i class="bx bx-loader-alt bx-spin"></i>' +
             '<span>Đang thêm</span>';
 
-        fetch(window.appUrl('/Cart/AddItem'), {
+        fetch(button.getAttribute('data-add-url') || window.appUrl('/Cart/AddItem'), {
             method: 'POST',
             headers: {
                 'Content-Type':
@@ -116,7 +116,7 @@
                     window.location.href =
                         result && result.loginUrl
                             ? window.appUrl(result.loginUrl)
-                            : window.appUrl('/dang-nhap?returnUrl=') +
+                            : window.appUrl('/dang-nhap') + '?returnUrl=' +
                               encodeURIComponent(returnUrl);
 
                     return null;
@@ -136,6 +136,10 @@
                 throw new Error(
                     'Không thể thêm sản phẩm vào giỏ.'
                 );
+            }
+
+            if (contentType.indexOf('application/json') === -1) {
+                throw new Error('Máy chủ không trả JSON. Kiểm tra trạng thái đăng nhập hoặc endpoint giỏ hàng.');
             }
 
             return response.json();

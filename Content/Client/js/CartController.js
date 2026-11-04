@@ -1,8 +1,9 @@
-﻿(function ($) {
+(function ($) {
     'use strict';
 
     var updateTimer = null;
     var requestInProgress = false;
+    var updateQueued = false;
 
     function token() {
         return $(
@@ -53,7 +54,7 @@
         window.location.href =
             result && result.loginUrl
                 ? window.appUrl(result.loginUrl)
-                : window.appUrl('/dang-nhap?returnUrl=') +
+                : window.appUrl('/dang-nhap') + '?returnUrl=' +
                   encodeURIComponent(returnUrl);
 
         return true;
@@ -116,6 +117,7 @@
 
     function updateCart() {
         if (requestInProgress) {
+            updateQueued = true;
             return;
         }
 
@@ -166,6 +168,10 @@
         })
         .always(function () {
             requestInProgress = false;
+            if (updateQueued) {
+                updateQueued = false;
+                scheduleUpdate();
+            }
         });
     }
 

@@ -15,6 +15,9 @@
                 x.ProductId == Model.Id
             );
 
+    var detailUrl = Url.Content("~/san-pham/" + Model.Alias + "-" + Model.Id);
+    var cartAddUrl = Url.Action("AddItem", "Cart");
+
     var imageUrl =
         BBEcom.Common.CommonHelper.ResolveProductImage(
             Model.Alias,
@@ -31,7 +34,7 @@
             </span>
         }
 
-        <a href="@Url.Content("~/san-pham/" + Model.Alias + "-" + Model.Id)"
+        <a href="@detailUrl"
            class="product-image-link">
 
             <img src="@(Url.Content(Convert.ToString(imageUrl).StartsWith("/Content/", StringComparison.OrdinalIgnoreCase) ? "~" + Convert.ToString(imageUrl) : Convert.ToString(imageUrl)))"
@@ -54,7 +57,7 @@
         </div>
 
         <h3>
-            <a href="@Url.Content("~/san-pham/" + Model.Alias + "-" + Model.Id)">
+            <a href="@detailUrl">
                 @Model.Name
             </a>
         </h3>
@@ -80,7 +83,7 @@
 
         <div class="product-card-cta">
             <a class="detail-card-btn"
-               href="@Url.Content("~/san-pham/" + Model.Alias + "-" + Model.Id)">
+               href="@detailUrl">
 
                 <i class="bx bx-show"></i>
                 <span>Xem chi tiết</span>
@@ -90,7 +93,8 @@
             {
                 <button type="button"
                         class="cart-card-btn js-quick-add"
-                        data-product-id="@Model.Id">
+                        data-product-id="@Model.Id"
+                        data-add-url="@cartAddUrl">
 
                     <i class="bx bx-cart-add"></i>
                     <span>Thêm vào giỏ</span>

@@ -1,4 +1,4 @@
-﻿@using System.Linq
+@using System.Linq
 @{
     var layoutCart = Session["CART_SESSION"] as System.Collections.Generic.List<BBEcom.Models.Cart>;
     var layoutCartCount = layoutCart == null ? 0 : layoutCart.Sum(x => x.Quantity);
@@ -43,6 +43,10 @@
     </script>
 </head>
 <body>
+    <!-- Token toàn cục cho chức năng Thêm vào giỏ trên mọi trang -->
+    <div id="storefrontGlobalAntiForgery" style="display:none">
+        @Html.AntiForgeryToken()
+    </div>
     <div class="top-header-area">
         <div class="container-fluid">
             <div class="row align-items-center">
@@ -284,7 +288,7 @@
     <script src="@Url.Content("~/Content/Client/js/contact-form-script.js")"></script>
     <script src="@Url.Content("~/Content/Client/js/ajaxchimp.min.js")"></script>
     <script src="@Url.Content("~/Content/Client/js/main.js")"></script>
-    <script src="@Url.Content("~/Content/Client/js/site-modern.js?v=20261030-pathfix3")"></script>
+    <script src="@Url.Content("~/Content/Client/js/site-modern.js?v=20261101-cicd")"></script>
 
     <script>
         window.Toastify = window.Toastify || function (options) {

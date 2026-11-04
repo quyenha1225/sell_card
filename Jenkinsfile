@@ -7,7 +7,7 @@ pipeline {
         timestamps()
         disableConcurrentBuilds()
         buildDiscarder(logRotator(numToKeepStr: '20'))
-        timeout(time: 45, unit: 'MINUTES')
+        timeout(time: 26, unit: 'HOURS')
     }
 
     environment {
@@ -28,7 +28,7 @@ pipeline {
 
         // IIS APPLICATION
         IIS_DIR = 'C:\\inetpub\\wwwroot\\BBEcom'
-        WEBSITE_URL = 'http://localhost/BBEcom/'
+        WEBSITE_URL = 'http://localhost/BBEcom/Home/Index'
     }
 
     stages {
@@ -325,7 +325,50 @@ stage('Restore') {
         }
 
         // ========================================
-        // STAGE 7 - DEPLOY TO IIS
+        // STAGE 7 - MANUAL RELEASE APPROVAL
+        // A merged PR can trigger CI automatically; deployment awaits approval.
+        // ========================================
+        stage('Approval') {
+            steps {
+                timeout(time: 24, unit: 'HOURS') {
+                    input message: 'Approve SellCard release to IIS?',
+                          ok: 'Approve & Deploy',
+                          submitter: 'quyenha2512'
+                }
+                echo 'DEPLOY APPROVED'
+            }
+        }
+
+        // ========================================
+        // STAGE 8 - BACK UP ACTIVE IIS WEBSITE
+        // Backups are outside wwwroot and include the private Web.config.
+        // ========================================
+        stage('Backup IIS') {
+            steps {
+                powershell '''
+                    $ErrorActionPreference = 'Stop'
+                    $target = $env:IIS_DIR
+                    if (-not (Test-Path -LiteralPath $target -PathType Container)) {
+                        throw "IIS directory missing: $target"
+                    }
+                    if (-not (Test-Path -LiteralPath (Join-Path $target 'Web.config'))) {
+                        throw 'IIS Web.config missing; configure IIS once before deploying.'
+                    }
+
+                    $backup = Join-Path 'C:\\JenkinsBackups\\BBEcom' $env:BUILD_NUMBER
+                    New-Item -ItemType Directory -Path $backup -Force | Out-Null
+                    & robocopy.exe $target $backup /E /R:2 /W:2 /NP /NFL /NDL /XF app_offline.htm
+                    $rc = $LASTEXITCODE
+                    if ($rc -ge 8) { throw "Backup failed: robocopy exit $rc" }
+                    $global:LASTEXITCODE = 0
+                    Write-Host "Backup completed: $backup"
+                    exit 0
+                '''
+            }
+        }
+
+        // ========================================
+        // STAGE 9 - DEPLOY TO IIS
         // ========================================
         stage('Deploy') {
             steps {
@@ -360,7 +403,11 @@ stage('Restore') {
                     try {
                         Write-Host 'Copying published website to IIS...'
 
-                        & robocopy.exe $source $target /E /R:2 /W:2 /NP /NFL /NDL /XF app_offline.htm
+                        # Keep machine-specific configuration and uploaded user files.
+                        # Never use /MIR: it may delete IIS-only data.
+                        & robocopy.exe $source $target /E /R:2 /W:2 /NP /NFL /NDL `
+                            /XF Web.config app_offline.htm `
+                            /XD App_Data userfiles uploads
 
                         $copyCode = $LASTEXITCODE
 
@@ -385,15 +432,16 @@ stage('Restore') {
                         if (Test-Path -LiteralPath $offline) {
                             Remove-Item -LiteralPath $offline -Force
                         }
-
                         Write-Host 'Maintenance mode removed.'
                     }
+                    $global:LASTEXITCODE = 0
+                    exit 0
                 '''
             }
         }
 
         // ========================================
-        // STAGE 8 - VERIFY HTTP
+        // STAGE 10 - VERIFY HTTP
         // ========================================
         stage('Verify') {
             steps {
