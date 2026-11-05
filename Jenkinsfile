@@ -2,7 +2,8 @@
 pipeline {
     agent {
         node {
-            label 'sellcard-windows'
+            // This installation builds and deploys on its local Windows controller.
+            label 'built-in'
             // Each build owns a fresh directory; locked reports from older builds
             // must not prevent checkout or cause stale test results to be reused.
             customWorkspace "sellcard-runs/${env.BUILD_TAG}"
