@@ -50,13 +50,37 @@ pipeline {
         // STAGE 1 - CHECKOUT
         // ========================================
         stage('Checkout') {
+            options { timeout(time: 12, unit: 'MINUTES') }
             steps {
                 echo '===== CHECKOUT GITHUB ====='
 
                 echo "Isolated build workspace: ${env.WORKSPACE}"
 
                 script {
-                    def checkoutInfo = checkout scm
+                    // Keep Jenkins' revision chooser/extensions so the selected
+                    // commit is preserved, while avoiding full Git history/tags.
+                    def remotes = scm.userRemoteConfigs
+                    def releaseSpecs = [env.BUILD_BRANCH, '*/' + env.BUILD_BRANCH,
+                        'origin/' + env.BUILD_BRANCH, 'refs/heads/' + env.BUILD_BRANCH]
+                    if (!env.CHANGE_ID && !env.BRANCH_NAME && scm.branches.size() == 1 &&
+                        releaseSpecs.contains(scm.branches[0].name)) {
+                        remotes = scm.userRemoteConfigs.collect { remote ->
+                            def remoteName = remote.name ?: 'origin'
+                            [url: remote.url, credentialsId: remote.credentialsId,
+                             name: remoteName,
+                             refspec: "+refs/heads/${env.BUILD_BRANCH}:refs/remotes/${remoteName}/${env.BUILD_BRANCH}".toString()]
+                        }
+                    }
+                    def checkoutInfo = checkout([
+                        $class: 'GitSCM',
+                        branches: scm.branches,
+                        userRemoteConfigs: remotes,
+                        extensions: scm.extensions + [[
+                            $class: 'CloneOption',
+                            shallow: true, depth: 20, noTags: true,
+                            honorRefspec: true, timeout: 10
+                        ]]
+                    ])
                     env.SCM_BRANCH = checkoutInfo.GIT_BRANCH ?: ''
                     env.RELEASE_COMMIT = bat(returnStdout: true, script: '@git rev-parse HEAD').trim()
                     echo "SCM checkout branch: ${env.SCM_BRANCH ?: '(not reported)'}; multibranch: ${env.BRANCH_NAME ?: '(not set)'}"
@@ -185,7 +209,7 @@ pipeline {
 
                 echo Restoring MSTest project packages...
 
-                dotnet restore "BBEcom.Tests\\BBEcom.Tests.csproj" --packages "%NUGET_PACKAGES%" --force --no-http-cache
+                dotnet restore "BBEcom.Tests\\BBEcom.Tests.csproj" --packages "%NUGET_PACKAGES%"
 
                 if errorlevel 1 (
                     echo ERROR: TEST PACKAGE RESTORE FAILED
