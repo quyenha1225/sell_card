@@ -1,6 +1,6 @@
 
 pipeline {
-    agent any
+    agent { label 'sellcard-windows' }
 
     options {
         skipDefaultCheckout(true)
@@ -8,11 +8,16 @@ pipeline {
         disableConcurrentBuilds()
         buildDiscarder(logRotator(numToKeepStr: '20'))
         timeout(time: 26, unit: 'HOURS')
+        skipStagesAfterUnstable()
+    }
+
+    parameters {
+        booleanParam(name: 'DEPLOY_IIS', defaultValue: false, description: 'Deploy the tested release to IIS after approval. Leave off for CI only.')
+        booleanParam(name: 'BUILD_DOCKER', defaultValue: false, description: 'Also build a Windows Docker image; does not replace the running container.')
     }
 
     environment {
         // GITHUB
-        REPO_URL = 'https://github.com/quyenha1225/sell_card.git'
         BUILD_BRANCH = 'quyen/admin'
         NUGET_PACKAGES = 'C:\\JenkinsNuGetCache'
         // ASP.NET MVC 5 - .NET FRAMEWORK
@@ -24,7 +29,7 @@ pipeline {
         NUGET = 'C:\\Tools\\NuGet\\nuget.exe'
 
         // PUBLISH OUTPUT
-        PUBLISH_DIR = 'C:\\JenkinsDeploy\\BBEcom'
+        PUBLISH_DIR = "${WORKSPACE}\\release\\site"
 
         // IIS APPLICATION
         IIS_DIR = 'C:\\inetpub\\wwwroot\\BBEcom'
@@ -43,8 +48,11 @@ pipeline {
                 // Remove stale workspace files
                 deleteDir()
 
-                git branch: "${env.BUILD_BRANCH}",
-                    url: "${env.REPO_URL}"
+                checkout scm
+                script {
+                    env.RELEASE_COMMIT = bat(returnStdout: true, script: '@git rev-parse HEAD').trim()
+                    currentBuild.description = "Commit ${env.RELEASE_COMMIT.take(12)}; CI"
+                }
 
                 bat '''
                 @echo off
@@ -68,8 +76,15 @@ pipeline {
         // STAGE 2 - FIND BUILD TOOLS
         // ========================================
         stage('Find Build Tools') {
+            options { timeout(time: 5, unit: 'MINUTES') }
             steps {
                 echo '===== FIND BUILD TOOLS ====='
+                powershell '''
+                    $ErrorActionPreference = 'Stop'
+                    if ($env:OS -ne 'Windows_NT') { throw 'A Windows build agent is required.' }
+                    Get-Command dotnet.exe -ErrorAction Stop | Out-Null
+                    if (-not (Test-Path -LiteralPath $env:NUGET)) { throw 'Install NuGet at the configured NUGET path.' }
+                '''
 
                 script {
                     env.MSBUILD_EXE = powershell(
@@ -138,45 +153,46 @@ pipeline {
         // STAGE 3 - RESTORE
         // ========================================
         
-stage('Restore') {
-    steps {
-        echo '===== RESTORE NUGET PACKAGES ====='
+        stage('Restore') {
+            options { timeout(time: 15, unit: 'MINUTES') }
+            steps {
+                echo '===== RESTORE NUGET PACKAGES ====='
 
-        bat '''
-        @echo off
+                bat '''
+                @echo off
 
-        if not exist "%NUGET_PACKAGES%" (
-            mkdir "%NUGET_PACKAGES%"
-        )
+                if not exist "%NUGET_PACKAGES%" (
+                    mkdir "%NUGET_PACKAGES%"
+                )
 
-        echo Restoring legacy ASP.NET MVC packages...
+                echo Restoring legacy ASP.NET MVC packages...
 
-        "%NUGET%" restore "%SOLUTION%" -NonInteractive -MSBuildPath "%MSBUILD_DIR%"
+                "%NUGET%" restore "%SOLUTION%" -NonInteractive -MSBuildPath "%MSBUILD_DIR%"
 
-        if errorlevel 1 (
-            echo ERROR: SOLUTION RESTORE FAILED
-            exit /b 1
-        )
+                if errorlevel 1 (
+                    echo ERROR: SOLUTION RESTORE FAILED
+                    exit /b 1
+                )
 
-        echo Restoring MSTest project packages...
+                echo Restoring MSTest project packages...
 
-        dotnet restore "BBEcom.Tests\\BBEcom.Tests.csproj" --packages "%NUGET_PACKAGES%" --force --no-http-cache
+                dotnet restore "BBEcom.Tests\\BBEcom.Tests.csproj" --packages "%NUGET_PACKAGES%" --force --no-http-cache
 
-        if errorlevel 1 (
-            echo ERROR: TEST PACKAGE RESTORE FAILED
-            exit /b 1
-        )
+                if errorlevel 1 (
+                    echo ERROR: TEST PACKAGE RESTORE FAILED
+                    exit /b 1
+                )
 
-        echo RESTORE SUCCESS
-        '''
-    }
-}
-
+                echo RESTORE SUCCESS
+                '''
+            }
+        }
 
         // ========================================
         // STAGE 4 - BUILD
         // ========================================
         stage('Build') {
+            options { timeout(time: 20, unit: 'MINUTES') }
             steps {
                 echo '===== BUILD RELEASE ====='
 
@@ -199,6 +215,7 @@ stage('Restore') {
         // STAGE 5 - AUTOMATED TEST
         // ========================================
         stage('Test') {
+            options { timeout(time: 15, unit: 'MINUTES') }
             steps {
                 echo '===== AUTOMATED UNIT TEST ====='
 
@@ -237,31 +254,27 @@ stage('Restore') {
                     echo "VSTest: ${env.VSTEST_EXE}"
                 }
 
-                bat '''
-                @echo off
-
-                if not exist "%TEST_DLL%" (
-                    echo ERROR: TEST DLL NOT FOUND
-                    echo Expected: %TEST_DLL%
-                    exit /b 1
-                )
-
-                if not exist "TestResults" mkdir "TestResults"
-
-                "%VSTEST_EXE%" "%TEST_DLL%" "/Logger:trx;LogFileName=%WORKSPACE%\\TestResults\\SellCard.trx"
-
-                if errorlevel 1 (
-                    echo ERROR: UNIT TEST FAILED
-                    exit /b 1
-                )
-
-                if not exist "TestResults\\SellCard.trx" (
-                    echo ERROR: TEST REPORT NOT FOUND
-                    exit /b 1
-                )
-
-                echo ALL TESTS PASSED
-                '''
+                script {
+                    int testExit = bat(returnStatus: true, script: '''
+                        @echo off
+                        if not exist "%TEST_DLL%" exit /b 1
+                        if not exist "TestResults" mkdir "TestResults"
+                        "%VSTEST_EXE%" "%TEST_DLL%" /ResultsDirectory:TestResults "/Logger:trx;LogFileName=SellCard.trx"
+                        exit /b %ERRORLEVEL%
+                    ''')
+                    int reportExit = powershell(returnStatus: true, script: '& .\\scripts\\convert-test-results.ps1')
+                    if (fileExists('TestResults/junit.xml')) {
+                        junit testResults: 'TestResults/junit.xml', allowEmptyResults: false
+                    }
+                    if (testExit != 0 || reportExit != 0) {
+                        error('Tests failed, were skipped, or no valid test report was produced. Deployment blocked.')
+                    }
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'TestResults/**/*.trx,TestResults/junit.xml', allowEmptyArchive: true
+                }
             }
         }
 
@@ -269,29 +282,14 @@ stage('Restore') {
         // STAGE 6 - PUBLISH
         // ========================================
         stage('Publish') {
+            options { timeout(time: 10, unit: 'MINUTES') }
             steps {
                 echo '===== PUBLISH ASP.NET MVC WEBSITE ====='
 
                 bat '''
                 @echo off
 
-                echo Cleaning old publish output...
-
-                if exist "%PUBLISH_DIR%" (
-                    rmdir /s /q "%PUBLISH_DIR%"
-
-                    if exist "%PUBLISH_DIR%" (
-                        echo ERROR: CANNOT CLEAN PUBLISH DIRECTORY
-                        exit /b 1
-                    )
-                )
-
-                mkdir "%PUBLISH_DIR%"
-
-                if errorlevel 1 (
-                    echo ERROR: CANNOT CREATE PUBLISH DIRECTORY
-                    exit /b 1
-                )
+                if not exist "%PUBLISH_DIR%" mkdir "%PUBLISH_DIR%"
 
                 echo Publishing to %PUBLISH_DIR%
 
@@ -324,165 +322,80 @@ stage('Restore') {
             }
         }
 
+        stage('Release artifacts') {
+            steps {
+                powershell '''
+                    $ErrorActionPreference = 'Stop'
+                    $dll = Join-Path $env:PUBLISH_DIR 'bin\\BBEcom.dll'
+                    $hash = (Get-FileHash -LiteralPath $dll -Algorithm SHA256).Hash
+                    @("Commit: $env:RELEASE_COMMIT", "Build: $env:BUILD_URL", "BBEcom.dll SHA256: $hash") |
+                        Set-Content -LiteralPath 'release-info.txt' -Encoding UTF8
+                '''
+                archiveArtifacts artifacts: 'release/site/bin/BBEcom.dll,release-info.txt', fingerprint: true, allowEmptyArchive: false
+            }
+        }
+
+        stage('Docker Build') {
+            options { timeout(time: 45, unit: 'MINUTES') }
+            when { expression { params.BUILD_DOCKER } }
+            steps {
+                powershell '''
+                    & "$env:WORKSPACE\\scripts\\build-docker.ps1" -PublishDir $env:PUBLISH_DIR -ImageTag "sellcard:ci-$env:BUILD_NUMBER"
+                    if ($LASTEXITCODE -ne 0) { throw 'Docker build failed.' }
+                '''
+            }
+        }
+
+        stage('Release eligibility') {
+            when { expression { params.DEPLOY_IIS } }
+            steps {
+                script {
+                    if (env.CHANGE_ID || (env.BRANCH_NAME && env.BRANCH_NAME != env.BUILD_BRANCH)) {
+                        error('Deployment is allowed only from the protected release branch, never from a pull request.')
+                    }
+                    if (!env.BRANCH_NAME && !(env.GIT_BRANCH in [env.BUILD_BRANCH, "origin/${env.BUILD_BRANCH}"])) {
+                        error('SCM branch must be the configured release branch. Check the Jenkins SCM configuration.')
+                    }
+                }
+                bat '''
+                    @echo off
+                    git fetch origin "%BUILD_BRANCH%"
+                    if errorlevel 1 exit /b 1
+                    git rev-parse --verify FETCH_HEAD
+                    if errorlevel 1 exit /b 1
+                    for /f %%i in ('git rev-parse FETCH_HEAD') do if not "%%i"=="%RELEASE_COMMIT%" exit /b 1
+                '''
+            }
+        }
+
         // ========================================
         // STAGE 7 - MANUAL RELEASE APPROVAL
         // A merged PR can trigger CI automatically; deployment awaits approval.
         // ========================================
         stage('Approval') {
+            when { expression { params.DEPLOY_IIS } }
             steps {
                 timeout(time: 24, unit: 'HOURS') {
-                    input message: 'Approve SellCard release to IIS?',
-                          ok: 'Approve & Deploy',
-                          submitter: 'quyenha2512'
+                    script {
+                        env.APPROVED_BY = input message: "Deploy commit ${env.RELEASE_COMMIT} to ${env.WEBSITE_URL}? Review Test Result and Artifacts first.",
+                            ok: 'Approve & Deploy', submitter: 'quyenha2512', submitterParameter: 'APPROVED_BY'
+                        env.APPROVED_AT = powershell(returnStdout: true, script: '[DateTime]::UtcNow.ToString("o")').trim()
+                        currentBuild.description = "Commit ${env.RELEASE_COMMIT.take(12)}; approved by ${env.APPROVED_BY}"
+                        writeFile file: 'release-approval.txt', text: "Commit: ${env.RELEASE_COMMIT}\nApproved by: ${env.APPROVED_BY}\nApproved at (UTC): ${env.APPROVED_AT}\nBuild: ${env.BUILD_URL}\n"
+                    }
                 }
+                archiveArtifacts artifacts: 'release-approval.txt', fingerprint: true
                 echo 'DEPLOY APPROVED'
             }
         }
 
-        // ========================================
-        // STAGE 8 - BACK UP ACTIVE IIS WEBSITE
-        // Backups are outside wwwroot and include the private Web.config.
-        // ========================================
-        stage('Backup IIS') {
+        stage('Deploy and Verify IIS') {
+            when { expression { params.DEPLOY_IIS } }
+            options { timeout(time: 15, unit: 'MINUTES') }
             steps {
-                powershell '''
-                    $ErrorActionPreference = 'Stop'
-                    $target = $env:IIS_DIR
-                    if (-not (Test-Path -LiteralPath $target -PathType Container)) {
-                        throw "IIS directory missing: $target"
-                    }
-                    if (-not (Test-Path -LiteralPath (Join-Path $target 'Web.config'))) {
-                        throw 'IIS Web.config missing; configure IIS once before deploying.'
-                    }
-
-                    $backup = Join-Path 'C:\\JenkinsBackups\\BBEcom' $env:BUILD_NUMBER
-                    New-Item -ItemType Directory -Path $backup -Force | Out-Null
-                    & robocopy.exe $target $backup /E /R:2 /W:2 /NP /NFL /NDL /XF app_offline.htm
-                    $rc = $LASTEXITCODE
-                    if ($rc -ge 8) { throw "Backup failed: robocopy exit $rc" }
-                    $global:LASTEXITCODE = 0
-                    Write-Host "Backup completed: $backup"
-                    exit 0
-                '''
-            }
-        }
-
-        // ========================================
-        // STAGE 9 - DEPLOY TO IIS
-        // ========================================
-        stage('Deploy') {
-            steps {
-                echo '===== DEPLOY WEBSITE TO IIS ====='
-
-                powershell '''
-                    $ErrorActionPreference = 'Stop'
-
-                    $source = $env:PUBLISH_DIR
-                    $target = $env:IIS_DIR
-
-                    if (-not (Test-Path -LiteralPath $source -PathType Container)) {
-                        throw "Publish directory not found: $source"
-                    }
-
-                    if (-not (Test-Path -LiteralPath $target -PathType Container)) {
-                        throw "IIS directory not found: $target"
-                    }
-
-                    if (-not (Test-Path -LiteralPath (Join-Path $source 'Web.config'))) {
-                        throw 'Published Web.config not found'
-                    }
-
-                    $offline = Join-Path $target 'app_offline.htm'
-
-                    Write-Host 'Enabling temporary maintenance mode...'
-
-                    Set-Content -LiteralPath $offline `
-                        -Value 'Website is being updated.' `
-                        -Encoding ASCII
-
-                    try {
-                        Write-Host 'Copying published website to IIS...'
-
-                        # Keep machine-specific configuration and uploaded user files.
-                        # Never use /MIR: it may delete IIS-only data.
-                        & robocopy.exe $source $target /E /R:2 /W:2 /NP /NFL /NDL `
-                            /XF Web.config app_offline.htm `
-                            /XD App_Data userfiles uploads
-
-                        $copyCode = $LASTEXITCODE
-
-                        Write-Host "Robocopy exit code: $copyCode"
-
-                        if ($copyCode -ge 8) {
-                            throw "Robocopy failed with code $copyCode"
-
-                        }
-                        $global:LASTEXITCODE = 0
-                        if (-not (Test-Path -LiteralPath (Join-Path $target 'Web.config'))) {
-                            throw 'Web.config missing from IIS folder'
-                        }
-
-                        if (-not (Test-Path -LiteralPath (Join-Path $target 'bin\\BBEcom.dll'))) {
-                            throw 'BBEcom.dll missing from IIS folder'
-                        }
-
-                        Write-Host 'DEPLOY SUCCESS'
-                    }
-                    finally {
-                        if (Test-Path -LiteralPath $offline) {
-                            Remove-Item -LiteralPath $offline -Force
-                        }
-                        Write-Host 'Maintenance mode removed.'
-                    }
-                    $global:LASTEXITCODE = 0
-                    exit 0
-                '''
-            }
-        }
-
-        // ========================================
-        // STAGE 10 - VERIFY HTTP
-        // ========================================
-        stage('Verify') {
-            steps {
-                echo '===== VERIFY DEPLOYED WEBSITE ====='
-
-                powershell '''
-                    $ErrorActionPreference = 'Stop'
-
-                    $url = $env:WEBSITE_URL
-                    $maxAttempts = 5
-
-                    for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
-
-                        Write-Host "Checking website ($attempt/$maxAttempts): $url"
-
-                        try {
-                            $response = Invoke-WebRequest `
-                                -Uri $url `
-                                -UseBasicParsing `
-                                -TimeoutSec 20 `
-                                -MaximumRedirection 5
-
-                            if ($response.StatusCode -ne 200) {
-                                throw "Unexpected HTTP status: $($response.StatusCode)"
-                            }
-
-                            Write-Host 'VERIFY SUCCESS - HTTP 200'
-                            Write-Host "Final URL: $($response.BaseResponse.ResponseUri)"
-                            exit 0
-                        }
-                        catch {
-                            Write-Host "Verification attempt failed: $_"
-
-                            if ($attempt -eq $maxAttempts) {
-                                throw "VERIFY FAILED after $maxAttempts attempts"
-                            }
-
-                            Start-Sleep -Seconds 3
-                        }
-                    }
-                '''
+                lock(resource: 'sellcard-iis-production') {
+                    powershell '& .\\scripts\\deploy-iis.ps1'
+                }
             }
         }
     }
@@ -493,13 +406,12 @@ stage('Restore') {
     post {
         success {
             echo '========================================'
-            echo 'CI/CD PIPELINE SUCCESS!'
-            echo 'BUILD: SUCCESS'
-            echo 'TEST: SUCCESS'
-            echo 'PUBLISH: SUCCESS'
-            echo 'DEPLOY: SUCCESS'
-            echo 'VERIFY: HTTP 200'
+            echo "CI completed. IIS deployment requested: ${params.DEPLOY_IIS}. See stages for actual results."
             echo '========================================'
+        }
+
+        aborted {
+            echo 'Pipeline aborted or approval timed out. Check deployment stage if it had already started.'
         }
 
         failure {
@@ -511,7 +423,8 @@ stage('Restore') {
 
         always {
             archiveArtifacts(
-                artifacts: 'TestResults/**/*.trx',
+                artifacts: 'TestResults/**/*.trx,TestResults/junit.xml,release-approval.txt',
+                fingerprint: true,
                 allowEmptyArchive: true
             )
 

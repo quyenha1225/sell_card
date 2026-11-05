@@ -89,24 +89,13 @@ Thử: `http://localhost:8090/Home/Index`.
 
 Nếu báo xung đột tên container `sellcard-web`, xem `docker ps -a`; không xóa dữ liệu/volume để giải quyết lỗi này. Có thể chạy với tên khác qua `-ContainerName sellcard-web-v2` và cổng khác via `-Port 8091`.
 
-## 6. Gắn Jenkins CI/CD sau khi Docker chạy thủ công thành công
+## 6. Jenkins CI/CD
 
-Chưa tự chỉnh Jenkinsfile. Trong Jenkinsfile đang có các stage `Checkout → Restore → Build → Test → Publish → Deploy → Verify`, có thể thêm stage sau **Publish**:
+See [README-JENKINS.md](README-JENKINS.md) for the current pipeline and approval setup.
 
-```
-stage('Docker Build') {
-    steps {
-        powershell '''
-            & "$env:WORKSPACE\\scripts\\build-docker.ps1" `
-                -PublishDir $env:PUBLISH_DIR `
-                -ImageTag "sellcard:ci-$env:BUILD_NUMBER"
-            if ($LASTEXITCODE -ne 0) { throw 'Docker image build failed' }
-        '''
-    }
-}
-```
+Set `BUILD_DOCKER=true` to build `sellcard:ci-<BUILD_NUMBER>` after Publish. Jenkins passes `<WORKSPACE>\release\site` as the publish directory. This option builds an image only; it does not replace a running container. The Windows agent needs access to the Windows Docker daemon.
 
-Nếu Jenkins là Windows Service, agent thực thi pipeline cần quyền sử dụng Windows Docker daemon; KHÔNG công khai Docker daemon không xác thực qua cổng TCP. Bước Docker Deploy tự động và rollback chỉ bổ sung sau khi container và SQL đã hoạt động ổn định.
+Set `DEPLOY_IIS=true` for an approved IIS deployment. For manual Docker builds from the new pipeline output, pass the correct `-PublishDir`; the default `C:\JenkinsDeploy\BBEcom` applies only to a separate legacy publish output.
 
 ## Lưu ý
 

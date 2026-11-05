@@ -368,6 +368,12 @@ Web.config             Database, authentication, SePay và IIS config
 Xem [LICENSE.txt](LICENSE.txt).
 
 
+## Current Jenkins pipeline
+
+See [README-JENKINS.md](README-JENKINS.md) for current setup, approval, Build/Test reports and rollback. Publish output is now `<WORKSPACE>\release\site`. Default runs perform CI only; enable `DEPLOY_IIS` to request an approved IIS release or `BUILD_DOCKER` to build an image.
+
+The IIS/OAuth notes below describe the previous pipeline; shared publish paths and old stage numbering are superseded by README-JENKINS.md.
+
 ## CI/CD Jenkins → IIS (một source dùng cho cả IIS Express và IIS)
 
 **Không gỡ IIS, không xóa database `BBEcom`, không sửa code trực tiếp trong `C:\inetpub\wwwroot\BBEcom`.**
