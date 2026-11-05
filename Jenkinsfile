@@ -1,6 +1,13 @@
 
 pipeline {
-    agent { label 'sellcard-windows' }
+    agent {
+        node {
+            label 'sellcard-windows'
+            // Each build owns a fresh directory; locked reports from older builds
+            // must not prevent checkout or cause stale test results to be reused.
+            customWorkspace "sellcard-runs/${env.BUILD_TAG}"
+        }
+    }
 
     options {
         skipDefaultCheckout(true)
@@ -45,8 +52,7 @@ pipeline {
             steps {
                 echo '===== CHECKOUT GITHUB ====='
 
-                // Remove stale workspace files
-                deleteDir()
+                echo "Isolated build workspace: ${env.WORKSPACE}"
 
                 checkout scm
                 script {
@@ -429,6 +435,16 @@ pipeline {
             )
 
             echo 'Pipeline completed.'
+        }
+
+        cleanup {
+            script {
+                try {
+                    deleteDir()
+                } catch (Exception cleanupError) {
+                    echo "Workspace cleanup could not finish: ${env.WORKSPACE}. Artifacts already archived remain available. Inspect file locks and permissions before removing this directory manually."
+                }
+            }
         }
     }
 }

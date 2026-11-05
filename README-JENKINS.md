@@ -16,6 +16,7 @@ Luồng: Checkout đúng commit của job → Restore → Build Release → Test
 - Lần đầu chạy job để Jenkins nhận parameters. Mặc định chỉ CI, không thay website.
 - Chọn **Build with Parameters → DEPLOY_IIS=true** để yêu cầu triển khai IIS. Sau khi CI thành công, người duyệt có 24 giờ để xem **Test Result**, **Artifacts**, commit và nhấn **Approve & Deploy**. Hủy hoặc hết hạn thì không bắt đầu deploy.
 - Job giữ Windows executor trong thời gian chờ duyệt; nên dành agent riêng cho release. Build cùng job xếp hàng, không chạy chồng nhau.
+- Mỗi build dùng workspace riêng `sellcard-runs/<BUILD_TAG>` dưới workspace root của agent. Sau khi lưu Artifacts, Jenkins thử dọn workspace; nếu file bị giữ hoặc thiếu quyền thì ghi cảnh báo và giữ thư mục để kiểm tra, không làm mất kết quả Build/Test. `buildDiscarder` không tự dọn các workspace còn sót này.
 - Pipeline kiểm tra commit vẫn là đầu nhánh release trước và sau duyệt. Nếu nhánh đã có commit mới, phải chạy và duyệt bản mới.
 - **BUILD_DOCKER=true** tạo image `sellcard:ci-<BUILD_NUMBER>` bằng script hiện có; cần Docker Windows containers. Tùy chọn này chỉ build image, chưa tự thay container đang chạy. Xem `README-DOCKER.md` để cấu hình SQL và Web.config ngoài image.
 
