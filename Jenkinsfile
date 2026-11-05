@@ -55,10 +55,12 @@ pipeline {
 
                 echo "Isolated build workspace: ${env.WORKSPACE}"
 
-                checkout scm
                 script {
+                    def checkoutInfo = checkout scm
+                    env.SCM_BRANCH = checkoutInfo.GIT_BRANCH ?: ''
                     env.RELEASE_COMMIT = bat(returnStdout: true, script: '@git rev-parse HEAD').trim()
-                    currentBuild.description = "Commit ${env.RELEASE_COMMIT.take(12)}; CI"
+                    echo "SCM checkout branch: ${env.SCM_BRANCH ?: '(not reported)'}; multibranch: ${env.BRANCH_NAME ?: '(not set)'}"
+                    currentBuild.description = "Commit ${env.RELEASE_COMMIT.take(12)}; ${params.DEPLOY_IIS ? 'IIS deployment requested' : 'CI only'}"
                 }
 
                 bat '''
@@ -360,9 +362,16 @@ pipeline {
                     if (env.CHANGE_ID || (env.BRANCH_NAME && env.BRANCH_NAME != env.BUILD_BRANCH)) {
                         error('Deployment is allowed only from the protected release branch, never from a pull request.')
                     }
-                    if (!env.BRANCH_NAME && !(env.GIT_BRANCH in [env.BUILD_BRANCH, "origin/${env.BUILD_BRANCH}"])) {
-                        error('SCM branch must be the configured release branch. Check the Jenkins SCM configuration.')
+                    def actualBranch = env.BRANCH_NAME ?: env.SCM_BRANCH ?: ''
+                    for (String prefix : ['refs/remotes/', 'remotes/', 'refs/heads/', 'origin/']) {
+                        if (actualBranch.startsWith(prefix)) {
+                            actualBranch = actualBranch.substring(prefix.length())
+                        }
                     }
+                    if (actualBranch != env.BUILD_BRANCH) {
+                        error("SCM branch '${actualBranch ?: '(not reported)'}' must be '${env.BUILD_BRANCH}'. Configure Branch Specifier as */${env.BUILD_BRANCH}.")
+                    }
+                    echo "Release branch accepted: ${actualBranch}; checking the release commit next."
                 }
                 bat '''
                     @echo off
@@ -384,6 +393,7 @@ pipeline {
             steps {
                 timeout(time: 24, unit: 'HOURS') {
                     script {
+                        currentBuild.description = "Commit ${env.RELEASE_COMMIT.take(12)}; waiting for IIS approval"
                         env.APPROVED_BY = input message: "Deploy commit ${env.RELEASE_COMMIT} to ${env.WEBSITE_URL}? Review Test Result and Artifacts first.",
                             ok: 'Approve & Deploy', submitter: 'quyenha2512', submitterParameter: 'APPROVED_BY'
                         env.APPROVED_AT = powershell(returnStdout: true, script: '[DateTime]::UtcNow.ToString("o")').trim()
