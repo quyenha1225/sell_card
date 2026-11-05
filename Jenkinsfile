@@ -410,9 +410,7 @@ pipeline {
             when { expression { params.DEPLOY_IIS } }
             options { timeout(time: 15, unit: 'MINUTES') }
             steps {
-                lock(resource: 'sellcard-iis-production') {
-                    powershell '& .\\scripts\\deploy-iis.ps1'
-                }
+                powershell '& .\\scripts\\invoke-iis-deployment.ps1'
             }
         }
     }
