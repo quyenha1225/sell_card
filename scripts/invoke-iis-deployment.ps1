@@ -1,13 +1,16 @@
 # FileShare.None coordinates all deployments using this wrapper on this IIS host.
 # Keep the lock file on disk: deleting it after release can introduce a race.
+param(
+    [string]$LockDirectory = 'C:\JenkinsBackups\BBEcom',
+    [ValidateRange(1, 600)][int]$LockTimeoutSeconds = 120
+)
 $ErrorActionPreference = 'Stop'
-$lockDirectory = 'C:\JenkinsBackups\BBEcom'
 New-Item -ItemType Directory -Path $lockDirectory -Force | Out-Null
 $lockFile = Join-Path $lockDirectory 'iis-deployment.lock'
-$deadline = [DateTime]::UtcNow.AddMinutes(2)
+$deadline = [DateTime]::UtcNow.AddSeconds($LockTimeoutSeconds)
 $handle = $null
 try {
-    Write-Host 'Waiting for the local IIS deployment lock (maximum 2 minutes)...'
+    Write-Host "Waiting for the local IIS deployment lock (maximum $LockTimeoutSeconds seconds)..."
     while ($null -eq $handle) {
         try {
             $handle = [IO.File]::Open($lockFile, [IO.FileMode]::OpenOrCreate, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)

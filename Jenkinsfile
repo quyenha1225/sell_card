@@ -381,6 +381,7 @@ pipeline {
                     if errorlevel 1 exit /b 1
                     for /f %%i in ('git rev-parse FETCH_HEAD') do if not "%%i"=="%RELEASE_COMMIT%" exit /b 1
                 '''
+                powershell '& .\\scripts\\test-iis-readiness.ps1'
             }
         }
 
@@ -411,6 +412,10 @@ pipeline {
             options { timeout(time: 15, unit: 'MINUTES') }
             steps {
                 powershell '& .\\scripts\\invoke-iis-deployment.ps1'
+                script {
+                    env.IIS_DEPLOYED = 'true'
+                    currentBuild.description = "Commit ${env.RELEASE_COMMIT.take(12)}; IIS verified; approved by ${env.APPROVED_BY}"
+                }
             }
         }
     }
@@ -421,7 +426,13 @@ pipeline {
     post {
         success {
             echo '========================================'
-            echo "CI completed. IIS deployment requested: ${params.DEPLOY_IIS}. See stages for actual results."
+            script {
+                if (env.IIS_DEPLOYED == 'true') {
+                    echo "CI/CD SUCCESS: IIS deployment verified by HTTP 200. Commit: ${env.RELEASE_COMMIT}."
+                } else {
+                    echo 'CI SUCCESS ONLY: IIS was not deployed. To request deployment, run with DEPLOY_IIS=true and approve the release.'
+                }
+            }
             echo '========================================'
         }
 
